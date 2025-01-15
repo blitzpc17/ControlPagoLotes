@@ -28,6 +28,7 @@ namespace ControlPagoLotes
         private List<PagoPartida> ListaPartidasAux;
 
         private bool isPasting = false;
+        private bool guardoEncabezado = false;
         private decimal acumulado = 0;
 
 
@@ -48,6 +49,9 @@ namespace ControlPagoLotes
             contextoPago = new PagoLogica();
             contextoPagoPartida = new PagoPartidaLogica();
 
+            InicializarVariables();
+
+            Global.LimpiarControles(this);
          
             dgvRegistros.AllowUserToDeleteRows = true;
             dgvRegistros.AllowUserToAddRows = true;
@@ -59,13 +63,23 @@ namespace ControlPagoLotes
             cbxZona.ValueMember = "Id";
             cbxZona.SelectedIndex = -1;
 
+            var listaEstados = Enum.GetValues(typeof(Enumeraciones.Estados))
+                .Cast<Enumeraciones.Estados>()
+                .Select(x => new { Id = Convert.ToInt32(x), Nombre = x.ToString()})
+                .ToList();
+
+            cbxEstados.DataSource = listaEstados;
+            cbxEstados.DisplayMember = "Nombre";
+            cbxEstados .ValueMember = "Id";
+
             bool nuevo = idRegistro == null;
+
+           /* txtNombreCliente.ReadOnly = !nuevo;
             txtDiaPago.ReadOnly = !nuevo;
             txtLotes.ReadOnly = !nuevo;
-            txtMeses.ReadOnly = !nuevo;         
-            txtNombreCliente.ReadOnly = !nuevo;
+            txtMeses.ReadOnly = !nuevo; 
             txtTotal.ReadOnly = !nuevo;
-            cbxZona.Enabled = nuevo;
+            cbxZona.Enabled = nuevo;*/
 
             if (!nuevo)
             {
@@ -74,10 +88,11 @@ namespace ControlPagoLotes
                 txtNombreCliente.Text = Obj.NombreCliente;
                 txtDiaPago.Text = Obj.DiaPago;
                 cbxZona.SelectedValue = Obj.ZonaId;
+                cbxEstados.SelectedValue = Convert.ToInt32(Obj.Estado);
                 txtLotes.Text = Obj.Lotes;
                 txtMeses.Text = Obj.Meses;
                 txtTotal.Text = Obj.Total.ToString("N2");
-                
+                dtpFechaContrato.Value = Obj.FechaRegistro;
 
                 ListaPartidas = contextoPagoPartida.GetAllPagoPartidas((int)idRegistro);
 
@@ -115,9 +130,21 @@ namespace ControlPagoLotes
 
         }
 
+        private void InicializarVariables()
+        {
+            listaZonas = null;
+            Obj = null;
+            ObjPartida = null;
+            ListaPartidas = null;
+            ListaPartidasAux = null;
+            isPasting = false;
+            guardoEncabezado = false;
+            acumulado = 0;
+        }
+
         private void GuardarPago()
         {           
-            if (idRegistro==null)
+            if (Obj==null)
             {
                 Obj = new Pago
                 {
@@ -127,78 +154,101 @@ namespace ControlPagoLotes
                     ZonaId = (int)cbxZona.SelectedValue,
                     DiaPago = txtDiaPago.Text,
                     Lotes = txtLotes.Text,
-                    FechaRegistro = DateTime.Now,
+                    FechaRegistro = dtpFechaContrato.Value,//DateTime.ParseExact(fechaString, "dd/MM/yyyy", CultureInfo.InvariantCulture);,
+                    FechaCreacion = DateTime.Now,
+                    Estado = "1"
                 };
 
-                 Obj.Id = contextoPago.AddPago(Obj);
+                Obj.Id = contextoPago.AddPago(Obj);
+                guardoEncabezado = Obj.Id > 0;
 
-            }      
-         
-
-            if (Obj != null)
+            }
+            else
             {
+                Obj.NombreCliente = txtNombreCliente.Text;
+                Obj.Total = decimal.Parse(txtTotal.Text);
+                Obj.Meses = txtMeses.Text;
+                Obj.ZonaId = (int)cbxZona.SelectedValue;
+                Obj.DiaPago = txtDiaPago.Text;
+                Obj.Lotes = txtLotes.Text;
+                Obj.FechaRegistro = dtpFechaContrato.Value;//DateTime.ParseExact(fechaString, "dd/MM/yyyy", CultureInfo.InvariantCulture);                
+                Obj.Estado = cbxEstados.SelectedValue.ToString();
+                
 
-                if (dgvRegistros.Rows.Count > 0)
+                guardoEncabezado = contextoPago.UpdatePago(Obj);
+            } 
+
+            if (guardoEncabezado && dgvRegistros.Rows.Count > 0)
+            {
+                ListaPartidasAux = new List<PagoPartida>();
+
+                foreach (DataGridViewRow item in dgvRegistros.Rows)
                 {
-                    ListaPartidasAux = new List<PagoPartida>();   
 
-                    foreach(DataGridViewRow item in dgvRegistros.Rows)
+                    if (item.IsNewRow) continue;
+
+                    ListaPartidasAux.Add(new PagoPartida
                     {
+                        Monto = Convert.ToDecimal(item.Cells[0].Value),
+                        Fecha = Convert.ToDateTime(item.Cells[1].Value),
+                        UsuarioId = 1,
+                        PagoId = Obj.Id
 
-                        if(item.IsNewRow)continue;
+                    });
+                }
+                //borrar anteriores
 
-                        ListaPartidasAux.Add(new PagoPartida
-                        {
-                            Monto = Convert.ToDecimal(item.Cells[0].Value),
-                            Fecha = Convert.ToDateTime(item.Cells[1].Value),
-                            UsuarioId = 1,
-                            PagoId = Obj.Id
-                            
-                        });
-                    }
-                    //borrar anteriores
+                int eliminados = contextoPagoPartida.EliminarPartidasAnteriores(Obj.Id);
 
-                    int eliminados  = contextoPagoPartida.EliminarPartidasAnteriores(Obj.Id);
+                //guardar partida
 
-                    //guardar partida
+                if (ListaPartidas == null || eliminados == ListaPartidas.Count)
+                {
+                    //insertar
+                    string query = "";
 
-                    if(ListaPartidas==null || eliminados == ListaPartidas.Count)
+
+                    query += string.Join(",", ListaPartidasAux.Select(item =>
+                    $"({Obj.Id}, {item.Monto}, '{item.Fecha.ToString("yyyy-MM-dd")}', 1)"));
+
+                    if (ListaPartidasAux.Count == contextoPagoPartida.InsertarPartidasPago(query))
                     {
-                        //insertar
-                        string query = "";
-                        query += string.Join(",", ListaPartidasAux.Select(item =>
-                        $"({Obj.Id}, {item.Monto}, '{item.Fecha.ToString("yyyy-MM-dd")}', 1)"));
-
-                        if(ListaPartidasAux.Count == contextoPagoPartida.InsertarPartidasPago(query))
-                        {
-                            MessageBox.Show("Se han registrado los cambios correctamente.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            InicializarModulo();
-                        }
-                        else
-                        {
-                            MessageBox.Show("Error al guardar los registros, intente cargando el Pago nuevamente.", "Error en la operación", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
+                        MessageBox.Show("Se han registrado los cambios correctamente.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        InicializarModulo();
                     }
                     else
                     {
-
-                        MessageBox.Show("Error al intentar realizar la operación de guarddado, intente cargando el Pago nuevamente.", "Error en la operación", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Error al guardar los registros, intente cargando el Pago nuevamente.", "Error en la operación", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
+                }
+                else
+                {
 
-                   
-                }               
+                    MessageBox.Show("Error al intentar realizar la operación de guarddado, intente cargando el Pago nuevamente.", "Error en la operación", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
 
             }
 
-         
+            if (guardoEncabezado)
+            {
+                MessageBox.Show("Registro guardado correctamente.", "Mensaje", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Close();
+            }
 
 
-          
+
+
+
         }
 
         private void btnCancelar_Click(object sender, EventArgs e)
         {
-            InicializarModulo();
+            if(MessageBox.Show("¿Desea regresar a la búsqueda general de pagos?", "Advertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                Close();
+            }
+            
         }
 
         private void btnAddPago_Click(object sender, EventArgs e)

@@ -21,8 +21,8 @@ namespace DAO.ADOS
         //, FechaPago, FechaRegistro
         //, @FechaPago, @FechaRegistro
         {
-            var query = @"INSERT INTO PAGOS (NombreCliente, Total, Meses, ZonaId, DiaPago, Lotes, FechaRegistro)
-                      VALUES (@NombreCliente, @Total, @Meses, @ZonaId, @DiaPago, @Lotes, @FechaRegistro);
+            var query = @"INSERT INTO PAGOS (NombreCliente, Total, Meses, ZonaId, DiaPago, Lotes, FechaRegistro, Estado, FechaCreacion)
+                      VALUES (@NombreCliente, @Total, @Meses, @ZonaId, @DiaPago, @Lotes, @FechaRegistro, @Estado, @FechaCreacion);
                       SELECT CAST(SCOPE_IDENTITY() as int);";
 
             return connection.ExecuteScalar(query, Pagos);
@@ -39,7 +39,7 @@ namespace DAO.ADOS
         public bool UpdatePagos(Pago Pagos)
         {
             var query = @"UPDATE PAGOS SET NombreCliente = @NombreCliente, Total = @Total, Meses = @Meses, 
-                      ZonaId = @ZonaId, DiaPago = @DiaPago, Lotes = @Lotes WHERE Id = @Id";
+                      ZonaId = @ZonaId, DiaPago = @DiaPago, Lotes = @Lotes, Estado = @Estado, FechaRegistro = @FechaRegistro WHERE Id = @Id";
             return connection.Execute(query, Pagos) > 0;
         }
 
@@ -55,6 +55,25 @@ namespace DAO.ADOS
         {
             var query = "SELECT * FROM Pagos";
             return connection.Query<Pago>(query).ToList();
+        }
+
+        public List<clsPagosBusqueda> GetAllPagosBusqueda()
+        {
+            var query = "SELECT \r\n    CAST(p.Id AS NVARCHAR(MAX)) AS Id,\r\n    " +
+                "CAST(p.NombreCliente AS NVARCHAR(MAX)) AS Cliente,\r\n    " +
+                "CAST(zn.Nombre AS NVARCHAR(MAX)) AS Zona,\r\n    " +
+                "CAST(p.Lotes AS NVARCHAR(MAX)) AS Lotes,\r\n    " +
+                "FORMAT(p.Total, '$0.00') AS Total,\r\n    " +
+                "FORMAT(p.FechaRegistro, 'dd/MM/yyyy') AS Fecha,\r\n    " +
+                "CAST(p.Estado AS NVARCHAR(MAX)) AS ClaveEstado,\r\n    CASE \r\n        " +
+                "WHEN p.Estado = '1' THEN 'AL CORRIENTE'\r\n        " +
+                "WHEN p.Estado = '2' THEN 'PAGADO'\r\n        " +
+                "WHEN p.Estado = '3' THEN 'CANCELADO'\r\n        " +
+                "WHEN p.Estado = '4' THEN 'ATRASADO'\r\n        " +
+                "ELSE 'DESCONOCIDO'\r\n    " +
+                "END AS NombreEstado\r\nFROM PAGOS p\r\nJOIN ZONAS zn ON p.ZonaId = zn.Id;";
+
+            return connection.Query<clsPagosBusqueda>(query).ToList();
         }
     }
 }

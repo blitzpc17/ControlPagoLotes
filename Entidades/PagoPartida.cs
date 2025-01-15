@@ -13,5 +13,6 @@ namespace Entidades
         public decimal Monto { get; set; }
         public DateTime Fecha { get; set; }
         public int UsuarioId { get; set; }
+        public DateTime FechaCreacion { get; set; }
     }
 }

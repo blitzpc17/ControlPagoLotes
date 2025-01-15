@@ -53,5 +53,11 @@ namespace DAO.ADOS
             var query = "SELECT * FROM Usuarios";
             return connection.Query<UsuarioL>(query).ToList();
         }
+
+        public UsuarioL ValidarUsuario(string usuario, string pass)
+        {
+            var query = "SELECT *FROM Usuarios WHERE Usuario = @usuario AND Password = @pass";
+            return connection.QuerySingle< UsuarioL> (query, new { usuario = usuario, pass = pass });
+        }
     }
 }

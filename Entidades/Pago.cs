@@ -16,5 +16,7 @@ namespace Entidades
         public string DiaPago { get; set; }
         public string Lotes { get; set; }
         public DateTime FechaRegistro { get; set; } 
+        public string Estado { get; set; }  
+        public DateTime FechaCreacion { get; set; }
     }
 }

@@ -41,6 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="clsDataCombo.cs" />
+    <Compile Include="clsPagosBusqueda.cs" />
     <Compile Include="Pago.cs" />
     <Compile Include="PagoPartida.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

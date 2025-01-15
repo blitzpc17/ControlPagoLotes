@@ -19,8 +19,8 @@ namespace DAO.ADOS
         // Crear PagoPartida
         public int AddPagoPartida(PagoPartida PagoPartida)
         {
-            var query = @"INSERT INTO PAGOSPARTIDAS (PagoId, Monto, Fecha, UsuarioId)
-                      VALUES (@PagoId, @Monto, @Fecha, @UsuarioId);
+            var query = @"INSERT INTO PAGOSPARTIDAS (PagoId, Monto, Fecha, UsuarioId, FechaCreacion)
+                      VALUES (@PagoId, @Monto, @Fecha, @UsuarioId, @FechaCreacion);
                       SELECT CAST(SCOPE_IDENTITY() as int);";
 
             return connection.Execute(query, PagoPartida);
@@ -36,7 +36,7 @@ namespace DAO.ADOS
         // Actualizar PagoPartida
         public bool UpdatePagoPartida(PagoPartida PagoPartida)
         {
-            var query = @"UPDATE PAGOSPARTIDAS SET PagoId = @PagoId, Monto = @Monto, Fecha = @Fecha, 
+            var query = @"UPDATE PAGOSPARTIDAS SET PagoId = @PagoId, Monto = @Monto, Fecha = @Fecha, FechaCreacion = @FechaCreacion, 
                       UsuarioId = @UsuarioId WHERE Id = @Id";
             return connection.Execute(query, PagoPartida) > 0;
         }

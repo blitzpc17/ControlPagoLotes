@@ -46,5 +46,11 @@ namespace LOGICA
         {
             return contexto.GetAllPagos();
         }
+
+        //leer pago busqueda
+        public List<clsPagosBusqueda> GetAllPagosBusqueda()
+        {
+            return contexto.GetAllPagosBusqueda();
+        }
     }
 }
