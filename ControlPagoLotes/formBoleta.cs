@@ -1,4 +1,12 @@
-﻿using Entidades;
+﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Entidades;
+using iText.Kernel.Pdf;
+using iText.Kernel.Geom;
+using iText.Layout;
+using iText.Layout.Element;
+using System.IO;
 using LOGICA;
 using System;
 using System.Collections.Generic;
@@ -10,6 +18,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using PageSize = iText.Kernel.Geom.PageSize;
+using Document = iText.Layout.Document;
+using Paragraph = iText.Layout.Element.Paragraph;
+using Table = iText.Layout.Element.Table;
+using Cell = iText.Layout.Element.Cell;
+using iText.Layout.Properties;
+using iText.IO.Font.Constants;
+using iText.Kernel.Font;
 
 namespace ControlPagoLotes
 {
@@ -31,6 +47,13 @@ namespace ControlPagoLotes
         private bool guardoEncabezado = false;
         private decimal acumulado = 0;
 
+        private string clipboardText;
+        private int indexActual = -1;
+        List<clsCELDASPAGOS> ListaCeldas;
+        List<string> rows;
+
+        private bool pagoAtrasado = false;
+
 
         public formBoleta(int? idRegistro)
         {
@@ -41,6 +64,14 @@ namespace ControlPagoLotes
         private void formBoleta_Load(object sender, EventArgs e)
         {
             InicializarModulo();
+            if (pagoAtrasado)
+            {
+                MensajePorEstado((int)Enumeraciones.Estados.ATRASADO);
+            }
+            else
+            {
+                MensajePorEstado((int)cbxEstados.SelectedValue);
+            }
         }
 
         private void InicializarModulo()
@@ -52,11 +83,10 @@ namespace ControlPagoLotes
             InicializarVariables();
 
             Global.LimpiarControles(this);
-         
-            dgvRegistros.AllowUserToDeleteRows = true;
-            dgvRegistros.AllowUserToAddRows = true;
-            dgvRegistros.ReadOnly = false;
 
+            InicializarDgv();
+
+            btnAddPago.Enabled = true;
             listaZonas = contextoZonas.GetAllZonas();
             cbxZona.DataSource = listaZonas;
             cbxZona.DisplayMember = "Nombre";
@@ -73,13 +103,6 @@ namespace ControlPagoLotes
             cbxEstados .ValueMember = "Id";
 
             bool nuevo = idRegistro == null;
-
-           /* txtNombreCliente.ReadOnly = !nuevo;
-            txtDiaPago.ReadOnly = !nuevo;
-            txtLotes.ReadOnly = !nuevo;
-            txtMeses.ReadOnly = !nuevo; 
-            txtTotal.ReadOnly = !nuevo;
-            cbxZona.Enabled = nuevo;*/
 
             if (!nuevo)
             {
@@ -98,36 +121,49 @@ namespace ControlPagoLotes
 
                 if (ListaPartidas != null && ListaPartidas.Count > 0)
                 {
-                    tsAcumulado.Text = ListaPartidas.Sum(x => x.Monto).ToString("N2");
-
-                    if (dgvRegistros.Columns.Count > 0)
-                    {
-                        dgvRegistros.Rows.Clear();
-                        dgvRegistros.Columns.Clear();
-                    }
-
-                    dgvRegistros.Columns.Add("Monto", "MONTO");
-                    dgvRegistros.Columns.Add("Fecha", "FECHA");
-
-                    dgvRegistros.Columns["Monto"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                    dgvRegistros.Columns["Fecha"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    ListaCeldas = new List<clsCELDASPAGOS> ();
 
                     foreach (var r in ListaPartidas)
                     {
                         dgvRegistros.Rows.Add(r.Monto, r.Fecha.ToShortDateString());
+                        ListaCeldas.Add(new clsCELDASPAGOS
+                        {
+                            Monto = r.Monto.ToString("N2"),
+                            Fecha = r.Fecha.ToString("dd/MM/yyyy")
+                        });
                     }
-                    tsTotalRegistros.Text = ListaPartidas.Count.ToString("N0");
+                    MostrarCeldasEnDgv();
+                    if (Obj.Estado == ((int)Enumeraciones.Estados.ATRASADO).ToString() 
+                        || Obj.Estado == ((int)Enumeraciones.Estados.CORRIENTE).ToString() && !ValidarAtrasoPago())
+                    {                                               
+                        pagoAtrasado = true;
+                        cbxEstados.SelectedValue = (int)Enumeraciones.Estados.ATRASADO;
+                    }
                 }
                 else
                 {
                     tsTotalRegistros.Text = @"0";
-                    tsAcumulado.Text = @"0";
-                }          
-
+                    tsAcumulado.Text = @"0.00";
+                } 
 
             }
 
 
+        }
+
+        private void InicializarDgv()
+        {
+            indexActual = -1;
+            dgvRegistros.ColumnCount = 2;
+            dgvRegistros.Columns[0].HeaderText = "MONTO";
+            dgvRegistros.Columns[1].HeaderText = "FECHA";
+            dgvRegistros.AllowUserToAddRows = false;
+            dgvRegistros.ReadOnly = false;
+
+            //apariencias
+
+            dgvRegistros.Columns[0].Width = 200;
+            dgvRegistros.Columns[1].Width = 200;
         }
 
         private void InicializarVariables()
@@ -140,10 +176,13 @@ namespace ControlPagoLotes
             isPasting = false;
             guardoEncabezado = false;
             acumulado = 0;
+            pagoAtrasado = false;
         }
 
         private void GuardarPago()
-        {           
+        {
+            DateTime fechaServidor = Global.FechaServidor();
+
             if (Obj==null)
             {
                 Obj = new Pago
@@ -154,9 +193,9 @@ namespace ControlPagoLotes
                     ZonaId = (int)cbxZona.SelectedValue,
                     DiaPago = txtDiaPago.Text,
                     Lotes = txtLotes.Text,
-                    FechaRegistro = dtpFechaContrato.Value,//DateTime.ParseExact(fechaString, "dd/MM/yyyy", CultureInfo.InvariantCulture);,
-                    FechaCreacion = DateTime.Now,
-                    Estado = "1"
+                    FechaRegistro = dtpFechaContrato.Value,
+                    Estado = cbxEstados.SelectedValue.ToString(),
+                    FechaCreacion = fechaServidor,
                 };
 
                 Obj.Id = contextoPago.AddPago(Obj);
@@ -171,30 +210,29 @@ namespace ControlPagoLotes
                 Obj.ZonaId = (int)cbxZona.SelectedValue;
                 Obj.DiaPago = txtDiaPago.Text;
                 Obj.Lotes = txtLotes.Text;
-                Obj.FechaRegistro = dtpFechaContrato.Value;//DateTime.ParseExact(fechaString, "dd/MM/yyyy", CultureInfo.InvariantCulture);                
+                Obj.FechaRegistro = dtpFechaContrato.Value;                
                 Obj.Estado = cbxEstados.SelectedValue.ToString();
-                
-
                 guardoEncabezado = contextoPago.UpdatePago(Obj);
-            } 
+            }
 
-            if (guardoEncabezado && dgvRegistros.Rows.Count > 0)
+            if (guardoEncabezado && dgvRegistros.Rows.Count > 0 && ((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.CORRIENTE)))
             {
                 ListaPartidasAux = new List<PagoPartida>();
 
-                foreach (DataGridViewRow item in dgvRegistros.Rows)
-                {
-
-                    if (item.IsNewRow) continue;
-
-                    ListaPartidasAux.Add(new PagoPartida
+                foreach (var item in ListaCeldas)
+                {                 
+                    if(decimal.TryParse(item.Monto, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal monto)  && (DateTime.TryParse(item.Fecha, out DateTime fecha)))
                     {
-                        Monto = Convert.ToDecimal(item.Cells[0].Value),
-                        Fecha = Convert.ToDateTime(item.Cells[1].Value),
-                        UsuarioId = 1,
-                        PagoId = Obj.Id
-
-                    });
+                        ListaPartidasAux.Add(new PagoPartida
+                        {
+                            PagoId = Obj.Id,
+                            Monto = monto,
+                            Fecha = fecha,
+                            UsuarioId = 1,
+                            FechaCreacion = fechaServidor,
+                        });
+                    }
+                  
                 }
                 //borrar anteriores
 
@@ -209,7 +247,7 @@ namespace ControlPagoLotes
 
 
                     query += string.Join(",", ListaPartidasAux.Select(item =>
-                    $"({Obj.Id}, {item.Monto}, '{item.Fecha.ToString("yyyy-MM-dd")}', 1)"));
+                    $"({Obj.Id}, {item.Monto}, '{item.Fecha.ToString("yyyy-MM-dd")}','{Global.ObjUsuario.Id}', '{item.FechaCreacion.ToString("yyyy-MM-dd HH:mm:ss")}')"));
 
                     if (ListaPartidasAux.Count == contextoPagoPartida.InsertarPartidasPago(query))
                     {
@@ -223,7 +261,6 @@ namespace ControlPagoLotes
                 }
                 else
                 {
-
                     MessageBox.Show("Error al intentar realizar la operación de guarddado, intente cargando el Pago nuevamente.", "Error en la operación", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
@@ -258,162 +295,412 @@ namespace ControlPagoLotes
 
         private void pegarContenidoToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            PegarCeldas();
+            //PegarCeldas();
+            PegadoEspecial();
         }
 
-
-        private void PegarCeldas()
+        private void PegadoEspecial()
         {
-            if (Clipboard.ContainsText())
+            clipboardText = Clipboard.GetText();
+            if (!string.IsNullOrWhiteSpace(clipboardText))
             {
-                string clipboardText = Clipboard.GetText();
-
-                // Dividir el texto en filas
-                string[] rows = clipboardText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-
-                int selectedRowIndex = dgvRegistros.CurrentCell?.RowIndex ?? 0;
-                int selectedColIndex = dgvRegistros.CurrentCell?.ColumnIndex ?? 0;
-
-                // Asegurar que haya suficientes filas y columnas en el DataGridView
-                int requiredRows = selectedRowIndex + rows.Length;
-                int requiredColumns = selectedColIndex + rows[0].Split('\t').Length;
-
-                
-                dgvRegistros.Columns.Add("Monto", "MONTO");
-                dgvRegistros.Columns.Add("Fecha", "FECHA");
-
-                dgvRegistros.Columns["Monto"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dgvRegistros.Columns["Fecha"].SortMode = DataGridViewColumnSortMode.NotSortable;
-
-                // Agregar filas si es necesario
-                while (dgvRegistros.RowCount < requiredRows)
+                if (dgvRegistros.Rows.Count > 0)
                 {
-                    dgvRegistros.Rows.Add();
+                    indexActual = dgvRegistros.CurrentRow.Index;
                 }
 
-                try
+                if (ListaCeldas == null)
                 {
-                    // Pegar el contenido en el DataGridView
-                    for (int i = 0; i < rows.Length; i++)
+                    ListaCeldas = new List<clsCELDASPAGOS>();
+                }
+
+                string[] lines = clipboardText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);                 
+
+                foreach (var line in lines)
+                {
+                    string[] cells = line.Split('\t');
+                    if (cells.Length >= 2) 
                     {
-                        if (rows[i] == "") continue; // Saltar filas vacías
-
-                        // Dividir cada fila en columnas
-                        string[] cells = rows[i].Split('\t');
-
-                        for (int j = 0; j < cells.Length; j++)
+                        if (indexActual == -1)
                         {
-                            int targetRowIndex = selectedRowIndex + i;
-                            int targetColIndex = selectedColIndex + j;
-
-                            // Verificar que no se exceda el límite de filas y columnas
-                            if (targetRowIndex < dgvRegistros.RowCount && targetColIndex < dgvRegistros.ColumnCount)
-                            {
-                                //si es monto limpia caracteres no numericos
-                                if(j == 0)
-                                {
-                                    // Limpiar el contenido de caracteres no deseados
-                                    string cleanedValue = LimpiarCaracteres(cells[j]);
-                                    dgvRegistros[targetColIndex, targetRowIndex].Value = cleanedValue;
-                                }
-                                else
-                                {
-                                    dgvRegistros[targetColIndex, targetRowIndex].Value = cells[j];
-                                }
-                               
-                            }
+                            ListaCeldas.Add(new clsCELDASPAGOS { Monto = cells[0], Fecha = cells[1] });
+                        }else if (indexActual > -1)
+                        {
+                            ListaCeldas.Insert(indexActual, new clsCELDASPAGOS { Monto = cells[0], Fecha = cells[1] });
+                            indexActual++;
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al pegar los datos: {ex.Message}");
-                }
+
+                MostrarCeldasEnDgv();
+
             }
-            else
-            {
-                MessageBox.Show("No hay datos en el portapapeles para pegar.");
-            }
+
+
         }
-        
-        private string LimpiarCaracteres(string input)
+
+        private void MostrarCeldasEnDgv()
         {
-            // Usar expresiones regulares para eliminar caracteres no deseados
-            return System.Text.RegularExpressions.Regex.Replace(input, @"[^0-9.,]", "");
+            dgvRegistros.EndEdit();
+            dgvRegistros.Rows.Clear();
+            acumulado = 0;
+
+            foreach (var item in ListaCeldas)
+            {
+                dgvRegistros.Rows.Add(item.Monto, item.Fecha);
+                if (decimal.TryParse(item.Monto, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal monto))
+                {
+                    acumulado += monto;
+                }
+                else
+                {
+                    acumulado += 0; 
+                }
+
+            }
+
+            tsTotalRegistros.Text = dgvRegistros.RowCount.ToString("N0");
+            tsAcumulado.Text = acumulado.ToString("N2");
         }
 
         private void eliminarFilaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            EliminarRow();
+            EliminarPartida();
         }
 
-        private void EliminarRow()
+        private void nuevaPartidaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // Verificar si hay alguna fila seleccionada
-            if (dgvRegistros.CurrentRow != null && !dgvRegistros.CurrentRow.IsNewRow)
+            CrearPartida();
+        }
+
+        private void CrearPartida()
+        {
+            if (ListaCeldas == null)
             {
-                // Eliminar la fila seleccionada
-                dgvRegistros.Rows.RemoveAt(dgvRegistros.CurrentRow.Index);
+                ListaCeldas = new List<clsCELDASPAGOS>();
+            }
+
+            if (indexActual < 0)
+            {
+                ListaCeldas.Add(new clsCELDASPAGOS());
             }
             else
             {
-                MessageBox.Show("Seleccione una fila válida para eliminar.");
+                indexActual = dgvRegistros.CurrentRow.Index;
+                ListaCeldas.Insert(indexActual, new clsCELDASPAGOS());
             }
-        } 
 
+            MostrarCeldasEnDgv();
 
-        private void dgvRegistros_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        }
+
+        private void EliminarPartida()
         {
-            if (isPasting || e.RowIndex == -1)
-                return;
-            // Validar solo para la columna específica
-            if (e.ColumnIndex == 0)
-            {
-                string userInput = e.FormattedValue.ToString();
+            if (dgvRegistros.Rows.Count <= 0) return;
 
-                // Validar si es un número decimal
-                if (!decimal.TryParse(userInput, NumberStyles.Any, CultureInfo.InvariantCulture, out _))
+            indexActual = dgvRegistros.CurrentRow.Index;
+
+            ListaCeldas.RemoveAt(indexActual);
+
+            MostrarCeldasEnDgv();
+        }
+
+        private void dgvRegistros_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (dgvRegistros.RowCount < 1) return;
+            ModificarValoresCeldas(e.RowIndex,e.ColumnIndex, dgvRegistros.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? null);
+        }
+
+        private void ModificarValoresCeldas(int row, int cell, string valor)
+        {
+            if (dgvRegistros.RowCount < 1) return;
+            if (ListaCeldas == null || ListaCeldas.Count < 1) return;
+
+            if(cell == 0)
+            {
+                ListaCeldas[row].Monto = valor;
+            }
+            else
+            {
+                ListaCeldas[row].Fecha = valor;
+            }
+
+            MostrarCeldasEnDgv(); 
+
+        }
+
+        private bool ValidarAtrasoPago()
+        {   
+            DateTime fechaActual = Global.FechaServidor();
+            PagoPartida ultimoPago = ListaPartidas.OrderByDescending(x => x.Fecha).First();
+            return (ultimoPago.Fecha >= fechaActual.AddMonths(-3) && ultimoPago.Fecha <= fechaActual);
+
+        }
+
+        private void formBoleta_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            try
+            {
+                if (Obj != null && pagoAtrasado)
                 {
-                    // Agregar el error al estilo de la celda
-                    dgvRegistros.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = "Debe ingresar un número decimal válido.";
-                    e.Cancel = true; // Cancelar la edición
+                    Obj.Estado = ((int)Enumeraciones.Estados.ATRASADO).ToString();
+                    contextoPago.UpdatePago(Obj);
+                }
+            }catch(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            
+        }
+
+        private void MensajePorEstado(int estado)
+        {
+            string msj=null;
+            string titulo=null;
+            MessageBoxIcon tipo = MessageBoxIcon.None;
+
+            switch (estado)
+            {
+                case 2:
+                    titulo = "Aviso";
+                    msj = "El contrado ha sido "+Enumeraciones.Estados.PAGADO+".";
+                    tipo = MessageBoxIcon.Information;
+                    btnAddPago.Enabled = false;
+                    break;
+
+                case 3:
+                    titulo = "Aviso";
+                    msj = "El contrado ha sido "+Enumeraciones.Estados.CANCELADO+".";
+                    tipo = MessageBoxIcon.Information;
+                    break;
+
+                case 4:
+                    titulo = "ADVERTENCIA";
+                    msj = "El cliente no ha presentado mensualidad en más de 3 meses consecutivos.";
+                    tipo = MessageBoxIcon.Information;
+                    break;
+
+                case 5:
+                    titulo = "ADVERTENCIA";
+                    msj = "El pago tiene el estado "+ Enumeraciones.Estados.DESCONOCIDO + ", verifique la inforción y guarde los cambios. ";
+                    tipo = MessageBoxIcon.Information;
+                    break;
+            }
+
+
+            if (!string.IsNullOrEmpty(msj))
+            {
+                MessageBox.Show(msj, titulo, MessageBoxButtons.OK, tipo );
+            }
+
+        }
+
+        private void btnExportar_Click(object sender, EventArgs e)
+        {
+            if(Obj!=null && ListaCeldas!=null && ListaCeldas.Count > 0)
+            {
+                saveFileDialog1.Title = "Guardar archivo Excel";
+                saveFileDialog1.Filter = "Archivos Excel (*.xlsx)|*.xlsx";
+                saveFileDialog1.DefaultExt = "xlsx";
+                saveFileDialog1.FileName = "boleta de pago.xlsx";
+                saveFileDialog1.ShowDialog();
+                if (string.IsNullOrEmpty(saveFileDialog1.FileName))
+                {
+                    MessageBox.Show("Debe confirmar el pago para poder exportar la información.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                else
-                {
-                    // Limpiar el error si el dato es válido
-                    dgvRegistros.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = string.Empty;
-                   // acumulado += Convert.ToDecimal(dgvRegistros.Rows[e.RowIndex].Cells[0].Value);
-                    ActualizarAcumuladoPagos();        
-                }
+                string rutaArchivo = saveFileDialog1.FileName;
+                
+                ExportarExcel(Obj, ListaCeldas, rutaArchivo);
+            }
+            else
+            {
+                MessageBox.Show("No hay un pago cargado para realizar la operación.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
-            ActualizarTotalRegistros();
-
         }
 
-        private void ActualizarTotalRegistros()
+        private void ExportarExcel(Pago ObjPago, List<clsCELDASPAGOS>ListaPartidas, string rutaArchivo)
         {
-            if (dgvRegistros.RowCount<=0 || dgvRegistros.Columns.Count <= 0) return;
+            using (var workbook = new XLWorkbook())
+            {
+                //variables
+                int noPagos = ListaCeldas.Count;
+                decimal Acumulado = 0;
 
-            tsTotalRegistros.Text = (dgvRegistros.RowCount - 1).ToString("N0");
+                // Crear una hoja de Excel
+                var worksheet = workbook.Worksheets.Add("Boleta");
+
+                // 1. Escribir el encabezado en las primeras 5 filas            
+                worksheet.Column(1).Width = 4.3;
+                worksheet.Column(2).Width = 16.7;
+                worksheet.Column(3).Width = 16.7;             
+
+                //poste izquierdo
+                var rangoPosteIzdo = worksheet.Range("A1:A"+(noPagos+8));
+                rangoPosteIzdo.Style.Fill.BackgroundColor = XLColor.LightSteelBlue;
+
+                //style encabezado 
+                var rangoEncabezado = worksheet.Range("B1:C3");
+                rangoEncabezado.Style.Font.Bold = true;
+                rangoEncabezado.Style.Font.FontSize = 12;
+
+                //nombre cliente
+                var rangoNombre = worksheet.Range("B1:C1");
+                rangoNombre.Merge();
+                rangoNombre.Value = ObjPago.NombreCliente;
+
+                //total y meses
+                worksheet.Cell(2, 2).Value = "$ " + Obj.Total;
+                worksheet.Cell(2, 3).Value = Obj.Meses + " MESES" ;                
+        
+                //zona
+                var rangoZona = worksheet.Range("B3:C3");
+                rangoZona.Merge();
+                rangoZona.Value = listaZonas.First(x=>x.Id ==ObjPago.ZonaId).Nombre;
+
+                //lotes //dia pago
+                worksheet.Cell(4, 2).Value = Obj.Lotes;
+                worksheet.Cell(4, 3).Value = "Día pago: "+Obj.DiaPago;
+
+                //encabezado partidas
+                var rangoEncabezadoPartidas = worksheet.Range("B5:C5");
+                rangoEncabezadoPartidas.Style.Fill.BackgroundColor = XLColor.ForestGreen;
+                rangoEncabezadoPartidas.Style.Font.FontSize = 12;
+                worksheet.Cell(5, 2).Value = "MONTO";
+                worksheet.Cell(5, 3).Value = "FECHA";               
+
+                for(int pos = 1; pos<=noPagos; pos++)
+                {
+                    worksheet.Cell(5+pos,1).Value = pos;
+                    worksheet.Cell(5 + pos, 2).Value = "$ "+ListaCeldas[pos-1].Monto;
+                    worksheet.Cell(5 + pos, 3).Value = ListaCeldas[pos-1].Fecha;
+                    Console.WriteLine(ListaCeldas[pos - 1].Monto);
+                    Acumulado += Convert.ToDecimal(ListaCeldas[pos - 1].Monto);
+                }
+
+                worksheet.Cell(5 + (3 + noPagos), 2).Value = "Saldo ($):";
+                worksheet.Cell(5 + (3 + noPagos), 2).Style.Font.FontSize = 12;
+                worksheet.Cell(5 + (3 + noPagos), 2).Style.Font.Bold = true;
+
+                worksheet.Cell(5 + (3 + noPagos), 3).Value = Acumulado;
+                worksheet.Cell(5 + (3 + noPagos), 3).Style.Font.FontSize = 12;
+                worksheet.Cell(5 + (3 + noPagos), 3).Style.Font.Bold = true;
+
+
+
+                // Aplicar bordes a toda la tabla
+                var tableRange = worksheet.RangeUsed();
+                tableRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                tableRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+                //guardar
+                workbook.SaveAs(rutaArchivo);
+            }
         }
 
-        private void ActualizarAcumuladoPagos()
+        private void btnImprimir_Click(object sender, EventArgs e)
         {
-            if (dgvRegistros.RowCount<=0 || dgvRegistros.Columns.Count <= 0) return;
-
-            tsAcumulado.Text = acumulado.ToString("N2");
+            if (Obj != null && ListaCeldas != null && ListaCeldas.Count > 0)
+            {
+                GenerarReportViewer();
+            }
+            else
+            {
+                MessageBox.Show("No hay un pago cargado para realizar la operación.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }    
         }
 
-        private void dgvRegistros_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        private void GenerarReportViewer()
         {
-            if (isPasting || e.RowIndex == -1)
-                return;
-            dgvRegistros.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = string.Empty;
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Title = "Guardar archivo PDF";
+                saveFileDialog.Filter = "Archivos PDF (*.pdf)|*.pdf";
+                saveFileDialog.DefaultExt = "pdf";
+                saveFileDialog.FileName = "Boleta_de_pago.pdf";
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string rutaArchivo = saveFileDialog.FileName;
+
+                    try
+                    {
+                        // Crear un archivo PDF con tamaño de media carta
+                        using (var pdfWriter = new PdfWriter(rutaArchivo))
+                        using (var pdfDoc = new PdfDocument(pdfWriter))
+                        {
+                            // Establecer tamaño de página a media carta
+                            var mediaCarta = new PageSize(396, 612); // Ancho x Alto en puntos
+                            pdfDoc.SetDefaultPageSize(mediaCarta);
+
+                            var boldFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+
+                            var document = new Document(pdfDoc);
+
+                            // Agregar título
+                            document.Add(new Paragraph("Boleta de pago")
+                                .SetFontSize(18)
+                                .SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER));
+
+                            // document.Add(new Paragraph("Este documento asegura que las tablas largas y el contenido se dividan correctamente entre las páginas.\n\n"));
+
+                            var tableEncabezado = new Table(2)
+                            .SetFontSize(14)
+                            .SetWidth(UnitValue.CreatePercentValue(100)); // Ajustar al ancho del documento
+
+                            // Agregar las celdas de encabezado con texto personalizado
+                            tableEncabezado.AddCell(new Cell(1,2).Add(new Paragraph(Obj.NombreCliente))).SetFont(boldFont);
+                            tableEncabezado.AddCell(new Cell(2,1).Add(new Paragraph("$ " + Obj.Total.ToString("N2")))).SetFont(boldFont);
+                            tableEncabezado.AddCell(new Cell(2, 2).Add(new Paragraph(Obj.Meses + " meses"))).SetFont(boldFont);
+                            tableEncabezado.AddCell(new Cell(3, 2).Add(new Paragraph(listaZonas.First(x => x.Id == Obj.ZonaId).Nombre))).SetFont(boldFont); // Valor de la ruta
+                            tableEncabezado.AddCell(new Cell(4, 1).Add(new Paragraph(Obj.Lotes))).SetFont(boldFont);
+                            tableEncabezado.AddCell(new Cell(4, 2).Add(new Paragraph("Día pago: " + Obj.DiaPago))).SetFont(boldFont);
+                            // Agregar la tabla al documento
+                            document.Add(tableEncabezado);
+
+                            // Crear una tabla con varias filas para probar saltos de página
+                            var table = new Table(3); // 4 columnas
+                            table.SetWidth(UnitValue.CreatePercentValue(100)); // Usar todo el ancho disponible
+
+                            // Encabezados de la tabla
+                            table.AddHeaderCell(new Cell().Add(new Paragraph("No."))).SetFont(boldFont);
+                            table.AddHeaderCell(new Cell().Add(new Paragraph("MONTO"))).SetFont(boldFont);
+                            table.AddHeaderCell(new Cell().Add(new Paragraph("FECHA"))).SetFont(boldFont);
+
+                            // Agregar muchas filas para forzar el salto de página
+                            for (int i = 0; i < ListaCeldas.Count; i++)
+                            {
+                                table.AddCell($"{i+1}");
+                                table.AddCell($"{"$ "+ ListaCeldas[i].Monto}");
+                                table.AddCell($"{ListaCeldas[i].Fecha}");
+                            }
+
+                            // Agregar la tabla al documento
+                            document.Add(table);
+
+                            // Finalizar el documento
+                            document.Close();
+                        }
+
+                        MessageBox.Show("Boleta de pago generada correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Ocurrió un error al generar la boleta de pago: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
         }
 
+        private void btnEnviar_Click(object sender, EventArgs e)
+        {
+            EnviarRecibo();
+        }
 
-
+        private void EnviarRecibo()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

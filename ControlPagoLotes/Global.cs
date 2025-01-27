@@ -11,6 +11,7 @@ namespace ControlPagoLotes
     public static class Global
     {
         public static UsuarioL ObjUsuario;
+        
         public static void LimpiarControles(Control parent)
         {
             foreach (Control control in parent.Controls)
@@ -41,5 +42,13 @@ namespace ControlPagoLotes
                 }
             }
         }
+
+
+        public static DateTime FechaServidor()
+        {
+            return DateTime.Now;
+        }
+
+
     }
 }
