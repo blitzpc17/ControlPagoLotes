@@ -29,7 +29,7 @@ public class GenericRepository
     public IEnumerable<T> Query<T>(string sql, object parameters = null)
     {
         using (var db = Connection)
-        {
+        {            
             return db.Query<T>(sql, parameters).ToList();
         }
     }

@@ -56,5 +56,10 @@ namespace LOGICA
         {
             return contexto.InsertarPartidasPago(query);
         }
+        public List<clsDATACORTE> ListarPagoPorFecha(DateTime fecha)
+        {
+            return contexto.ListarPagoPorFecha(fecha);
+        }
+
     }
 }

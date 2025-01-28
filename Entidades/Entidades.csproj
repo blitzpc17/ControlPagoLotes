@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="clsCELDASPAGOS.cs" />
     <Compile Include="clsDataCombo.cs" />
+    <Compile Include="clsDATACORTE.cs" />
     <Compile Include="clsPagosBusqueda.cs" />
     <Compile Include="Pago.cs" />
     <Compile Include="PagoPartida.cs" />

@@ -66,5 +66,26 @@ namespace DAO.ADOS
             var query = "INSERT INTO PAGOSPARTIDAS VALUES " + complemento;
             return connection.Execute(query);
         }
+
+        public List<clsDATACORTE> ListarPagoPorFecha(DateTime fecha)
+        {            
+            var query = "SELECT \r\n" +
+                "    pa.NombreCliente,\r\n" +
+                "    z.Nombre as Zona,\r\n" +
+                "    pa.Lotes,\r\n" +
+                "    pp.Monto,\r\n" +
+                "    pp.Fecha as FechaPago,\r\n" +
+                "    pp.FechaCreacion as FechaMovimiento, \r\n" +
+                "    u.Usuario as UsuarioRecibe \r\n" +
+                "FROM pagos pa\r\n" +
+                "JOIN pagospartidas pp ON pa.Id = pp.PagoId \r\n" +
+                "JOIN ZONAS z ON pa.ZonaId = z.Id \r\n" +
+                "JOIN USUARIOS u ON pp.UsuarioId = u.Id \r\n" +
+                "WHERE CAST(pp.FechaCreacion AS DATE) = @Fecha;";
+
+            return connection.Query<clsDATACORTE>(query, new { Fecha =  fecha.ToString("yyyy-MM-dd")}).ToList();
+        }
+
+
     }
 }

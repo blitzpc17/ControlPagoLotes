@@ -172,6 +172,12 @@
     <Compile Include="formBusqueda.Designer.cs">
       <DependentUpon>formBusqueda.cs</DependentUpon>
     </Compile>
+    <Compile Include="formCorteCaja.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="formCorteCaja.Designer.cs">
+      <DependentUpon>formCorteCaja.cs</DependentUpon>
+    </Compile>
     <Compile Include="formLogin.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -205,8 +211,14 @@
     <EmbeddedResource Include="formBusqueda.resx">
       <DependentUpon>formBusqueda.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="formCorteCaja.resx">
+      <DependentUpon>formCorteCaja.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="formLogin.resx">
       <DependentUpon>formLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="formReportes.resx">
+      <DependentUpon>formReportes.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="formUsuarios.resx">
       <DependentUpon>formUsuarios.cs</DependentUpon>
@@ -325,6 +337,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\anadir.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\presupuesto.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\presupuesto1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\contabilidad.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\factura.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
