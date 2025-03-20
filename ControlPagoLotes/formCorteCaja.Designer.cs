@@ -34,15 +34,28 @@
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.tsTotalRegistros = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
+            this.tsTotalDia = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripLabel3 = new System.Windows.Forms.ToolStripLabel();
+            this.tsNuevoIngreso = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel5 = new System.Windows.Forms.ToolStripLabel();
+            this.tsMontoModificado = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripLabel7 = new System.Windows.Forms.ToolStripLabel();
+            this.tsMontoEliminado = new System.Windows.Forms.ToolStripLabel();
             this.dgvRegistros = new System.Windows.Forms.DataGridView();
             this.dtpFechaContrato = new System.Windows.Forms.DateTimePicker();
             this.label1 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
-            this.tsTotalDia = new System.Windows.Forms.ToolStripLabel();
-            this.bntExportar = new System.Windows.Forms.Button();
             this.btnCancelar = new System.Windows.Forms.Button();
+            this.bntExportar = new System.Windows.Forms.Button();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.tsCargandoInformacion = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel4 = new System.Windows.Forms.ToolStripLabel();
+            this.tsTotalMigrado = new System.Windows.Forms.ToolStripLabel();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRegistros)).BeginInit();
             this.panel1.SuspendLayout();
@@ -56,26 +69,103 @@
             this.tsTotalRegistros,
             this.toolStripSeparator1,
             this.toolStripLabel2,
-            this.tsTotalDia});
+            this.tsTotalDia,
+            this.toolStripLabel3,
+            this.tsNuevoIngreso,
+            this.toolStripSeparator2,
+            this.toolStripLabel5,
+            this.tsMontoModificado,
+            this.toolStripLabel7,
+            this.tsMontoEliminado,
+            this.tsCargandoInformacion,
+            this.toolStripSeparator3,
+            this.toolStripLabel4,
+            this.tsTotalMigrado});
             this.toolStrip1.Location = new System.Drawing.Point(0, 586);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(897, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(1245, 25);
             this.toolStrip1.TabIndex = 33;
             this.toolStrip1.Text = "toolStrip1";
             // 
             // toolStripLabel1
             // 
-            this.toolStripLabel1.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.toolStripLabel1.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(131, 22);
+            this.toolStripLabel1.Size = new System.Drawing.Size(117, 22);
             this.toolStripLabel1.Text = "Total de registros:";
             // 
             // tsTotalRegistros
             // 
-            this.tsTotalRegistros.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tsTotalRegistros.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.tsTotalRegistros.Name = "tsTotalRegistros";
-            this.tsTotalRegistros.Size = new System.Drawing.Size(19, 22);
+            this.tsTotalRegistros.Size = new System.Drawing.Size(17, 22);
             this.tsTotalRegistros.Text = "0";
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            // 
+            // toolStripLabel2
+            // 
+            this.toolStripLabel2.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.toolStripLabel2.Name = "toolStripLabel2";
+            this.toolStripLabel2.Size = new System.Drawing.Size(101, 22);
+            this.toolStripLabel2.Text = "Total del día($):";
+            // 
+            // tsTotalDia
+            // 
+            this.tsTotalDia.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.tsTotalDia.Name = "tsTotalDia";
+            this.tsTotalDia.Size = new System.Drawing.Size(17, 22);
+            this.tsTotalDia.Text = "0";
+            // 
+            // toolStripLabel3
+            // 
+            this.toolStripLabel3.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.toolStripLabel3.Name = "toolStripLabel3";
+            this.toolStripLabel3.Size = new System.Drawing.Size(130, 22);
+            this.toolStripLabel3.Text = "Nuevos Ingresos($):";
+            // 
+            // tsNuevoIngreso
+            // 
+            this.tsNuevoIngreso.Font = new System.Drawing.Font("Segoe UI Black", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tsNuevoIngreso.Name = "tsNuevoIngreso";
+            this.tsNuevoIngreso.Size = new System.Drawing.Size(16, 22);
+            this.tsNuevoIngreso.Text = "0";
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
+            // 
+            // toolStripLabel5
+            // 
+            this.toolStripLabel5.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.toolStripLabel5.Name = "toolStripLabel5";
+            this.toolStripLabel5.Size = new System.Drawing.Size(158, 22);
+            this.toolStripLabel5.Text = "Montos Modificados ($):";
+            // 
+            // tsMontoModificado
+            // 
+            this.tsMontoModificado.Font = new System.Drawing.Font("Segoe UI Black", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tsMontoModificado.Name = "tsMontoModificado";
+            this.tsMontoModificado.Size = new System.Drawing.Size(16, 22);
+            this.tsMontoModificado.Text = "0";
+            // 
+            // toolStripLabel7
+            // 
+            this.toolStripLabel7.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.toolStripLabel7.Name = "toolStripLabel7";
+            this.toolStripLabel7.Size = new System.Drawing.Size(149, 22);
+            this.toolStripLabel7.Text = "Montos Eliminados ($):";
+            // 
+            // tsMontoEliminado
+            // 
+            this.tsMontoEliminado.Font = new System.Drawing.Font("Segoe UI Black", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tsMontoEliminado.Name = "tsMontoEliminado";
+            this.tsMontoEliminado.Size = new System.Drawing.Size(16, 22);
+            this.tsMontoEliminado.Text = "0";
             // 
             // dgvRegistros
             // 
@@ -106,7 +196,7 @@
             this.dgvRegistros.ReadOnly = true;
             this.dgvRegistros.RowHeadersVisible = false;
             this.dgvRegistros.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvRegistros.Size = new System.Drawing.Size(897, 486);
+            this.dgvRegistros.Size = new System.Drawing.Size(1245, 486);
             this.dgvRegistros.TabIndex = 32;
             // 
             // dtpFechaContrato
@@ -139,42 +229,8 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(897, 100);
+            this.panel1.Size = new System.Drawing.Size(1245, 100);
             this.panel1.TabIndex = 36;
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
-            // 
-            // toolStripLabel2
-            // 
-            this.toolStripLabel2.Font = new System.Drawing.Font("Segoe UI", 12F);
-            this.toolStripLabel2.Name = "toolStripLabel2";
-            this.toolStripLabel2.Size = new System.Drawing.Size(114, 22);
-            this.toolStripLabel2.Text = "Total del día($):";
-            // 
-            // tsTotalDia
-            // 
-            this.tsTotalDia.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tsTotalDia.Name = "tsTotalDia";
-            this.tsTotalDia.Size = new System.Drawing.Size(19, 22);
-            this.tsTotalDia.Text = "0";
-            // 
-            // bntExportar
-            // 
-            this.bntExportar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.bntExportar.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold);
-            this.bntExportar.Image = global::ControlPagoLotes.Properties.Resources.sobresalir;
-            this.bntExportar.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.bntExportar.Location = new System.Drawing.Point(576, 35);
-            this.bntExportar.Name = "bntExportar";
-            this.bntExportar.Size = new System.Drawing.Size(130, 40);
-            this.bntExportar.TabIndex = 36;
-            this.bntExportar.Text = "EXPORTAR";
-            this.bntExportar.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.bntExportar.UseVisualStyleBackColor = true;
-            this.bntExportar.Click += new System.EventHandler(this.bntExportar_Click);
             // 
             // btnCancelar
             // 
@@ -182,7 +238,7 @@
             this.btnCancelar.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCancelar.Image = global::ControlPagoLotes.Properties.Resources.boton_eliminar;
             this.btnCancelar.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnCancelar.Location = new System.Drawing.Point(712, 35);
+            this.btnCancelar.Location = new System.Drawing.Point(1060, 35);
             this.btnCancelar.Name = "btnCancelar";
             this.btnCancelar.Size = new System.Drawing.Size(130, 40);
             this.btnCancelar.TabIndex = 37;
@@ -191,11 +247,59 @@
             this.btnCancelar.UseVisualStyleBackColor = true;
             this.btnCancelar.Click += new System.EventHandler(this.btnCancelar_Click);
             // 
+            // bntExportar
+            // 
+            this.bntExportar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.bntExportar.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold);
+            this.bntExportar.Image = global::ControlPagoLotes.Properties.Resources.sobresalir;
+            this.bntExportar.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.bntExportar.Location = new System.Drawing.Point(924, 35);
+            this.bntExportar.Name = "bntExportar";
+            this.bntExportar.Size = new System.Drawing.Size(130, 40);
+            this.bntExportar.TabIndex = 36;
+            this.bntExportar.Text = "EXPORTAR";
+            this.bntExportar.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.bntExportar.UseVisualStyleBackColor = true;
+            this.bntExportar.Click += new System.EventHandler(this.bntExportar_Click);
+            // 
+            // backgroundWorker1
+            // 
+            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
+            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
+            // 
+            // tsCargandoInformacion
+            // 
+            this.tsCargandoInformacion.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tsCargandoInformacion.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tsCargandoInformacion.Name = "tsCargandoInformacion";
+            this.tsCargandoInformacion.Size = new System.Drawing.Size(114, 22);
+            this.tsCargandoInformacion.Text = "Cargando info";
+            this.tsCargandoInformacion.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            // 
+            // toolStripLabel4
+            // 
+            this.toolStripLabel4.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.toolStripLabel4.Name = "toolStripLabel4";
+            this.toolStripLabel4.Size = new System.Drawing.Size(138, 22);
+            this.toolStripLabel4.Text = "Montos Migrados($):";
+            // 
+            // tsTotalMigrado
+            // 
+            this.tsTotalMigrado.Font = new System.Drawing.Font("Segoe UI Black", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tsTotalMigrado.Name = "tsTotalMigrado";
+            this.tsTotalMigrado.Size = new System.Drawing.Size(16, 22);
+            this.tsTotalMigrado.Text = "0";
+            // 
             // formCorteCaja
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(897, 611);
+            this.ClientSize = new System.Drawing.Size(1245, 611);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.dgvRegistros);
@@ -226,8 +330,21 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripLabel toolStripLabel2;
-        private System.Windows.Forms.ToolStripLabel tsTotalDia;
         private System.Windows.Forms.Button btnCancelar;
         private System.Windows.Forms.Button bntExportar;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.ToolStripLabel tsTotalDia;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel3;
+        private System.Windows.Forms.ToolStripLabel tsNuevoIngreso;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel5;
+        private System.Windows.Forms.ToolStripLabel tsMontoModificado;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel7;
+        private System.Windows.Forms.ToolStripLabel tsMontoEliminado;
+        private System.Windows.Forms.ToolStripLabel tsCargandoInformacion;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel4;
+        private System.Windows.Forms.ToolStripLabel tsTotalMigrado;
     }
 }

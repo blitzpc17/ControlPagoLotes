@@ -18,5 +18,6 @@ namespace Entidades
         public DateTime FechaRegistro { get; set; } 
         public string Estado { get; set; }  
         public DateTime FechaCreacion { get; set; }
+        public string Telefonos { get;set; }
     }
 }

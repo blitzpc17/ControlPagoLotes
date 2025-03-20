@@ -5,7 +5,7 @@ using System.Data.SqlClient;
 using Dapper;
 using System.Linq;
 
-public class GenericRepository
+public class GenericRepository:IDisposable
 {
     private readonly string _connectionString;
 
@@ -50,5 +50,11 @@ public class GenericRepository
         {
             return db.ExecuteScalar<int>(sql, parameters);
         }
+    }
+
+    public void Dispose()
+    {
+        Dispose();
+        GC.SuppressFinalize(this);
     }
 }

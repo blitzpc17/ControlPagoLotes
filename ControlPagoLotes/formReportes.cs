@@ -25,6 +25,9 @@ namespace ControlPagoLotes
         private void ExportarExcelGeneral()
         {
             //generar excel
+            formReporteGeneral frm = new formReporteGeneral();
+            frm.ShowDialog();
+
 
         }
 
@@ -37,6 +40,9 @@ namespace ControlPagoLotes
         {
             formCorteCaja formCorte = new formCorteCaja();
             formCorte.ShowDialog();
+            /*
+            frmPruebaCorte formCorte = new frmPruebaCorte();
+            formCorte.ShowDialog();*/
         }
 
         private void btnSalir_Click(object sender, EventArgs e)

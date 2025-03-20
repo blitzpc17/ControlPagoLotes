@@ -46,6 +46,8 @@
             this.tsTotalRegistros = new System.Windows.Forms.ToolStripLabel();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.cargarBoletaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.bgCargadoInfo = new System.ComponentModel.BackgroundWorker();
+            this.tsCargandoInformacion = new System.Windows.Forms.ToolStripLabel();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRegistros)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -201,7 +203,8 @@
             this.toolStrip1.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripLabel1,
-            this.tsTotalRegistros});
+            this.tsTotalRegistros,
+            this.tsCargandoInformacion});
             this.toolStrip1.Location = new System.Drawing.Point(3, 559);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(867, 25);
@@ -237,6 +240,19 @@
             this.cargarBoletaToolStripMenuItem.Size = new System.Drawing.Size(171, 26);
             this.cargarBoletaToolStripMenuItem.Text = "Cargar boleta";
             this.cargarBoletaToolStripMenuItem.Click += new System.EventHandler(this.cargarBoletaToolStripMenuItem_Click);
+            // 
+            // bgCargadoInfo
+            // 
+            this.bgCargadoInfo.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
+            this.bgCargadoInfo.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
+            // 
+            // tsCargandoInformacion
+            // 
+            this.tsCargandoInformacion.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tsCargandoInformacion.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tsCargandoInformacion.Name = "tsCargandoInformacion";
+            this.tsCargandoInformacion.Size = new System.Drawing.Size(0, 22);
+            this.tsCargandoInformacion.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // formBusqueda
             // 
@@ -278,5 +294,7 @@
         private System.Windows.Forms.Button btnReportes;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem cargarBoletaToolStripMenuItem;
+        private System.ComponentModel.BackgroundWorker bgCargadoInfo;
+        private System.Windows.Forms.ToolStripLabel tsCargandoInformacion;
     }
 }

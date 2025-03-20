@@ -14,5 +14,12 @@ namespace Entidades
         public DateTime Fecha { get; set; }
         public int UsuarioId { get; set; }
         public DateTime FechaCreacion { get; set; }
+        public int? FormaPago { get; set; }
+        public decimal? MontoOriginal { get; set; }
+        public DateTime? FechaModificacion { get; set; }
+        public int? UsuarioModificoId { get; set; }
+        public DateTime? FechaBaja { get; set; }
+        public int? UsuarioBajaId { get; set; }
+
     }
 }

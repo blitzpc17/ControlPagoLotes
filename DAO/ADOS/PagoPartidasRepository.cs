@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DAO.ADOS
 {
-    public class PagoPartidasRepository
+    public class PagoPartidasRepository:IDisposable
     {
         GenericRepository connection;
 
@@ -51,7 +51,8 @@ namespace DAO.ADOS
         // Leer PagoPartida
         public List<PagoPartida> GetAllPAGOSPARTIDAS(int idPago)
         {
-            var query = "SELECT * FROM PAGOSPARTIDAS WHERE PAGOId = @Id";
+            var query = "SELECT * FROM PAGOSPARTIDAS " +
+                "WHERE PAGOId = @Id AND FechaBaja is null AND UsuarioBajaId is null";
             return connection.Query<PagoPartida>(query, new { Id = idPago }).ToList();
         }
 
@@ -63,29 +64,43 @@ namespace DAO.ADOS
 
         public int InsertarPartidasPago(string complemento)
         {
-            var query = "INSERT INTO PAGOSPARTIDAS VALUES " + complemento;
-            return connection.Execute(query);
+            return connection.Execute(complemento);
         }
 
         public List<clsDATACORTE> ListarPagoPorFecha(DateTime fecha)
-        {            
+        {
             var query = "SELECT \r\n" +
-                "    pa.NombreCliente,\r\n" +
-                "    z.Nombre as Zona,\r\n" +
-                "    pa.Lotes,\r\n" +
-                "    pp.Monto,\r\n" +
-                "    pp.Fecha as FechaPago,\r\n" +
-                "    pp.FechaCreacion as FechaMovimiento, \r\n" +
-                "    u.Usuario as UsuarioRecibe \r\n" +
-                "FROM pagos pa\r\n" +
-                "JOIN pagospartidas pp ON pa.Id = pp.PagoId \r\n" +
-                "JOIN ZONAS z ON pa.ZonaId = z.Id \r\n" +
-                "JOIN USUARIOS u ON pp.UsuarioId = u.Id \r\n" +
-                "WHERE CAST(pp.FechaCreacion AS DATE) = @Fecha;";
+                        "    pa.NombreCliente,\r\n" +
+                        "    z.Nombre as Zona,\r\n" +
+                        "    pa.Lotes,\r\n" +
+                        "    pp.Monto,\r\n" +
+                        "    (CASE WHEN (pp.MontoOriginal IS NULL) THEN 0 ELSE pp.MontoOriginal END) AS CantidadOriginal, \r\n" +
+                        "    pp.Fecha AS FechaPago,\r\n" +
+                        "    pp.FechaCreacion AS FechaMovimiento, \r\n" +
+                        "    u.Usuario AS UsuarioRecibe, \r\n" +
+                        "    pp.FechaModificacion AS FechaModifico, \r\n" +
+                        "    um.Usuario AS UsuarioModifico, \r\n" +
+                        "    pp.FechaBaja AS FechaElimino, \r\n" +
+                        "    ue.Usuario AS UsuarioElimino, \r\n" + 
+                        "    pp.FormaPago AS FormaPagoTipo, \r\n" +
+                        "    CASE WHEN pp.FormaPago = 0 THEN 'MIGRADO' ELSE (CASE WHEN pp.FormaPago = 1 THEN 'EFECTIVO' ELSE 'TRANSFERENCIA' END) END AS FormaPago \r\n" +
+                        "FROM pagos pa\r\n" +
+                        "JOIN pagospartidas pp ON pa.Id = pp.PagoId \r\n" +
+                        "JOIN ZONAS z ON pa.ZonaId = z.Id \r\n" +
+                        "JOIN USUARIOS u ON pp.UsuarioId = u.Id \r\n" +
+                        "LEFT JOIN USUARIOS um ON pp.UsuarioModificoId = um.Id \r\n" +
+                        "LEFT JOIN USUARIOS ue ON pp.UsuarioBajaId = ue.Id \r\n" +
+                        "WHERE CAST(pp.FechaCreacion AS DATE) = @Fecha \r\n" + 
+                        "   OR CAST(pp.FechaModificacion AS DATE) = @Fecha \r\n" +
+                        "   OR CAST(pp.FechaBaja AS DATE) = @Fecha;";
+
 
             return connection.Query<clsDATACORTE>(query, new { Fecha =  fecha.ToString("yyyy-MM-dd")}).ToList();
         }
 
-
+        public void Dispose()
+        {
+            connection.Dispose();
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Entidades;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,6 +48,27 @@ namespace ControlPagoLotes
         public static DateTime FechaServidor()
         {
             return DateTime.Now;
+        }
+
+        public static decimal FormatearPesosADecimal(string input)
+        {
+            return decimal.Parse(input, NumberStyles.Number, CultureInfo.InvariantCulture);
+        }
+
+        public static string FormatearFecha(string input, string formato)
+        {            
+            DateTime fecha;
+
+            // Intentar convertir en el formato "dd/MM/yyyy"
+            if (DateTime.TryParseExact(input, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha))
+            {
+                // Convertir al formato "yyyy-MM-dd"
+                return fecha.ToString(formato);
+            }
+            else
+            {
+                return fecha.ToString("yyyy-MM-dd");
+            }
         }
 
 

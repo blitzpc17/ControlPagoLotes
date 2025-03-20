@@ -27,9 +27,8 @@ namespace ControlPagoLotes
         private void InicializarModulo()
         {
             contexto = new PagoLogica();
-            Lista = contexto.GetAllPagosBusqueda();
-            ListaAux = Lista;
-            SetDataDatagridView();
+            tsCargandoInformacion.Text = "Cargando información, espere un momento...";
+            bgCargadoInfo.RunWorkerAsync();
         }
 
         private void CerrarSesion()
@@ -186,6 +185,18 @@ namespace ControlPagoLotes
         {
             if (dgvRegistros.DataSource == null || dgvRegistros.RowCount <= 0) return;
             SeleccionarRegistro();
+        }
+
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Lista = contexto.GetAllPagosBusqueda();
+            ListaAux = Lista;
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            SetDataDatagridView();
+            tsCargandoInformacion.Text="";
         }
     }
 }

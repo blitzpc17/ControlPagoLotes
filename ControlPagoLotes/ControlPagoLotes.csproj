@@ -184,6 +184,12 @@
     <Compile Include="formLogin.Designer.cs">
       <DependentUpon>formLogin.cs</DependentUpon>
     </Compile>
+    <Compile Include="formReporteGeneral.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="formReporteGeneral.Designer.cs">
+      <DependentUpon>formReporteGeneral.cs</DependentUpon>
+    </Compile>
     <Compile Include="formReportes.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -202,6 +208,12 @@
     <Compile Include="formZonas.Designer.cs">
       <DependentUpon>formZonas.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmPruebaCorte.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmPruebaCorte.Designer.cs">
+      <DependentUpon>frmPruebaCorte.cs</DependentUpon>
+    </Compile>
     <Compile Include="Global.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -217,6 +229,9 @@
     <EmbeddedResource Include="formLogin.resx">
       <DependentUpon>formLogin.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="formReporteGeneral.resx">
+      <DependentUpon>formReporteGeneral.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="formReportes.resx">
       <DependentUpon>formReportes.cs</DependentUpon>
     </EmbeddedResource>
@@ -225,6 +240,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="formZonas.resx">
       <DependentUpon>formZonas.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmPruebaCorte.resx">
+      <DependentUpon>frmPruebaCorte.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -18,6 +18,12 @@ namespace ControlPagoLotes
             DESCONOCIDO = 5
 
         }
+        public enum FormaPago
+        {
+            MIGRADO = 0,
+            EFECTIVO = 1,
+            TRANSFERENCIA = 2,
+        }
 
 
 

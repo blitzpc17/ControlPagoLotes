@@ -26,6 +26,9 @@ using Cell = iText.Layout.Element.Cell;
 using iText.Layout.Properties;
 using iText.IO.Font.Constants;
 using iText.Kernel.Font;
+using static ControlPagoLotes.Enumeraciones;
+using System.Collections;
+using Color = System.Drawing.Color;
 
 namespace ControlPagoLotes
 {
@@ -41,7 +44,7 @@ namespace ControlPagoLotes
         private int? idRegistro;
         private PagoPartida ObjPartida;
         private List<PagoPartida> ListaPartidas;
-        private List<PagoPartida> ListaPartidasAux;
+       // private List<PagoPartida> ListaPartidasAux;
 
         private bool isPasting = false;
         private bool guardoEncabezado = false;
@@ -50,7 +53,12 @@ namespace ControlPagoLotes
         private string clipboardText;
         private int indexActual = -1;
         List<clsCELDASPAGOS> ListaCeldas;
+        List<clsCELDASPAGOS> ListaCeldasNuevas;
+        List<clsCELDASPAGOS> ListaCeldasModificar;
+        List<int> IdsEliminar;
         List<string> rows;
+        List<string> LstValidacionesmsj;
+        List<string> LstValidacionesAtrasos;
 
         private bool pagoAtrasado = false;
 
@@ -115,8 +123,9 @@ namespace ControlPagoLotes
                 txtLotes.Text = Obj.Lotes;
                 txtMeses.Text = Obj.Meses;
                 txtTotal.Text = Obj.Total.ToString("N2");
+                txtTelefono.Text = Obj.Telefonos;
                 dtpFechaContrato.Value = Obj.FechaRegistro;
-
+                //obtiene las partidas modificadas y nuevas....excluye los eliminados
                 ListaPartidas = contextoPagoPartida.GetAllPagoPartidas((int)idRegistro);
 
                 if (ListaPartidas != null && ListaPartidas.Count > 0)
@@ -125,19 +134,30 @@ namespace ControlPagoLotes
 
                     foreach (var r in ListaPartidas)
                     {
-                        dgvRegistros.Rows.Add(r.Monto, r.Fecha.ToShortDateString());
+                        dgvRegistros.Rows.Add(r.Id, r.Monto, r.Fecha.ToShortDateString(), false, false, r.FormaPago);
                         ListaCeldas.Add(new clsCELDASPAGOS
                         {
+                            Id = r.Id,
                             Monto = r.Monto.ToString("N2"),
-                            Fecha = r.Fecha.ToString("dd/MM/yyyy")
+                            Fecha = r.Fecha.ToString("dd/MM/yyyy"),
+                            FormaPago = r.FormaPago                            
                         });
                     }
+
                     MostrarCeldasEnDgv();
-                    if (Obj.Estado == ((int)Enumeraciones.Estados.ATRASADO).ToString() 
-                        || Obj.Estado == ((int)Enumeraciones.Estados.CORRIENTE).ToString() && !ValidarAtrasoPago())
-                    {                                               
+
+                    string estadoAtrasado = ((int)Enumeraciones.Estados.ATRASADO).ToString();
+                    string estadoCorriente = ((int)Enumeraciones.Estados.CORRIENTE).ToString();
+
+                    if ((Obj.Estado == estadoAtrasado || (Obj.Estado == estadoCorriente)) && ValidarAtrasoPago().Count > 0)
+                    {
                         pagoAtrasado = true;
                         cbxEstados.SelectedValue = (int)Enumeraciones.Estados.ATRASADO;
+                    }
+                    else if (Obj.Estado == estadoCorriente)
+                    {
+                        pagoAtrasado = false;
+                        cbxEstados.SelectedValue = (int)Enumeraciones.Estados.CORRIENTE;
                     }
                 }
                 else
@@ -154,16 +174,37 @@ namespace ControlPagoLotes
         private void InicializarDgv()
         {
             indexActual = -1;
-            dgvRegistros.ColumnCount = 2;
-            dgvRegistros.Columns[0].HeaderText = "MONTO";
-            dgvRegistros.Columns[1].HeaderText = "FECHA";
+            dgvRegistros.ColumnCount = 5;//id
+            dgvRegistros.Columns[0].Visible = false; //id
+            dgvRegistros.Columns[3].Visible = false; //id
+            dgvRegistros.Columns[4].Visible = false; //id
+            dgvRegistros.Columns[1].HeaderText = "MONTO";
+            dgvRegistros.Columns[2].HeaderText = "FECHA";
+           
             dgvRegistros.AllowUserToAddRows = false;
             dgvRegistros.ReadOnly = false;
 
-            //apariencias
-
-            dgvRegistros.Columns[0].Width = 200;
             dgvRegistros.Columns[1].Width = 200;
+            dgvRegistros.Columns[2].Width = 200;
+
+            // Crear y agregar la columna ComboBox para "FORMA PAGO"
+            DataGridViewComboBoxColumn comboColumn = new DataGridViewComboBoxColumn
+            {
+                HeaderText = "FORMA PAGO",
+                Name = "FormaPagoColumn",
+                DataSource = Enum.GetValues(typeof(FormaPago))
+                        .Cast<FormaPago>()
+                        .Select(e => new { Id = (int)e, Nombre = e.ToString() })
+                        .ToList(),
+                // DataPropertyName = "FormaPago",
+                DisplayMember = "Nombre",
+                ValueMember = "Id",
+                Width = 200
+            };
+
+            dgvRegistros.Columns.Add(comboColumn);
+
+
         }
 
         private void InicializarVariables()
@@ -172,7 +213,6 @@ namespace ControlPagoLotes
             Obj = null;
             ObjPartida = null;
             ListaPartidas = null;
-            ListaPartidasAux = null;
             isPasting = false;
             guardoEncabezado = false;
             acumulado = 0;
@@ -196,6 +236,7 @@ namespace ControlPagoLotes
                     FechaRegistro = dtpFechaContrato.Value,
                     Estado = cbxEstados.SelectedValue.ToString(),
                     FechaCreacion = fechaServidor,
+                    Telefonos = txtTelefono.Text,
                 };
 
                 Obj.Id = contextoPago.AddPago(Obj);
@@ -204,6 +245,17 @@ namespace ControlPagoLotes
             }
             else
             {
+                if (((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.CANCELADO)))
+                {
+                    MessageBox.Show("No se puede modificar la información de la boleta porque el contrato esta en estado " + Enumeraciones.Estados.CANCELADO + ".", "Aaviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                if (((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.PAGADO)))
+                {
+                    MessageBox.Show("No se puede modificar la información de la boleta porque el contrato esta en estado " + Enumeraciones.Estados.PAGADO + ".", "Aaviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 Obj.NombreCliente = txtNombreCliente.Text;
                 Obj.Total = decimal.Parse(txtTotal.Text);
                 Obj.Meses = txtMeses.Text;
@@ -212,65 +264,125 @@ namespace ControlPagoLotes
                 Obj.Lotes = txtLotes.Text;
                 Obj.FechaRegistro = dtpFechaContrato.Value;                
                 Obj.Estado = cbxEstados.SelectedValue.ToString();
+                Obj.Telefonos = txtTelefono.Text;
                 guardoEncabezado = contextoPago.UpdatePago(Obj);
             }
 
-            if (guardoEncabezado && dgvRegistros.Rows.Count > 0 && ((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.CORRIENTE)))
+            if(((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.ATRASADO)))
             {
-                ListaPartidasAux = new List<PagoPartida>();
+                MessageBox.Show("Se guardo la información del cliente pero no se guardarón los pagos debido a que el contrato esta en estado "+Enumeraciones.Estados.ATRASADO+".", "Aaviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else if (guardoEncabezado && (ListaCeldas==null || ListaCeldas.Count <=0) )
+            {
+                MessageBox.Show("Se ha guardado correctamente la información del cliente en la boleta.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                InicializarModulo();
+            }
+            else
+            {
+                bool guardadoPartidasCorrecto = false;
+                ListaCeldasNuevas = ListaCeldas.Where(x => x.Id == null).ToList();
+                ListaCeldasModificar = ListaCeldas.Where(x => x.Id != null && (x.Modificar == true || x.Eliminar== true)).ToList();
+                StringBuilder scriptInsert;
 
-                foreach (var item in ListaCeldas)
-                {                 
-                    if(decimal.TryParse(item.Monto, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal monto)  && (DateTime.TryParse(item.Fecha, out DateTime fecha)))
-                    {
-                        ListaPartidasAux.Add(new PagoPartida
-                        {
-                            PagoId = Obj.Id,
-                            Monto = monto,
-                            Fecha = fecha,
-                            UsuarioId = 1,
-                            FechaCreacion = fechaServidor,
-                        });
-                    }
-                  
-                }
-                //borrar anteriores
-
-                int eliminados = contextoPagoPartida.EliminarPartidasAnteriores(Obj.Id);
-
-                //guardar partida
-
-                if (ListaPartidas == null || eliminados == ListaPartidas.Count)
+                if (ListaCeldasNuevas.Count > 0)
                 {
-                    //insertar
-                    string query = "";
+                    scriptInsert = new StringBuilder("INSERT INTO PAGOSPARTIDAS (PagoId, Monto, Fecha, UsuarioId, FechaCreacion, FormaPago, MontoOriginal, FechaModificacion, UsuarioModificoId) VALUES ");
 
 
-                    query += string.Join(",", ListaPartidasAux.Select(item =>
-                    $"({Obj.Id}, {item.Monto}, '{item.Fecha.ToString("yyyy-MM-dd")}','{Global.ObjUsuario.Id}', '{item.FechaCreacion.ToString("yyyy-MM-dd HH:mm:ss")}')"));
-
-                    if (ListaPartidasAux.Count == contextoPagoPartida.InsertarPartidasPago(query))
+                    foreach (var item in ListaCeldasNuevas)
                     {
-                        MessageBox.Show("Se han registrado los cambios correctamente.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        InicializarModulo();
+                        if (decimal.TryParse(item.Monto, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal monto) && (DateTime.TryParse(item.Fecha, out DateTime fecha)))
+                        {
+                            PagoPartida partida = new PagoPartida
+                            {
+                                PagoId = Obj.Id,
+                                Monto = monto,
+                                Fecha = fecha,
+                                UsuarioId = Global.ObjUsuario.Id,
+                                FechaCreacion = fechaServidor,
+                                FormaPago = item.FormaPago,
+                                MontoOriginal = 0,
+                                FechaModificacion = null,
+                                UsuarioModificoId = null
+
+                            };
+
+
+
+                            scriptInsert.AppendFormat("({0}, {1}, '{2}', {3}, '{4}', '{5}', {6}, {7}, {8}), ",
+                                    partida.PagoId,
+                                    partida.Monto,
+                                    partida.Fecha.ToString("yyyy-MM-dd"),
+                                    partida.UsuarioId,
+                                    partida.FechaCreacion.ToString("yyyy-MM-dd HH:mm:ss"),
+                                    partida.FormaPago,
+                                    0,
+                                    "NULL",
+                                    "NULL"
+                                );
+
+
+
+
+                        }
                     }
-                    else
-                    {
-                        MessageBox.Show("Error al guardar los registros, intente cargando el Pago nuevamente.", "Error en la operación", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+
+                    scriptInsert.Length -= 2;
+                    scriptInsert.Append(";");
+
+
+                    guardadoPartidasCorrecto = (ListaCeldasNuevas.Count == contextoPagoPartida.InsertarPartidasPago(scriptInsert.ToString()));
                 }
                 else
                 {
-                    MessageBox.Show("Error al intentar realizar la operación de guarddado, intente cargando el Pago nuevamente.", "Error en la operación", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    guardadoPartidasCorrecto = true;
+                }
+                    
+           
+                
+                if(!guardadoPartidasCorrecto)
+                {
+                    MessageBox.Show("Error al guardar los pagos en la boleta, intente cerrar y abrir el módulo nuevamente.", "Error en la operación", MessageBoxButtons.OK, MessageBoxIcon.Error);                    
+                }
+                else
+                {
+                    //continuar con las modificaciones en partidas
+                    if (ListaCeldasModificar.Count > 0)
+                    {
+                        scriptInsert = new StringBuilder();
+                        foreach (var item in ListaCeldasModificar)
+                        {
+                            scriptInsert.AppendLine($@"
+                                UPDATE PagosPartidas
+                                SET 
+                                    Monto = {Global.FormatearPesosADecimal(item.Monto)}, 
+                                    Fecha = '{Global.FormatearFecha(item.Fecha, "yyyy-MM-dd")}',
+                                    FormaPago = '{item.FormaPago}', 
+                                    MontoOriginal = {ListaPartidas.FirstOrDefault(x => x.Id == item.Id).Monto}, 
+                                    FechaModificacion = '{fechaServidor:yyyy-MM-dd HH:mm:ss}', 
+                                    UsuarioModificoId = '{Global.ObjUsuario.Id}',
+                                    FechaBaja = '{(item.Eliminar==true?fechaServidor.ToString("yyyy-MM-dd HH:mm:ss"): null) }',
+                                    UsuarioBajaId = '{(item.Eliminar == true? Global.ObjUsuario.Id.ToString() : null)}'
+                                WHERE Id = {item.Id};
+                            ");
+                        }
+
+                        string query = scriptInsert.ToString();
+
+                        guardadoPartidasCorrecto = (ListaCeldasModificar.Count == contextoPagoPartida.InsertarPartidasPago(scriptInsert.ToString()));
+                    }
+
+                    if (guardadoPartidasCorrecto)
+                    {
+                        MessageBox.Show("Los pagos de la boleta se han guardado correctamente.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        InicializarModulo();
+                    }
+
+
+
                 }
 
 
-            }
-
-            if (guardoEncabezado)
-            {
-                MessageBox.Show("Registro guardado correctamente.", "Mensaje", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                Close();
             }
 
 
@@ -290,12 +402,64 @@ namespace ControlPagoLotes
 
         private void btnAddPago_Click(object sender, EventArgs e)
         {
-            GuardarPago();
+            if (!Validaciones())
+            {
+                GuardarPago();
+            }
+            else
+            {
+                string msjAlert = string.Join(". \n", LstValidacionesmsj);
+                MessageBox.Show("Olvido llenar la siguiente información: \n"+msjAlert, "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            }
+
+        }
+
+        private bool Validaciones()
+        {
+            LstValidacionesmsj = new List<string>();
+
+            if (string.IsNullOrEmpty(txtNombreCliente.Text))
+            {
+                LstValidacionesmsj.Add("*No ha ingresado el NOMBRE del CLIENTE");
+            }
+            if (string.IsNullOrEmpty(txtTotal.Text))
+            {
+                LstValidacionesmsj.Add("*No ha ingresado el MONTO del lote");
+            }
+            if (string.IsNullOrEmpty(txtMeses.Text))
+            {
+                LstValidacionesmsj.Add("*No ha ingresado el número de MESES a pagar");
+            }
+            if (string.IsNullOrEmpty(txtDiaPago.Text))
+            {
+                LstValidacionesmsj.Add("*No ha ingresado el  DÍA DE PAGO");
+            }
+            if (string.IsNullOrEmpty(txtLotes.Text))
+            {
+                LstValidacionesmsj.Add("*No ha ingresado el LOTE");
+            }
+
+            if (cbxEstados.SelectedIndex == -1)
+            {
+                LstValidacionesmsj.Add( "*No ha seleccionado el ESTADO de la boleta");
+            }
+            if(cbxZona.SelectedIndex == -1)
+            {
+                LstValidacionesmsj.Add("*No ha seleccionado la ZONA");
+            }
+            if (dtpFechaContrato.Value == null)
+            {
+                LstValidacionesmsj.Add("*No ha seleccionado la FECHA de contrato");
+            }
+
+            return LstValidacionesmsj.Count > 0;
+
+            
         }
 
         private void pegarContenidoToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //PegarCeldas();
             PegadoEspecial();
         }
 
@@ -323,10 +487,10 @@ namespace ControlPagoLotes
                     {
                         if (indexActual == -1)
                         {
-                            ListaCeldas.Add(new clsCELDASPAGOS { Monto = cells[0], Fecha = cells[1] });
+                            ListaCeldas.Add(new clsCELDASPAGOS { Monto = cells[0], Fecha = cells[1], FormaPago = cells.Length==2 ? 0 : Convert.ToInt32(cells[2]) });
                         }else if (indexActual > -1)
                         {
-                            ListaCeldas.Insert(indexActual, new clsCELDASPAGOS { Monto = cells[0], Fecha = cells[1] });
+                            ListaCeldas.Insert(indexActual, new clsCELDASPAGOS { Monto = cells[0], Fecha = cells[1], FormaPago = cells.Length==2 ? 0 : Convert.ToInt32(cells[2]) });
                             indexActual++;
                         }
                     }
@@ -344,11 +508,12 @@ namespace ControlPagoLotes
             dgvRegistros.EndEdit();
             dgvRegistros.Rows.Clear();
             acumulado = 0;
-
+            int rowIndex = 0;
             foreach (var item in ListaCeldas)
             {
-                dgvRegistros.Rows.Add(item.Monto, item.Fecha);
-                if (decimal.TryParse(item.Monto, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal monto))
+                dgvRegistros.Rows.Add(item.Id, item.Monto, item.Fecha, item.Modificar, item.Eliminar, item.FormaPago);
+
+                if ((item.Eliminar == null || item.Eliminar == false) &&  decimal.TryParse(item.Monto, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal monto))
                 {
                     acumulado += monto;
                 }
@@ -357,7 +522,15 @@ namespace ControlPagoLotes
                     acumulado += 0; 
                 }
 
+                if(item.Eliminar== true)
+                {
+                    dgvRegistros.Rows[rowIndex].DefaultCellStyle.BackColor = Color.Orange;
+                }
+
+                rowIndex++;
+
             }
+
 
             tsTotalRegistros.Text = dgvRegistros.RowCount.ToString("N0");
             tsAcumulado.Text = acumulado.ToString("N2");
@@ -397,10 +570,19 @@ namespace ControlPagoLotes
         private void EliminarPartida()
         {
             if (dgvRegistros.Rows.Count <= 0) return;
+           
 
-            indexActual = dgvRegistros.CurrentRow.Index;
-
-            ListaCeldas.RemoveAt(indexActual);
+            if (dgvRegistros.CurrentRow.Cells[0].Value != null)
+            {
+                int index =  ListaCeldas.FindIndex(x => x.Id == (int)dgvRegistros.CurrentRow.Cells[0].Value);                
+                ListaCeldas[index].Eliminar = ListaCeldas[index].Eliminar != true;               
+            }
+            else
+            {
+                indexActual = dgvRegistros.CurrentRow.Index;
+                ListaCeldas.RemoveAt(indexActual);
+            }
+            
 
             MostrarCeldasEnDgv();
         }
@@ -416,24 +598,78 @@ namespace ControlPagoLotes
             if (dgvRegistros.RowCount < 1) return;
             if (ListaCeldas == null || ListaCeldas.Count < 1) return;
 
-            if(cell == 0)
+            if(cell == 1)
             {
                 ListaCeldas[row].Monto = valor;
             }
-            else
+            else if(cell==2)
             {
                 ListaCeldas[row].Fecha = valor;
+            }
+            else if(cell == 5)
+            {
+                ListaCeldas[row].FormaPago = String.IsNullOrEmpty(valor) ? 0 : Convert.ToInt32(valor);
+            }
+
+            PagoPartida obj;
+
+            obj = ListaPartidas.FirstOrDefault(x => x.Id == ListaCeldas[row].Id);
+
+            if (obj!=null && (ListaCeldas[row].Fecha != obj.Fecha.ToString("dd/MM/yyyy") || ListaCeldas[row].FormaPago != obj.FormaPago || Global.FormatearPesosADecimal(ListaCeldas[row].Monto) != obj.Monto))
+            {
+                ListaCeldas[row].Modificar = true;
             }
 
             MostrarCeldasEnDgv(); 
 
         }
 
-        private bool ValidarAtrasoPago()
-        {   
+        private List<string> ValidarAtrasoPago()
+        {
+            List<string> msj = new List<string>();
+
             DateTime fechaActual = Global.FechaServidor();
             PagoPartida ultimoPago = ListaPartidas.OrderByDescending(x => x.Fecha).First();
-            return (ultimoPago.Fecha >= fechaActual.AddMonths(-3) && ultimoPago.Fecha <= fechaActual);
+            int noPagos = Convert.ToInt32(Obj.Meses);
+            decimal total = Obj.Total;
+            PagoPartida objPagoInicial = ListaPartidas.OrderBy(x => x.Fecha).First(x => x.FechaBaja == null);
+
+
+            int mesesTranscurridos = ((fechaActual.Year - objPagoInicial.Fecha.Year) * 12) + fechaActual.Month - objPagoInicial.Fecha.Month;
+
+            decimal montoPreliminarmentePAgado = 0;
+            if (mesesTranscurridos < noPagos)
+            {
+                montoPreliminarmentePAgado = ((total - objPagoInicial.Monto) / noPagos) * mesesTranscurridos;
+            }
+            else
+            {
+                montoPreliminarmentePAgado = total;
+            }
+
+
+            if (ListaPartidas.Sum(x => x.Monto) < montoPreliminarmentePAgado)
+            {
+                msj.Add("*El monto acumulado a la boleta esta por debajo del estimado.");
+            }
+
+            //if(ultimoPago.Fecha >= fechaActual.AddMonths(-3) /*&& ultimoPago.Fecha <= fechaActual*/)
+            if(((fechaActual.Year - ultimoPago.Fecha.Year) * 12) + ultimoPago.Fecha.Month - fechaActual.Month > 3)
+            {
+                msj.Add("*No se han recibido pagos en más de tres meses.");
+            }
+
+            if(msj.Count<=0 && Obj.Estado == ((int)Enumeraciones.Estados.ATRASADO).ToString())
+            {
+                msj.Add("*La boleta de pago tiene estado atrasado, verifiqué si tiene algún inconveniente, en caso contrario seleccionar el estado correspondiente.");
+            }
+
+            if (msj.Count > 0)
+            {
+                LstValidacionesAtrasos = msj;
+            }
+
+            return msj;
 
         }
 
@@ -476,7 +712,7 @@ namespace ControlPagoLotes
 
                 case 4:
                     titulo = "ADVERTENCIA";
-                    msj = "El cliente no ha presentado mensualidad en más de 3 meses consecutivos.";
+                    msj = string.Join(Environment.NewLine, LstValidacionesAtrasos); //"El cliente no ha presentado mensualidad en más de 3 meses consecutivos.";
                     tipo = MessageBoxIcon.Information;
                     break;
 
@@ -669,12 +905,18 @@ namespace ControlPagoLotes
                             table.AddHeaderCell(new Cell().Add(new Paragraph("FECHA"))).SetFont(boldFont);
 
                             // Agregar muchas filas para forzar el salto de página
+                            decimal acumulado = 0;
                             for (int i = 0; i < ListaCeldas.Count; i++)
                             {
                                 table.AddCell($"{i+1}");
                                 table.AddCell($"{"$ "+ ListaCeldas[i].Monto}");
                                 table.AddCell($"{ListaCeldas[i].Fecha}");
+
+                                acumulado += Global.FormatearPesosADecimal(ListaCeldas[i].Monto);
                             }
+                            //agregar total
+                            table.AddCell(new Cell(4+ListaCeldas.Count+1,1).Add(new Paragraph("Acumulado:")));
+                            table.AddCell(new Cell(4 + ListaCeldas.Count + 1, 1).Add(new Paragraph("$ "+ acumulado.ToString("N2"))));
 
                             // Agregar la tabla al documento
                             document.Add(table);

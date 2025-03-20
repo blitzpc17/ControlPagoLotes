@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LOGICA
 {
-    public class PagoPartidaLogica
+    public class PagoPartidaLogica:IDisposable
     {
         PagoPartidasRepository contexto;
         public PagoPartidaLogica()
@@ -61,5 +61,9 @@ namespace LOGICA
             return contexto.ListarPagoPorFecha(fecha);
         }
 
+        public void Dispose()
+        {
+            contexto.Dispose();
+        }
     }
 }
