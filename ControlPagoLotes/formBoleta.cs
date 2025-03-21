@@ -29,6 +29,7 @@ using iText.Kernel.Font;
 using static ControlPagoLotes.Enumeraciones;
 using System.Collections;
 using Color = System.Drawing.Color;
+using Path = System.IO.Path;
 
 namespace ControlPagoLotes
 {
@@ -361,8 +362,8 @@ namespace ControlPagoLotes
                                     MontoOriginal = {ListaPartidas.FirstOrDefault(x => x.Id == item.Id).Monto}, 
                                     FechaModificacion = '{fechaServidor:yyyy-MM-dd HH:mm:ss}', 
                                     UsuarioModificoId = '{Global.ObjUsuario.Id}',
-                                    FechaBaja = '{(item.Eliminar==true?fechaServidor.ToString("yyyy-MM-dd HH:mm:ss"): null) }',
-                                    UsuarioBajaId = '{(item.Eliminar == true? Global.ObjUsuario.Id.ToString() : null)}'
+                                    FechaBaja = {((item.Eliminar==true)?"'"+fechaServidor.ToString("yyyy-MM-dd HH:mm:ss")+"'": "NULL") },
+                                    UsuarioBajaId = {(( item.Eliminar == true)? Global.ObjUsuario.Id.ToString("N0") : "NULL")}
                                 WHERE Id = {item.Id};
                             ");
                         }
@@ -633,7 +634,9 @@ namespace ControlPagoLotes
             int noPagos = Convert.ToInt32(Obj.Meses);
             decimal total = Obj.Total;
             PagoPartida objPagoInicial = ListaPartidas.OrderBy(x => x.Fecha).First(x => x.FechaBaja == null);
+            decimal montoPagadoAcumulado = 0;
 
+            montoPagadoAcumulado = (ListaPartidas == null || ListaPartidas.Count <= 0) ? 0 : ListaPartidas.Sum(x => x.Monto);
 
             int mesesTranscurridos = ((fechaActual.Year - objPagoInicial.Fecha.Year) * 12) + fechaActual.Month - objPagoInicial.Fecha.Month;
 
@@ -648,9 +651,9 @@ namespace ControlPagoLotes
             }
 
 
-            if (ListaPartidas.Sum(x => x.Monto) < montoPreliminarmentePAgado)
+            if (/*ListaPartidas.Sum(x => x.Monto)*/ montoPagadoAcumulado < montoPreliminarmentePAgado)
             {
-                msj.Add("*El monto acumulado a la boleta esta por debajo del estimado.");
+                msj.Add("*El monto acumulado a la boleta $ "+montoPagadoAcumulado.ToString("N2")+"  esta por debajo del estimado de $ " + montoPreliminarmentePAgado.ToString("N2")+".");
             }
 
             //if(ultimoPago.Fecha >= fechaActual.AddMonths(-3) /*&& ultimoPago.Fecha <= fechaActual*/)
@@ -859,79 +862,83 @@ namespace ControlPagoLotes
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     string rutaArchivo = saveFileDialog.FileName;
-
-                    try
-                    {
-                        // Crear un archivo PDF con tamaño de media carta
-                        using (var pdfWriter = new PdfWriter(rutaArchivo))
-                        using (var pdfDoc = new PdfDocument(pdfWriter))
-                        {
-                            // Establecer tamaño de página a media carta
-                            var mediaCarta = new PageSize(396, 612); // Ancho x Alto en puntos
-                            pdfDoc.SetDefaultPageSize(mediaCarta);
-
-                            var boldFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
-
-                            var document = new Document(pdfDoc);
-
-                            // Agregar título
-                            document.Add(new Paragraph("Boleta de pago")
-                                .SetFontSize(18)
-                                .SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER));
-
-                            // document.Add(new Paragraph("Este documento asegura que las tablas largas y el contenido se dividan correctamente entre las páginas.\n\n"));
-
-                            var tableEncabezado = new Table(2)
-                            .SetFontSize(14)
-                            .SetWidth(UnitValue.CreatePercentValue(100)); // Ajustar al ancho del documento
-
-                            // Agregar las celdas de encabezado con texto personalizado
-                            tableEncabezado.AddCell(new Cell(1,2).Add(new Paragraph(Obj.NombreCliente))).SetFont(boldFont);
-                            tableEncabezado.AddCell(new Cell(2,1).Add(new Paragraph("$ " + Obj.Total.ToString("N2")))).SetFont(boldFont);
-                            tableEncabezado.AddCell(new Cell(2, 2).Add(new Paragraph(Obj.Meses + " meses"))).SetFont(boldFont);
-                            tableEncabezado.AddCell(new Cell(3, 2).Add(new Paragraph(listaZonas.First(x => x.Id == Obj.ZonaId).Nombre))).SetFont(boldFont); // Valor de la ruta
-                            tableEncabezado.AddCell(new Cell(4, 1).Add(new Paragraph(Obj.Lotes))).SetFont(boldFont);
-                            tableEncabezado.AddCell(new Cell(4, 2).Add(new Paragraph("Día pago: " + Obj.DiaPago))).SetFont(boldFont);
-                            // Agregar la tabla al documento
-                            document.Add(tableEncabezado);
-
-                            // Crear una tabla con varias filas para probar saltos de página
-                            var table = new Table(3); // 4 columnas
-                            table.SetWidth(UnitValue.CreatePercentValue(100)); // Usar todo el ancho disponible
-
-                            // Encabezados de la tabla
-                            table.AddHeaderCell(new Cell().Add(new Paragraph("No."))).SetFont(boldFont);
-                            table.AddHeaderCell(new Cell().Add(new Paragraph("MONTO"))).SetFont(boldFont);
-                            table.AddHeaderCell(new Cell().Add(new Paragraph("FECHA"))).SetFont(boldFont);
-
-                            // Agregar muchas filas para forzar el salto de página
-                            decimal acumulado = 0;
-                            for (int i = 0; i < ListaCeldas.Count; i++)
-                            {
-                                table.AddCell($"{i+1}");
-                                table.AddCell($"{"$ "+ ListaCeldas[i].Monto}");
-                                table.AddCell($"{ListaCeldas[i].Fecha}");
-
-                                acumulado += Global.FormatearPesosADecimal(ListaCeldas[i].Monto);
-                            }
-                            //agregar total
-                            table.AddCell(new Cell(4+ListaCeldas.Count+1,1).Add(new Paragraph("Acumulado:")));
-                            table.AddCell(new Cell(4 + ListaCeldas.Count + 1, 1).Add(new Paragraph("$ "+ acumulado.ToString("N2"))));
-
-                            // Agregar la tabla al documento
-                            document.Add(table);
-
-                            // Finalizar el documento
-                            document.Close();
-                        }
-
-                        MessageBox.Show("Boleta de pago generada correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Ocurrió un error al generar la boleta de pago: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    GenerarBoletaPdf(rutaArchivo);
                 }
+            }
+        }
+
+        private void GenerarBoletaPdf(string rutaArchivo)
+        {
+            try
+            {
+                // Crear un archivo PDF con tamaño de media carta
+                using (var pdfWriter = new PdfWriter(rutaArchivo))
+                using (var pdfDoc = new PdfDocument(pdfWriter))
+                {
+                    // Establecer tamaño de página a media carta
+                    var mediaCarta = new PageSize(396, 612); // Ancho x Alto en puntos
+                    pdfDoc.SetDefaultPageSize(mediaCarta);
+
+                    var boldFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+
+                    var document = new Document(pdfDoc);
+
+                    // Agregar título
+                    document.Add(new Paragraph("Boleta de pago")
+                        .SetFontSize(18)
+                        .SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER));
+
+                    // document.Add(new Paragraph("Este documento asegura que las tablas largas y el contenido se dividan correctamente entre las páginas.\n\n"));
+
+                    var tableEncabezado = new Table(2)
+                    .SetFontSize(14)
+                    .SetWidth(UnitValue.CreatePercentValue(100)); // Ajustar al ancho del documento
+
+                    // Agregar las celdas de encabezado con texto personalizado
+                    tableEncabezado.AddCell(new Cell(1, 2).Add(new Paragraph(Obj.NombreCliente))).SetFont(boldFont);
+                    tableEncabezado.AddCell(new Cell(2, 1).Add(new Paragraph("$ " + Obj.Total.ToString("N2")))).SetFont(boldFont);
+                    tableEncabezado.AddCell(new Cell(2, 2).Add(new Paragraph(Obj.Meses + " meses"))).SetFont(boldFont);
+                    tableEncabezado.AddCell(new Cell(3, 2).Add(new Paragraph(listaZonas.First(x => x.Id == Obj.ZonaId).Nombre))).SetFont(boldFont); // Valor de la ruta
+                    tableEncabezado.AddCell(new Cell(4, 1).Add(new Paragraph(Obj.Lotes))).SetFont(boldFont);
+                    tableEncabezado.AddCell(new Cell(4, 2).Add(new Paragraph("Día pago: " + Obj.DiaPago))).SetFont(boldFont);
+                    // Agregar la tabla al documento
+                    document.Add(tableEncabezado);
+
+                    // Crear una tabla con varias filas para probar saltos de página
+                    var table = new Table(3); // 4 columnas
+                    table.SetWidth(UnitValue.CreatePercentValue(100)); // Usar todo el ancho disponible
+
+                    // Encabezados de la tabla
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("No."))).SetFont(boldFont);
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("MONTO"))).SetFont(boldFont);
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("FECHA"))).SetFont(boldFont);
+
+                    // Agregar muchas filas para forzar el salto de página
+                    decimal acumulado = 0;
+                    for (int i = 0; i < ListaCeldas.Count; i++)
+                    {
+                        table.AddCell($"{i + 1}");
+                        table.AddCell($"{"$ " + ListaCeldas[i].Monto}");
+                        table.AddCell($"{ListaCeldas[i].Fecha}");
+
+                        acumulado += Global.FormatearPesosADecimal(ListaCeldas[i].Monto);
+                    }
+                    //agregar total
+                    table.AddCell(new Cell(4 + ListaCeldas.Count + 1, 1).Add(new Paragraph("Acumulado:")));
+                    table.AddCell(new Cell(4 + ListaCeldas.Count + 1, 1).Add(new Paragraph("$ " + acumulado.ToString("N2"))));
+
+                    // Agregar la tabla al documento
+                    document.Add(table);
+
+                    // Finalizar el documento
+                    document.Close();
+                }
+
+                MessageBox.Show("Boleta de pago generada correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ocurrió un error al generar la boleta de pago: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -942,7 +949,40 @@ namespace ControlPagoLotes
 
         private void EnviarRecibo()
         {
-            throw new NotImplementedException();
+
+            if (MessageBox.Show("¿Desea enviar la boleta de pago?", "Aviso", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+               
+
+                //bucar si existe el archivo tmeporal
+                string rutaMisDocumentos = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+                // Nombre del archivo que buscas
+                string nombreArchivo = "envio.pdf";
+
+                // Combinar la ruta de "Mis Documentos" con el nombre del archivo
+                string rutaCompleta = Path.Combine(rutaMisDocumentos, nombreArchivo);
+
+
+                GenerarBoletaPdf(rutaCompleta);
+
+                // Verificar si el archivo existe
+                if (File.Exists(rutaCompleta))
+                {
+                    formEnvioArchivos frm = new formEnvioArchivos(rutaCompleta);
+                    frm.ShowDialog();
+                }
+                else
+                {
+                    MessageBox.Show("No se genero la boleta, verifique si existe en MIS DOCUMENTOS el arcvhivo envio.pdf e intentelo nuevamente.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
+
+                
+
+               
+            }
+           
         }
     }
 }
