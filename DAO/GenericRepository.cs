@@ -4,10 +4,13 @@ using System.Data;
 using System.Data.SqlClient;
 using Dapper;
 using System.Linq;
+using System.Data.Common;
 
 public class GenericRepository:IDisposable
 {
     private readonly string _connectionString;
+    private bool _disposed = false; // Flag para controlar si ya se liberaron los recursos
+
 
     public GenericRepository(/*string connectionString*/)
     {
@@ -54,7 +57,23 @@ public class GenericRepository:IDisposable
 
     public void Dispose()
     {
-        Dispose();
+        Dispose(true);
         GC.SuppressFinalize(this);
+    }
+    // Método protegido que hace el trabajo real
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed) // Si no se han liberado los recursos
+        {
+            if (disposing) // Si se llama desde Dispose() (no desde el finalizador)
+            {
+                if (Connection != null)
+                {
+                    Connection.Close();
+                    Connection.Dispose();
+                }
+            }
+            _disposed = true; // Marca como liberado
+        }
     }
 }

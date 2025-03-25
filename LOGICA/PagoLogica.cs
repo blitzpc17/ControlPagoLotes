@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LOGICA
 {
-    public class PagoLogica
+    public class PagoLogica:IDisposable
     {
         PagosRepository contexto;
         public PagoLogica()
@@ -51,6 +51,16 @@ namespace LOGICA
         public List<clsPagosBusqueda> GetAllPagosBusqueda()
         {
             return contexto.GetAllPagosBusqueda();
+        }
+
+        public void Dispose()
+        {
+            contexto.Dispose();
+        }
+
+        public List<Pago> ListarPagosxZona(int zonaId)
+        {
+            return contexto.ListarPagosXZona(zonaId);
         }
     }
 }

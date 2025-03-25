@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DAO.ADOS
 {
-    public class PagosRepository
+    public class PagosRepository:IDisposable
     {
         GenericRepository connection;
 
@@ -76,6 +76,17 @@ namespace DAO.ADOS
                 "END AS NombreEstado\r\nFROM PAGOS p\r\nJOIN ZONAS zn ON p.ZonaId = zn.Id;";
 
             return connection.Query<clsPagosBusqueda>(query).ToList();
+        }
+
+        public void Dispose()
+        {
+            connection.Dispose();
+        }
+
+        public List<Pago> ListarPagosXZona(int zonaId)
+        {
+            var query = "SELECT * FROM Pagos WHERE ZonaId = "+zonaId;
+            return connection.Query<Pago>(query).ToList();
         }
     }
 }

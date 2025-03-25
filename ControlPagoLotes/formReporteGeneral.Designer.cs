@@ -30,12 +30,13 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(formReporteGeneral));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chkTodos = new System.Windows.Forms.CheckBox();
             this.cbxZonas = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.btnCancelar = new System.Windows.Forms.Button();
             this.btnEnviar = new System.Windows.Forms.Button();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -44,7 +45,7 @@
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.checkBox1);
+            this.groupBox1.Controls.Add(this.chkTodos);
             this.groupBox1.Controls.Add(this.cbxZonas);
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
@@ -53,6 +54,17 @@
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Selecciona datos";
+            // 
+            // chkTodos
+            // 
+            this.chkTodos.AutoSize = true;
+            this.chkTodos.Location = new System.Drawing.Point(96, 76);
+            this.chkTodos.Name = "chkTodos";
+            this.chkTodos.Size = new System.Drawing.Size(103, 17);
+            this.chkTodos.TabIndex = 86;
+            this.chkTodos.Text = "Todas las zonas";
+            this.chkTodos.UseVisualStyleBackColor = true;
+            this.chkTodos.CheckedChanged += new System.EventHandler(this.chkTodos_CheckedChanged);
             // 
             // cbxZonas
             // 
@@ -63,6 +75,7 @@
             this.cbxZonas.Name = "cbxZonas";
             this.cbxZonas.Size = new System.Drawing.Size(218, 28);
             this.cbxZonas.TabIndex = 84;
+            this.cbxZonas.SelectedIndexChanged += new System.EventHandler(this.cbxZonas_SelectedIndexChanged);
             // 
             // label8
             // 
@@ -73,16 +86,6 @@
             this.label8.Size = new System.Drawing.Size(55, 20);
             this.label8.TabIndex = 85;
             this.label8.Text = "Zona:";
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(96, 76);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(103, 17);
-            this.checkBox1.TabIndex = 86;
-            this.checkBox1.Text = "Todas las zonas";
-            this.checkBox1.UseVisualStyleBackColor = true;
             // 
             // btnCancelar
             // 
@@ -113,6 +116,7 @@
             this.btnEnviar.Text = "GENERAR";
             this.btnEnviar.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btnEnviar.UseVisualStyleBackColor = true;
+            this.btnEnviar.Click += new System.EventHandler(this.btnEnviar_Click);
             // 
             // formReporteGeneral
             // 
@@ -128,6 +132,7 @@
             this.Name = "formReporteGeneral";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Reporte General";
+            this.Shown += new System.EventHandler(this.formReporteGeneral_Shown);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
@@ -137,11 +142,12 @@
         #endregion
 
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.CheckBox chkTodos;
         private System.Windows.Forms.ComboBox cbxZonas;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Button btnCancelar;
         private System.Windows.Forms.Button btnEnviar;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
     }
 }

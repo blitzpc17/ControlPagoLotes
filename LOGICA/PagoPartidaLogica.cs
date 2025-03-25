@@ -65,5 +65,10 @@ namespace LOGICA
         {
             contexto.Dispose();
         }
+
+        public List<PagoPartida> ListarPartidasPagos(string idsRelacionados)
+        {
+            return contexto.ListarPartidasPagos(idsRelacionados);
+        }
     }
 }

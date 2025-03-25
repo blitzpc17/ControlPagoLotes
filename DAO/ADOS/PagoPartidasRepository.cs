@@ -102,5 +102,12 @@ namespace DAO.ADOS
         {
             connection.Dispose();
         }
+
+        public List<PagoPartida> ListarPartidasPagos(string idsRelacionados)
+        {
+            var query = "SELECT * FROM PAGOSPARTIDAS " +
+               "WHERE PAGOId in ("+idsRelacionados+") AND FechaBaja is null AND UsuarioBajaId is null";
+            return connection.Query<PagoPartida>(query).ToList();
+        }
     }
 }
