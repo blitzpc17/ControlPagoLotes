@@ -100,7 +100,7 @@ namespace ControlPagoLotes
         {
             if (e.Cancelled)
             {
-                pEnviando.Image = null;
+                pEnviando.Image = Properties.Resources.envioarchivo;
                 lblProceso.Text = "Operación cancelada.";
             }
             else if (e.Error != null)
@@ -119,16 +119,16 @@ namespace ControlPagoLotes
             }
 
 
-            btnCancelar.Visible = false;
+            btnCancelarEnvio.Visible = false;
         }
 
         private void btnEnviar_Click(object sender, EventArgs e)
         {          
-            btnCancelar.Visible = true;
+            btnCancelarEnvio.Visible = true;
             pEnviando.Image = Properties.Resources.envioarchivo;
-
             tipoEnvio = cbxTipoEnvio.SelectedIndex;
             destino = txtDestino.Text;
+            lblProceso.Text = "";
 
             if(cbxTipoEnvio.SelectedIndex == -1)
             {
@@ -174,7 +174,9 @@ namespace ControlPagoLotes
             if (backgroundWorker1.IsBusy)
             {
                 backgroundWorker1.CancelAsync();
-                btnCancelar.Visible = false;
+                btnCancelarEnvio.Visible = false;
+                lblProceso.Text = "Proceso de envio cancelado correctamente.";
+                pEnviando.Image = Properties.Resources.envioarchivo;
             }
         }
 
@@ -190,6 +192,11 @@ namespace ControlPagoLotes
             {
                 txtDestino.MaxLength = 100;
             }
+        }
+
+        private void btnCancelar_Click(object sender, EventArgs e)
+        {
+            Close();
         }
     }
 }

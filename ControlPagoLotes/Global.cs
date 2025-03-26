@@ -54,6 +54,10 @@ namespace ControlPagoLotes
                         comboBox.Items.Clear();
                     }
                 }
+                else if (control is DateTimePicker dtp)
+                {
+                    dtp.Value = Global.FechaServidor();
+                }
                 else if (control is DataGridView dataGridView)
                 {
                     dataGridView.DataSource = null;

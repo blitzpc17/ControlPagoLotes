@@ -18,7 +18,9 @@ namespace ControlPagoLotes
         private PagoPartidaLogica contexto;
         private List<clsDATACORTE> ListaPagosDiarios;
         private decimal montoNuevos = 0;
+        private decimal montoNuevosMismoDiaModificados = 0;
         private decimal montoModificados = 0;
+        private decimal montoModificadosMigrados = 0;
         private decimal montoEliminados = 0;
         private decimal montoMigrado = 0;
         public formCorteCaja()
@@ -44,28 +46,60 @@ namespace ControlPagoLotes
           
             //agregar monto migrados
            montoNuevos = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? (ListaPagosDiarios
-                    .Where(x => x.FormaPagoTipo!=0 
-                           && x.UsuarioModifico == null 
-                           && x.FechaModifico == null 
-                           && x.FechaElimino ==null 
-                           && x.UsuarioElimino==null).Sum(x => x.Monto)) : 0; 
+                    .Where(x => x.FormaPagoTipo!=0
+                        && (x.FechaElimino == null && x.UsuarioElimino == null)
+                        && (x.UsuarioModifico == null && x.FechaModifico == null)                           
+                    ).Sum(x => x.Monto)) : 0; 
 
-            
+            montoNuevosMismoDiaModificados = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? (ListaPagosDiarios
+                    .Where(x => x.FormaPagoTipo != 0
+                           && (x.FechaElimino == null && x.UsuarioElimino == null)
+                           && (x.UsuarioModifico != null && x.FechaModifico != null && Convert.ToDateTime(x.FechaModifico).Date == x.FechaMovimiento.Date)                           
+                           ).Sum(x => x.Monto)) : 0;
+
+
             Console.WriteLine(montoNuevos);
             montoModificados = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? 
                 (ListaPagosDiarios.Where(x =>
-                    x.FormaPagoTipo != 0
-                    &&   (x.FechaElimino == null && x.UsuarioElimino == null) 
-                    && (x.UsuarioModifico != null && x.FechaModifico != null))
+                   x.FormaPagoTipo != 0
+                    &&(x.FechaElimino == null && x.UsuarioElimino == null) 
+                    && (x.UsuarioModifico != null && x.FechaModifico != null)
+                    && (Convert.ToDateTime(x.FechaModifico).Date != x.FechaMovimiento.Date)
+                    )
                     .Sum(x => ((x.CantidadOriginal > x.Monto)?((x.CantidadOriginal-x.Monto) *-1):(x.Monto - x.CantidadOriginal))   )) : 0;
 
             Console.WriteLine(montoModificados);
+
+         
+
             montoEliminados = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? 
                 (ListaPagosDiarios.Where(x => x.FechaElimino != null && x.UsuarioElimino != null).Sum(x => (x.Monto))) : 0;
             Console.WriteLine(montoEliminados);
 
-            montoMigrado = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? 
-                (ListaPagosDiarios.Where(x => x.FormaPagoTipo == 0 && x.FechaElimino==null&& x.UsuarioElimino==null)).Sum(x => x.Monto) : 0;            
+            /*montoMigrado = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? 
+                (ListaPagosDiarios.Where(
+                    x => x.FormaPagoTipo == 0 
+                    && x.FechaElimino==null&& x.UsuarioElimino==null
+                    && ( (x.FechaModifico==null && x.UsuarioModifico ==null) || (x.FechaModifico!=null && Convert.ToDateTime(x.FechaModifico).Date == x.FechaMovimiento.Date)) )
+                ).Sum(x => x.Monto) : 0; */
+
+            montoMigrado = ListaPagosDiarios?
+                                .Where(x => x.FormaPagoTipo == 0
+                                            && x.FechaElimino == null
+                                            && x.UsuarioElimino == null
+                                            && (x.FechaModifico == null && x.UsuarioModifico == null
+                                                || x.FechaModifico?.Date == x.FechaMovimiento.Date))
+                                .Sum(x => x.Monto) ?? 0;
+
+            montoModificadosMigrados = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ?
+             (ListaPagosDiarios.Where(x =>
+                x.FormaPagoTipo == 0
+                 && (x.FechaElimino == null && x.UsuarioElimino == null)
+                 && (x.UsuarioModifico != null && x.FechaModifico != null)
+                 && (Convert.ToDateTime(x.FechaModifico).Date != x.FechaMovimiento.Date)
+                 )
+                 .Sum(x => ((x.CantidadOriginal > x.Monto) ? ((x.CantidadOriginal - x.Monto) * -1) : (x.Monto - x.CantidadOriginal)))) : 0;
+
         }
 
         private void Apariencias()
@@ -178,8 +212,8 @@ namespace ControlPagoLotes
                     worksheet.Cell(rowReporte, 2).Value = ListaPagosDiarios[i].NombreCliente;
                     worksheet.Cell(rowReporte, 3).Value = ListaPagosDiarios[i].Zona;
                     worksheet.Cell(rowReporte, 4).Value = ListaPagosDiarios[i].Lotes;
-                    worksheet.Cell(rowReporte, 5).Value = ListaPagosDiarios[i].Monto.ToString("N2");
-                    worksheet.Cell(rowReporte, 6).Value = ListaPagosDiarios[i].CantidadOriginal.ToString("N2");
+                    worksheet.Cell(rowReporte, 5).Value = ListaPagosDiarios[i].Monto;//.ToString("N2");
+                    worksheet.Cell(rowReporte, 6).Value = ListaPagosDiarios[i].CantidadOriginal;//.ToString("N2");
                     worksheet.Cell(rowReporte, 7).Value = ListaPagosDiarios[i].FechaPago.ToString("dd/MM/yyyy");
                     worksheet.Cell(rowReporte, 8).Value = ListaPagosDiarios[i].FechaMovimiento.ToString("dd/MM/yyyy HH:mm:ss");
                     worksheet.Cell(rowReporte, 9).Value = ListaPagosDiarios[i].UsuarioRecibe;
@@ -205,7 +239,7 @@ namespace ControlPagoLotes
                         worksheet.Cell(rowReporte, 12).Value = "";
                     }
 
-                    worksheet.Cell(rowReporte, 13).Value = ListaPagosDiarios[i].UsuarioModifico;
+                    worksheet.Cell(rowReporte, 13).Value = ListaPagosDiarios[i].UsuarioElimino;
                     worksheet.Cell(rowReporte, 14).Value = ListaPagosDiarios[i].FormaPago;
 
                     rowReporte++;
@@ -243,11 +277,12 @@ namespace ControlPagoLotes
         {
             dgvRegistros.DataSource = ListaPagosDiarios;
             tsTotalRegistros.Text = dgvRegistros.RowCount.ToString("N0");
-            tsNuevoIngreso.Text = montoNuevos.ToString("N2");
+            tsNuevoIngreso.Text = (montoNuevos+montoNuevosMismoDiaModificados).ToString("N2");
             tsMontoModificado.Text = montoModificados.ToString("N2");
             tsMontoEliminado.Text = montoEliminados.ToString("N2");
-            tsTotalDia.Text = (montoNuevos + montoModificados).ToString("N2");
+            tsTotalDia.Text = (montoNuevos + montoModificados+montoNuevosMismoDiaModificados).ToString("N2");
             tsTotalMigrado.Text = montoMigrado.ToString("N2");
+            tsMigradosModificados.Text = montoModificadosMigrados.ToString("N2");
             Apariencias();
 
             tsCargandoInformacion.Text = "";

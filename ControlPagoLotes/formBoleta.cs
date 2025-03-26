@@ -591,13 +591,25 @@ namespace ControlPagoLotes
         private void dgvRegistros_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             if (dgvRegistros.RowCount < 1) return;
-            ModificarValoresCeldas(e.RowIndex,e.ColumnIndex, dgvRegistros.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? null);
+            if (Obj == null)
+            {
+                MessageBox.Show("Primero debe guardar la boleta para poder modificar las partidas. Confirme el pago y cargue la boleta e intentelo nuevamente.", "´No se puede realizar la operación",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+               
+            }
+            else
+            {
+                ModificarValoresCeldas(e.RowIndex, e.ColumnIndex, dgvRegistros.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? null);
+            }
+               
         }
 
         private void ModificarValoresCeldas(int row, int cell, string valor)
         {
             if (dgvRegistros.RowCount < 1) return;
             if (ListaCeldas == null || ListaCeldas.Count < 1) return;
+
+
 
             if(cell == 1)
             {

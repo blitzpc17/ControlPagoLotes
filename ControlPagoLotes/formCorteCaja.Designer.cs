@@ -44,6 +44,10 @@
             this.tsMontoModificado = new System.Windows.Forms.ToolStripLabel();
             this.toolStripLabel7 = new System.Windows.Forms.ToolStripLabel();
             this.tsMontoEliminado = new System.Windows.Forms.ToolStripLabel();
+            this.tsCargandoInformacion = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel4 = new System.Windows.Forms.ToolStripLabel();
+            this.tsTotalMigrado = new System.Windows.Forms.ToolStripLabel();
             this.dgvRegistros = new System.Windows.Forms.DataGridView();
             this.dtpFechaContrato = new System.Windows.Forms.DateTimePicker();
             this.label1 = new System.Windows.Forms.Label();
@@ -52,10 +56,9 @@
             this.bntExportar = new System.Windows.Forms.Button();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
-            this.tsCargandoInformacion = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripLabel4 = new System.Windows.Forms.ToolStripLabel();
-            this.tsTotalMigrado = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel6 = new System.Windows.Forms.ToolStripLabel();
+            this.tsMigradosModificados = new System.Windows.Forms.ToolStripLabel();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRegistros)).BeginInit();
             this.panel1.SuspendLayout();
@@ -80,7 +83,10 @@
             this.tsCargandoInformacion,
             this.toolStripSeparator3,
             this.toolStripLabel4,
-            this.tsTotalMigrado});
+            this.tsTotalMigrado,
+            this.toolStripSeparator4,
+            this.toolStripLabel6,
+            this.tsMigradosModificados});
             this.toolStrip1.Location = new System.Drawing.Point(0, 586);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1245, 25);
@@ -143,8 +149,8 @@
             // 
             this.toolStripLabel5.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.toolStripLabel5.Name = "toolStripLabel5";
-            this.toolStripLabel5.Size = new System.Drawing.Size(158, 22);
-            this.toolStripLabel5.Text = "Montos Modificados ($):";
+            this.toolStripLabel5.Size = new System.Drawing.Size(152, 22);
+            this.toolStripLabel5.Text = "Monto Modificados ($):";
             // 
             // tsMontoModificado
             // 
@@ -157,8 +163,8 @@
             // 
             this.toolStripLabel7.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.toolStripLabel7.Name = "toolStripLabel7";
-            this.toolStripLabel7.Size = new System.Drawing.Size(149, 22);
-            this.toolStripLabel7.Text = "Montos Eliminados ($):";
+            this.toolStripLabel7.Size = new System.Drawing.Size(143, 22);
+            this.toolStripLabel7.Text = "Monto Eliminados ($):";
             // 
             // tsMontoEliminado
             // 
@@ -166,6 +172,34 @@
             this.tsMontoEliminado.Name = "tsMontoEliminado";
             this.tsMontoEliminado.Size = new System.Drawing.Size(16, 22);
             this.tsMontoEliminado.Text = "0";
+            // 
+            // tsCargandoInformacion
+            // 
+            this.tsCargandoInformacion.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tsCargandoInformacion.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tsCargandoInformacion.Name = "tsCargandoInformacion";
+            this.tsCargandoInformacion.Size = new System.Drawing.Size(114, 22);
+            this.tsCargandoInformacion.Text = "Cargando info";
+            this.tsCargandoInformacion.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            // 
+            // toolStripLabel4
+            // 
+            this.toolStripLabel4.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.toolStripLabel4.Name = "toolStripLabel4";
+            this.toolStripLabel4.Size = new System.Drawing.Size(132, 22);
+            this.toolStripLabel4.Text = "Monto Migrados($):";
+            // 
+            // tsTotalMigrado
+            // 
+            this.tsTotalMigrado.Font = new System.Drawing.Font("Segoe UI Black", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tsTotalMigrado.Name = "tsTotalMigrado";
+            this.tsTotalMigrado.Size = new System.Drawing.Size(16, 22);
+            this.tsTotalMigrado.Text = "0";
             // 
             // dgvRegistros
             // 
@@ -267,33 +301,23 @@
             this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
-            // tsCargandoInformacion
+            // toolStripSeparator4
             // 
-            this.tsCargandoInformacion.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.tsCargandoInformacion.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tsCargandoInformacion.Name = "tsCargandoInformacion";
-            this.tsCargandoInformacion.Size = new System.Drawing.Size(114, 22);
-            this.tsCargandoInformacion.Text = "Cargando info";
-            this.tsCargandoInformacion.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(6, 25);
             // 
-            // toolStripSeparator3
+            // toolStripLabel6
             // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            this.toolStripLabel6.Name = "toolStripLabel6";
+            this.toolStripLabel6.Size = new System.Drawing.Size(134, 22);
+            this.toolStripLabel6.Text = "Monto migrados modif:";
             // 
-            // toolStripLabel4
+            // tsMigradosModificados
             // 
-            this.toolStripLabel4.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.toolStripLabel4.Name = "toolStripLabel4";
-            this.toolStripLabel4.Size = new System.Drawing.Size(138, 22);
-            this.toolStripLabel4.Text = "Montos Migrados($):";
-            // 
-            // tsTotalMigrado
-            // 
-            this.tsTotalMigrado.Font = new System.Drawing.Font("Segoe UI Black", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tsTotalMigrado.Name = "tsTotalMigrado";
-            this.tsTotalMigrado.Size = new System.Drawing.Size(16, 22);
-            this.tsTotalMigrado.Text = "0";
+            this.tsMigradosModificados.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tsMigradosModificados.Name = "tsMigradosModificados";
+            this.tsMigradosModificados.Size = new System.Drawing.Size(15, 22);
+            this.tsMigradosModificados.Text = "0";
             // 
             // formCorteCaja
             // 
@@ -346,5 +370,8 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripLabel toolStripLabel4;
         private System.Windows.Forms.ToolStripLabel tsTotalMigrado;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel6;
+        private System.Windows.Forms.ToolStripLabel tsMigradosModificados;
     }
 }

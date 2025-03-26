@@ -30,16 +30,16 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(formEnvioArchivos));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.btnCancelarEnvio = new System.Windows.Forms.Button();
             this.lblProceso = new System.Windows.Forms.Label();
+            this.pEnviando = new System.Windows.Forms.PictureBox();
             this.cbxTipoEnvio = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.txtDestino = new System.Windows.Forms.TextBox();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
-            this.btnCancelarEnvio = new System.Windows.Forms.Button();
             this.btnCancelar = new System.Windows.Forms.Button();
             this.btnEnviar = new System.Windows.Forms.Button();
-            this.pEnviando = new System.Windows.Forms.PictureBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pEnviando)).BeginInit();
             this.SuspendLayout();
@@ -63,6 +63,21 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Seleccione la forma de envio";
             // 
+            // btnCancelarEnvio
+            // 
+            this.btnCancelarEnvio.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCancelarEnvio.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnCancelarEnvio.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnCancelarEnvio.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnCancelarEnvio.Location = new System.Drawing.Point(162, 293);
+            this.btnCancelarEnvio.Name = "btnCancelarEnvio";
+            this.btnCancelarEnvio.Size = new System.Drawing.Size(80, 29);
+            this.btnCancelarEnvio.TabIndex = 30;
+            this.btnCancelarEnvio.Text = "Cancelar";
+            this.btnCancelarEnvio.UseVisualStyleBackColor = true;
+            this.btnCancelarEnvio.Visible = false;
+            this.btnCancelarEnvio.Click += new System.EventHandler(this.btnCancelarEnvio_Click);
+            // 
             // lblProceso
             // 
             this.lblProceso.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -72,13 +87,23 @@
             this.lblProceso.TabIndex = 46;
             this.lblProceso.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // pEnviando
+            // 
+            this.pEnviando.Image = global::ControlPagoLotes.Properties.Resources.preparado;
+            this.pEnviando.Location = new System.Drawing.Point(162, 138);
+            this.pEnviando.Name = "pEnviando";
+            this.pEnviando.Size = new System.Drawing.Size(80, 80);
+            this.pEnviando.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pEnviando.TabIndex = 45;
+            this.pEnviando.TabStop = false;
+            // 
             // cbxTipoEnvio
             // 
             this.cbxTipoEnvio.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cbxTipoEnvio.FormattingEnabled = true;
             this.cbxTipoEnvio.ItemHeight = 20;
             this.cbxTipoEnvio.Items.AddRange(new object[] {
-            "CORREMO ELECTRÓNICO",
+            "CORREO ELECTRÓNICO",
             "WHATSAPP"});
             this.cbxTipoEnvio.Location = new System.Drawing.Point(162, 39);
             this.cbxTipoEnvio.Name = "cbxTipoEnvio";
@@ -120,24 +145,10 @@
             // backgroundWorker1
             // 
             this.backgroundWorker1.WorkerReportsProgress = true;
+            this.backgroundWorker1.WorkerSupportsCancellation = true;
             this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             this.backgroundWorker1.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged);
             this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
-            // 
-            // btnCancelarEnvio
-            // 
-            this.btnCancelarEnvio.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCancelarEnvio.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnCancelarEnvio.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCancelarEnvio.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnCancelarEnvio.Location = new System.Drawing.Point(162, 293);
-            this.btnCancelarEnvio.Name = "btnCancelarEnvio";
-            this.btnCancelarEnvio.Size = new System.Drawing.Size(80, 29);
-            this.btnCancelarEnvio.TabIndex = 30;
-            this.btnCancelarEnvio.Text = "Cancelar";
-            this.btnCancelarEnvio.UseVisualStyleBackColor = true;
-            this.btnCancelarEnvio.Visible = false;
-            this.btnCancelarEnvio.Click += new System.EventHandler(this.btnCancelarEnvio_Click);
             // 
             // btnCancelar
             // 
@@ -153,6 +164,7 @@
             this.btnCancelar.Text = "CANCELAR";
             this.btnCancelar.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btnCancelar.UseVisualStyleBackColor = true;
+            this.btnCancelar.Click += new System.EventHandler(this.btnCancelar_Click);
             // 
             // btnEnviar
             // 
@@ -169,16 +181,6 @@
             this.btnEnviar.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btnEnviar.UseVisualStyleBackColor = true;
             this.btnEnviar.Click += new System.EventHandler(this.btnEnviar_Click);
-            // 
-            // pEnviando
-            // 
-            this.pEnviando.Image = global::ControlPagoLotes.Properties.Resources.preparado;
-            this.pEnviando.Location = new System.Drawing.Point(162, 138);
-            this.pEnviando.Name = "pEnviando";
-            this.pEnviando.Size = new System.Drawing.Size(80, 80);
-            this.pEnviando.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pEnviando.TabIndex = 45;
-            this.pEnviando.TabStop = false;
             // 
             // formEnvioArchivos
             // 

@@ -88,8 +88,9 @@ namespace ControlPagoLotes
                 dgvRegistros.Columns[0].Visible = false;
                 dgvRegistros.Columns[1].HeaderText = "Usuario";
                 dgvRegistros.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                dgvRegistros.Columns[2].HeaderText = "Contraseña";
-                dgvRegistros.Columns[2].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                dgvRegistros.Columns[2].Visible = false;
+                /*dgvRegistros.Columns[2].HeaderText = "Contraseña";
+                dgvRegistros.Columns[2].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;*/
             }
         }
 

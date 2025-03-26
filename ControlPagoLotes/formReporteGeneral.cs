@@ -101,7 +101,7 @@ namespace ControlPagoLotes
 
                                             //nombre cliente
                                             //var rangoNombre = worksheet.Range("B1:C1");
-                                            var rangoNombre = worksheet.Range(rowPos,colPos+2, rowPos, colPos+3);
+                                            var rangoNombre = worksheet.Range(rowPos,colPos+1, rowPos, colPos+2);
                                             rangoNombre.Merge();
                                             rangoNombre.Value = ObjPago.NombreCliente;
 
@@ -113,7 +113,7 @@ namespace ControlPagoLotes
 
                                             //zona
                                             //var rangoZona = worksheet.Range("B3:C3");
-                                            var rangoZona = worksheet.Range(rowPos+2, colPos+2, rowPos+2, colPos+2);
+                                            var rangoZona = worksheet.Range(rowPos+2, colPos+1, rowPos+2, colPos+2);
                                             rangoZona.Merge();
                                             rangoZona.Value = zona.Nombre;
 
@@ -163,14 +163,14 @@ namespace ControlPagoLotes
                                         }
                                         else
                                         {
-                                            msjErr.Add("*No hay partidas registradas para la boleta del cliente " + ObjPago.NombreCliente + ", zona " + zona);
+                                            msjErr.Add("*No hay partidas registradas para la boleta del cliente " + ObjPago.NombreCliente + ", zona " + zona.Nombre);
                                         }        
 
                                     }
                                 }
                                 else
                                 {
-                                    msjErr.Add("*Las boletas de pago de la zona "+zona +" no tienen pagos registrados.");
+                                    msjErr.Add("*Las boletas de pago de la zona "+zona.Nombre+" no tienen pagos registrados.");
                                 }
 
                             }
