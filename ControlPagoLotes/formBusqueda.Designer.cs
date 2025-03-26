@@ -44,10 +44,10 @@
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.tsTotalRegistros = new System.Windows.Forms.ToolStripLabel();
+            this.tsCargandoInformacion = new System.Windows.Forms.ToolStripLabel();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.cargarBoletaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.bgCargadoInfo = new System.ComponentModel.BackgroundWorker();
-            this.tsCargandoInformacion = new System.Windows.Forms.ToolStripLabel();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRegistros)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -58,6 +58,7 @@
             // 
             this.dgvRegistros.AllowUserToAddRows = false;
             this.dgvRegistros.AllowUserToDeleteRows = false;
+            this.dgvRegistros.AllowUserToResizeRows = false;
             this.dgvRegistros.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -225,6 +226,14 @@
             this.tsTotalRegistros.Size = new System.Drawing.Size(19, 22);
             this.tsTotalRegistros.Text = "0";
             // 
+            // tsCargandoInformacion
+            // 
+            this.tsCargandoInformacion.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tsCargandoInformacion.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tsCargandoInformacion.Name = "tsCargandoInformacion";
+            this.tsCargandoInformacion.Size = new System.Drawing.Size(0, 22);
+            this.tsCargandoInformacion.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -246,14 +255,6 @@
             this.bgCargadoInfo.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             this.bgCargadoInfo.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
-            // tsCargandoInformacion
-            // 
-            this.tsCargandoInformacion.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.tsCargandoInformacion.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tsCargandoInformacion.Name = "tsCargandoInformacion";
-            this.tsCargandoInformacion.Size = new System.Drawing.Size(0, 22);
-            this.tsCargandoInformacion.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
             // formBusqueda
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -261,8 +262,6 @@
             this.ClientSize = new System.Drawing.Size(897, 611);
             this.Controls.Add(this.groupBox1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
             this.MinimumSize = new System.Drawing.Size(820, 650);
             this.Name = "formBusqueda";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

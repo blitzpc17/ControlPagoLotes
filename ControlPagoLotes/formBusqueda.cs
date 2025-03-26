@@ -99,7 +99,7 @@ namespace ControlPagoLotes
                     break;
 
                 case 7: //estado
-                    ListaAux = ListaAux.Where(x => x.ClaveEstado.Contains(palabra)).OrderBy(x => x.ClaveEstado).ThenBy(x=>x.Cliente).ThenBy(x=>x.Zona).ThenBy(x=>x.Lotes).ToList();
+                    ListaAux = ListaAux.Where(x => x.NombreEstado.Contains(palabra)).OrderBy(x => x.NombreEstado).ThenBy(x=>x.Cliente).ThenBy(x=>x.Zona).ThenBy(x=>x.Lotes).ToList();
                     break;
             }
 
@@ -119,18 +119,18 @@ namespace ControlPagoLotes
             {
                 dgvRegistros.Columns[0].Visible = false;
                 dgvRegistros.Columns[1].HeaderText = "Cliente";
-                dgvRegistros.Columns[1].Width = 300;
+                dgvRegistros.Columns[1].Width = 500;
                 dgvRegistros.Columns[2].HeaderText = "Zona";
-                dgvRegistros.Columns[2].Width = 210;
+                dgvRegistros.Columns[2].Width = 350;
                 dgvRegistros.Columns[3].HeaderText = "Lotes";
-                dgvRegistros.Columns[3].Width = 150;
+                dgvRegistros.Columns[3].Width = 350;
                 dgvRegistros.Columns[4].HeaderText = "Total";
-                dgvRegistros.Columns[4].Width = 110;
+                dgvRegistros.Columns[4].Width = 200;
                 dgvRegistros.Columns[5].HeaderText = "Fecha Pago";
-                dgvRegistros.Columns[5].Width = 110;
+                dgvRegistros.Columns[5].Width = 200;
                 dgvRegistros.Columns[6].Visible = false;
                 dgvRegistros.Columns[7].HeaderText = "Estado";
-                dgvRegistros.Columns[7].Width = 150;
+                dgvRegistros.Columns[7].Width = 200;
             }
         }
 

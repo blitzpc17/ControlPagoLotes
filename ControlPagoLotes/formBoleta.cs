@@ -246,16 +246,16 @@ namespace ControlPagoLotes
             }
             else
             {
-                if (((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.CANCELADO)))
+                /*if (((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.CANCELADO)))
                 {
-                    MessageBox.Show("No se puede modificar la información de la boleta porque el contrato esta en estado " + Enumeraciones.Estados.CANCELADO + ".", "Aaviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("No se puede modificar la información de la boleta porque el contrato esta en estado " + Enumeraciones.Estados.CANCELADO + ".", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
                 if (((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.PAGADO)))
                 {
-                    MessageBox.Show("No se puede modificar la información de la boleta porque el contrato esta en estado " + Enumeraciones.Estados.PAGADO + ".", "Aaviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("No se puede modificar la información de la boleta porque el contrato esta en estado " + Enumeraciones.Estados.PAGADO + ".", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
-                }
+                }*/
 
                 Obj.NombreCliente = txtNombreCliente.Text;
                 Obj.Total = decimal.Parse(txtTotal.Text);
@@ -271,7 +271,7 @@ namespace ControlPagoLotes
 
             if(((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.ATRASADO)))
             {
-                MessageBox.Show("Se guardo la información del cliente pero no se guardarón los pagos debido a que el contrato esta en estado "+Enumeraciones.Estados.ATRASADO+".", "Aaviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Se guardo la información del cliente pero no se guardarón los pagos debido a que el contrato esta en estado "+Enumeraciones.Estados.ATRASADO+".", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             else if (guardoEncabezado && (ListaCeldas==null || ListaCeldas.Count <=0) )
             {
@@ -995,6 +995,25 @@ namespace ControlPagoLotes
                
             }
            
+        }
+
+        private void limpiarPagosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (dgvRegistros.Rows.Count <= 0) return;
+
+            if (MessageBox.Show("¿Estás seguro de eliminar todos los pagos que se han cargado a la boleta.?", 
+                "Advertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
+            {
+                EliminarPagosRelacionados();
+            }
+        }
+
+        private void EliminarPagosRelacionados()
+        {
+            ListaCeldas.ForEach(x => x.Eliminar = true);
+
+            MostrarCeldasEnDgv();
+
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Vml;
 using Entidades;
 using LOGICA;
 using System;
@@ -143,13 +144,48 @@ namespace ControlPagoLotes
                                                 Acumulado += Convert.ToDecimal(LstPartidasPagosAux[pos - 1].Monto);
                                             }
 
-                                            worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 1).Value = "Saldo ($):";
+                                            decimal montoCalculado = 0;
+                                            PagoPartida objPagoInicial = null;
+                                            objPagoInicial = LstPartidasPagosAux.OrderBy(x => x.Fecha).FirstOrDefault();
+                                            DateTime fechaActual = Global.FechaServidor();
+                                            int mesesTranscurridos = ((fechaActual.Year - objPagoInicial.Fecha.Year) * 12) + fechaActual.Month - objPagoInicial.Fecha.Month;
+                                            decimal total = ObjPago.Total;
+
+                                            decimal montoPreliminarmentePAgado = 0;
+                                            if (mesesTranscurridos < noPagos)
+                                            {
+                                                montoPreliminarmentePAgado = ((total - objPagoInicial.Monto) / noPagos) * mesesTranscurridos;
+                                            }
+                                            else
+                                            {
+                                                montoPreliminarmentePAgado = total;
+                                            }
+
+                                            worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 1).Value = "Abonado ($):";
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 1).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 1).Style.Font.Bold = true;
 
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos+ 2).Value = Acumulado;
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos +2).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 2).Style.Font.Bold = true;
+
+
+                                            worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 1).Value = "Debería llevar ($):";
+                                            worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 1).Style.Font.FontSize = 12;
+                                            worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 1).Style.Font.Bold = true;
+
+                                            worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 2).Value = montoPreliminarmentePAgado;
+                                            worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 2).Style.Font.FontSize = 12;
+                                            worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 2).Style.Font.Bold = true;
+
+
+                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 1).Value = "Atraso ($):";
+                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 1).Style.Font.FontSize = 12;
+                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 1).Style.Font.Bold = true;
+
+                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Value = montoPreliminarmentePAgado - Acumulado;
+                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Style.Font.FontSize = 12;
+                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Style.Font.Bold = true;
 
 
 
