@@ -43,11 +43,8 @@ namespace ControlPagoLotes
         private List<Zona> listaZonas;
         private Pago Obj;
         private int? idRegistro;
-        private PagoPartida ObjPartida;
         private List<PagoPartida> ListaPartidas;
-       // private List<PagoPartida> ListaPartidasAux;
 
-        private bool isPasting = false;
         private bool guardoEncabezado = false;
         private decimal acumulado = 0;
 
@@ -56,8 +53,7 @@ namespace ControlPagoLotes
         List<clsCELDASPAGOS> ListaCeldas;
         List<clsCELDASPAGOS> ListaCeldasNuevas;
         List<clsCELDASPAGOS> ListaCeldasModificar;
-        List<int> IdsEliminar;
-        List<string> rows;
+       
         List<string> LstValidacionesmsj;
         List<string> LstValidacionesAtrasos;
 
@@ -212,12 +208,18 @@ namespace ControlPagoLotes
         {
             listaZonas = null;
             Obj = null;
-            ObjPartida = null;
             ListaPartidas = null;
-            isPasting = false;
             guardoEncabezado = false;
             acumulado = 0;
+            clipboardText = "";
+            indexActual = -1;
+
+            ListaCeldas = null;
+            ListaCeldasNuevas = null;
+            ListaCeldasModificar = null;
+
             pagoAtrasado = false;
+
         }
 
         private void GuardarPago()
