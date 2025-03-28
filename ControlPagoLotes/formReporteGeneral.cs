@@ -150,11 +150,12 @@ namespace ControlPagoLotes
                                             DateTime fechaActual = Global.FechaServidor();
                                             int mesesTranscurridos = ((fechaActual.Year - objPagoInicial.Fecha.Year) * 12) + fechaActual.Month - objPagoInicial.Fecha.Month;
                                             decimal total = ObjPago.Total;
+                                            int meses = Convert.ToInt32(ObjPago.Meses);
 
                                             decimal montoPreliminarmentePAgado = 0;
-                                            if (mesesTranscurridos < noPagos)
+                                            if (mesesTranscurridos < meses)
                                             {
-                                                montoPreliminarmentePAgado = ((total - objPagoInicial.Monto) / noPagos) * mesesTranscurridos;
+                                                montoPreliminarmentePAgado = ((total - objPagoInicial.Monto) / meses) * mesesTranscurridos;
                                             }
                                             else
                                             {
@@ -165,7 +166,7 @@ namespace ControlPagoLotes
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 1).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 1).Style.Font.Bold = true;
 
-                                            worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos+ 2).Value = Acumulado;
+                                            worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos+ 2).Value = Acumulado.ToString("N2");
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos +2).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 2).Style.Font.Bold = true;
 
@@ -174,7 +175,7 @@ namespace ControlPagoLotes
                                             worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 1).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 1).Style.Font.Bold = true;
 
-                                            worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 2).Value = montoPreliminarmentePAgado;
+                                            worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 2).Value = montoPreliminarmentePAgado.ToString("N2");
                                             worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 2).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 6 + (3 + noPagos), colPos + 2).Style.Font.Bold = true;
 
@@ -183,7 +184,7 @@ namespace ControlPagoLotes
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 1).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 1).Style.Font.Bold = true;
 
-                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Value = montoPreliminarmentePAgado - Acumulado;
+                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Value = Math.Max(montoPreliminarmentePAgado - Acumulado, 0).ToString("N2");
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Style.Font.Bold = true;
 
@@ -284,6 +285,11 @@ namespace ControlPagoLotes
             {
                 chkTodos.Checked = false;
             }
+        }
+
+        private void btnCancelar_Click(object sender, EventArgs e)
+        {
+            Close();
         }
     }
 }

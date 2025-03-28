@@ -59,6 +59,9 @@ namespace ControlPagoLotes
 
         private bool pagoAtrasado = false;
 
+        private decimal montoAtrasado = 0;
+        private decimal montoMensualidad = 0;
+
 
         public formBoleta(int? idRegistro)
         {
@@ -91,7 +94,7 @@ namespace ControlPagoLotes
 
             InicializarDgv();
 
-            btnAddPago.Enabled = true;
+           // btnAddPago.Enabled = true;
             listaZonas = contextoZonas.GetAllZonas();
             cbxZona.DataSource = listaZonas;
             cbxZona.DisplayMember = "Nombre";
@@ -145,24 +148,37 @@ namespace ControlPagoLotes
 
                     string estadoAtrasado = ((int)Enumeraciones.Estados.ATRASADO).ToString();
                     string estadoCorriente = ((int)Enumeraciones.Estados.CORRIENTE).ToString();
+                    List<string> lstValidacionesPago = ValidarAtrasoPago();
 
-                    if ((Obj.Estado == estadoAtrasado || (Obj.Estado == estadoCorriente)) && ValidarAtrasoPago().Count > 0)
+                    if ((Obj.Estado == estadoAtrasado || (Obj.Estado == estadoCorriente)) && lstValidacionesPago.Count > 0)
                     {
                         pagoAtrasado = true;
                         cbxEstados.SelectedValue = (int)Enumeraciones.Estados.ATRASADO;
+
+                        lblInformacionPago.Text += "Mensualidad: $ "+montoMensualidad.ToString("N2")+"\r\nAtraso: $ "+montoAtrasado.ToString("N2");
                     }
                     else if (Obj.Estado == estadoCorriente)
                     {
                         pagoAtrasado = false;
                         cbxEstados.SelectedValue = (int)Enumeraciones.Estados.CORRIENTE;
+                        lblInformacionPago.Text += "Mensualidad: $ " + montoMensualidad.ToString("N2") + "\r\nAtraso: $ 0.00";
+                    }
+                    else
+                    {
+                        lblInformacionPago.Text += "Mensualidad: $ " + montoMensualidad.ToString("N2") + "\r\nAtraso: $ " + montoAtrasado.ToString("N2");
                     }
                 }
                 else
                 {
                     tsTotalRegistros.Text = @"0";
                     tsAcumulado.Text = @"0.00";
-                } 
+                    lblInformacionPago.Text += "Mensualidad: $ " + montoMensualidad.ToString("N2") + "\r\nAtraso: $ 0.00";
+                }
 
+            }
+            else
+            {
+                lblInformacionPago.Text = "";
             }
 
 
@@ -219,6 +235,7 @@ namespace ControlPagoLotes
             ListaCeldasModificar = null;
 
             pagoAtrasado = false;
+            lblInformacionPago.Text = "";
 
         }
 
@@ -655,14 +672,19 @@ namespace ControlPagoLotes
             int mesesTranscurridos = ((fechaActual.Year - objPagoInicial.Fecha.Year) * 12) + fechaActual.Month - objPagoInicial.Fecha.Month;
 
             decimal montoPreliminarmentePAgado = 0;
+            montoMensualidad = ((total - objPagoInicial.Monto) / noPagos);
+
             if (mesesTranscurridos < noPagos)
             {
-                montoPreliminarmentePAgado = ((total - objPagoInicial.Monto) / noPagos) * mesesTranscurridos;
+                montoPreliminarmentePAgado = montoMensualidad * mesesTranscurridos;
             }
             else
             {
                 montoPreliminarmentePAgado = total;
             }
+
+            montoAtrasado = montoPreliminarmentePAgado - montoPagadoAcumulado;
+           
 
 
             if (/*ListaPartidas.Sum(x => x.Monto)*/ montoPagadoAcumulado < montoPreliminarmentePAgado)
@@ -718,7 +740,7 @@ namespace ControlPagoLotes
                     titulo = "Aviso";
                     msj = "El contrado ha sido "+Enumeraciones.Estados.PAGADO+".";
                     tipo = MessageBoxIcon.Information;
-                    btnAddPago.Enabled = false;
+                   // btnAddPago.Enabled = false;
                     break;
 
                 case 3:
@@ -1016,6 +1038,22 @@ namespace ControlPagoLotes
 
             MostrarCeldasEnDgv();
 
+        }
+
+        private void dgvRegistros_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
+        {
+            // Mostrar el número de fila comenzando desde 1
+            var grid = sender as DataGridView;
+            using (SolidBrush brush = new SolidBrush(grid.RowHeadersDefaultCellStyle.ForeColor))
+            {
+                e.Graphics.DrawString(
+                    (e.RowIndex + 1).ToString(),
+                    grid.RowHeadersDefaultCellStyle.Font,
+                    brush,
+                    e.RowBounds.Location.X + 20,
+                    e.RowBounds.Location.Y + 4
+                );
+            }
         }
     }
 }

@@ -64,11 +64,12 @@
             this.btnEnviar = new System.Windows.Forms.Button();
             this.btnImprimir = new System.Windows.Forms.Button();
             this.btnExportar = new System.Windows.Forms.Button();
-            this.btnAddPago = new System.Windows.Forms.Button();
             this.pegarContenidoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.eliminarFilaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.nuevaPartidaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.limpiarPagosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnAddPago = new System.Windows.Forms.Button();
+            this.lblInformacionPago = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRegistros)).BeginInit();
@@ -80,6 +81,7 @@
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.lblInformacionPago);
             this.groupBox1.Controls.Add(this.label9);
             this.groupBox1.Controls.Add(this.txtTelefono);
             this.groupBox1.Controls.Add(this.dtpFechaContrato);
@@ -87,7 +89,6 @@
             this.groupBox1.Controls.Add(this.cbxEstados);
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Controls.Add(this.cbxZona);
-            this.groupBox1.Controls.Add(this.btnAddPago);
             this.groupBox1.Controls.Add(this.toolStrip1);
             this.groupBox1.Controls.Add(this.dgvRegistros);
             this.groupBox1.Controls.Add(this.label6);
@@ -258,6 +259,7 @@
             this.dgvRegistros.Size = new System.Drawing.Size(629, 300);
             this.dgvRegistros.TabIndex = 100;
             this.dgvRegistros.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvRegistros_CellValueChanged);
+            this.dgvRegistros.RowPostPaint += new System.Windows.Forms.DataGridViewRowPostPaintEventHandler(this.dgvRegistros_RowPostPaint);
             // 
             // contextMenuStrip1
             // 
@@ -267,7 +269,7 @@
             this.nuevaPartidaToolStripMenuItem,
             this.limpiarPagosToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 114);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(162, 92);
             // 
             // label6
             // 
@@ -335,7 +337,7 @@
             this.txtMeses.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
             this.txtMeses.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtMeses.Location = new System.Drawing.Point(443, 80);
-            this.txtMeses.MaxLength = 2;
+            this.txtMeses.MaxLength = 3;
             this.txtMeses.Name = "txtMeses";
             this.txtMeses.Size = new System.Drawing.Size(218, 26);
             this.txtMeses.TabIndex = 50;
@@ -446,28 +448,11 @@
             this.btnExportar.UseVisualStyleBackColor = true;
             this.btnExportar.Click += new System.EventHandler(this.btnExportar_Click);
             // 
-            // btnAddPago
-            // 
-            this.btnAddPago.BackColor = System.Drawing.Color.ForestGreen;
-            this.btnAddPago.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnAddPago.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAddPago.ForeColor = System.Drawing.SystemColors.Control;
-            this.btnAddPago.Image = global::ControlPagoLotes.Properties.Resources.ingresos;
-            this.btnAddPago.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnAddPago.Location = new System.Drawing.Point(509, 170);
-            this.btnAddPago.Name = "btnAddPago";
-            this.btnAddPago.Size = new System.Drawing.Size(152, 35);
-            this.btnAddPago.TabIndex = 90;
-            this.btnAddPago.Text = "CONFIRMAR PAGO";
-            this.btnAddPago.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.btnAddPago.UseVisualStyleBackColor = false;
-            this.btnAddPago.Click += new System.EventHandler(this.btnAddPago_Click);
-            // 
             // pegarContenidoToolStripMenuItem
             // 
             this.pegarContenidoToolStripMenuItem.Image = global::ControlPagoLotes.Properties.Resources.pegar;
             this.pegarContenidoToolStripMenuItem.Name = "pegarContenidoToolStripMenuItem";
-            this.pegarContenidoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pegarContenidoToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.pegarContenidoToolStripMenuItem.Text = "Pegar contenido";
             this.pegarContenidoToolStripMenuItem.Click += new System.EventHandler(this.pegarContenidoToolStripMenuItem_Click);
             // 
@@ -475,7 +460,7 @@
             // 
             this.eliminarFilaToolStripMenuItem.Image = global::ControlPagoLotes.Properties.Resources.borrar;
             this.eliminarFilaToolStripMenuItem.Name = "eliminarFilaToolStripMenuItem";
-            this.eliminarFilaToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.eliminarFilaToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.eliminarFilaToolStripMenuItem.Text = "Eliminar fila";
             this.eliminarFilaToolStripMenuItem.Click += new System.EventHandler(this.eliminarFilaToolStripMenuItem_Click);
             // 
@@ -483,7 +468,7 @@
             // 
             this.nuevaPartidaToolStripMenuItem.Image = global::ControlPagoLotes.Properties.Resources.anadir;
             this.nuevaPartidaToolStripMenuItem.Name = "nuevaPartidaToolStripMenuItem";
-            this.nuevaPartidaToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.nuevaPartidaToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.nuevaPartidaToolStripMenuItem.Text = "Nueva fila";
             this.nuevaPartidaToolStripMenuItem.Click += new System.EventHandler(this.nuevaPartidaToolStripMenuItem_Click);
             // 
@@ -491,9 +476,34 @@
             // 
             this.limpiarPagosToolStripMenuItem.Image = global::ControlPagoLotes.Properties.Resources.claro;
             this.limpiarPagosToolStripMenuItem.Name = "limpiarPagosToolStripMenuItem";
-            this.limpiarPagosToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.limpiarPagosToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.limpiarPagosToolStripMenuItem.Text = "Limpiar pagos";
             this.limpiarPagosToolStripMenuItem.Click += new System.EventHandler(this.limpiarPagosToolStripMenuItem_Click);
+            // 
+            // btnAddPago
+            // 
+            this.btnAddPago.BackColor = System.Drawing.Color.LimeGreen;
+            this.btnAddPago.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnAddPago.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAddPago.ForeColor = System.Drawing.SystemColors.Control;
+            this.btnAddPago.Image = global::ControlPagoLotes.Properties.Resources.pago_en_efectivo;
+            this.btnAddPago.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnAddPago.Location = new System.Drawing.Point(36, 560);
+            this.btnAddPago.Name = "btnAddPago";
+            this.btnAddPago.Size = new System.Drawing.Size(173, 40);
+            this.btnAddPago.TabIndex = 90;
+            this.btnAddPago.Text = "CONFIRMAR PAGO";
+            this.btnAddPago.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.btnAddPago.UseVisualStyleBackColor = false;
+            this.btnAddPago.Click += new System.EventHandler(this.btnAddPago_Click);
+            // 
+            // lblInformacionPago
+            // 
+            this.lblInformacionPago.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblInformacionPago.Location = new System.Drawing.Point(443, 170);
+            this.lblInformacionPago.Name = "lblInformacionPago";
+            this.lblInformacionPago.Size = new System.Drawing.Size(218, 38);
+            this.lblInformacionPago.TabIndex = 103;
             // 
             // formBoleta
             // 
@@ -505,6 +515,7 @@
             this.Controls.Add(this.btnImprimir);
             this.Controls.Add(this.btnExportar);
             this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.btnAddPago);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(725, 39);
             this.Name = "formBoleta";
@@ -561,6 +572,7 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TextBox txtTelefono;
         private System.Windows.Forms.ToolStripMenuItem limpiarPagosToolStripMenuItem;
+        private System.Windows.Forms.Label lblInformacionPago;
     }
 }
 

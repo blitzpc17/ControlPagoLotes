@@ -434,6 +434,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="JAADE-PNG.ico" />
+    <None Include="Resources\pago-en-efectivo.png" />
     <None Include="Resources\claro.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

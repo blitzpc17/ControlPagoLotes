@@ -253,6 +253,16 @@ namespace ControlPagoLotes.Properties {
         /// <summary>
         ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap pago_en_efectivo {
+            get {
+                object obj = ResourceManager.GetObject("pago-en-efectivo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap pegar {
             get {
                 object obj = ResourceManager.GetObject("pegar", resourceCulture);
