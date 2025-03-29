@@ -53,7 +53,7 @@ namespace ControlPagoLotes
         List<clsCELDASPAGOS> ListaCeldas;
         List<clsCELDASPAGOS> ListaCeldasNuevas;
         List<clsCELDASPAGOS> ListaCeldasModificar;
-       
+
         List<string> LstValidacionesmsj;
         List<string> LstValidacionesAtrasos;
 
@@ -94,7 +94,7 @@ namespace ControlPagoLotes
 
             InicializarDgv();
 
-           // btnAddPago.Enabled = true;
+            // btnAddPago.Enabled = true;
             listaZonas = contextoZonas.GetAllZonas();
             cbxZona.DataSource = listaZonas;
             cbxZona.DisplayMember = "Nombre";
@@ -103,18 +103,18 @@ namespace ControlPagoLotes
 
             var listaEstados = Enum.GetValues(typeof(Enumeraciones.Estados))
                 .Cast<Enumeraciones.Estados>()
-                .Select(x => new { Id = Convert.ToInt32(x), Nombre = x.ToString()})
+                .Select(x => new { Id = Convert.ToInt32(x), Nombre = x.ToString() })
                 .ToList();
 
             cbxEstados.DataSource = listaEstados;
             cbxEstados.DisplayMember = "Nombre";
-            cbxEstados .ValueMember = "Id";
+            cbxEstados.ValueMember = "Id";
 
             bool nuevo = idRegistro == null;
 
             if (!nuevo)
             {
-                Obj= contextoPago.GetPagoById((int)idRegistro);
+                Obj = contextoPago.GetPagoById((int)idRegistro);
 
                 txtNombreCliente.Text = Obj.NombreCliente;
                 txtDiaPago.Text = Obj.DiaPago;
@@ -130,7 +130,7 @@ namespace ControlPagoLotes
 
                 if (ListaPartidas != null && ListaPartidas.Count > 0)
                 {
-                    ListaCeldas = new List<clsCELDASPAGOS> ();
+                    ListaCeldas = new List<clsCELDASPAGOS>();
 
                     foreach (var r in ListaPartidas)
                     {
@@ -140,7 +140,7 @@ namespace ControlPagoLotes
                             Id = r.Id,
                             Monto = r.Monto.ToString("N2"),
                             Fecha = r.Fecha.ToString("dd/MM/yyyy"),
-                            FormaPago = r.FormaPago                            
+                            FormaPago = r.FormaPago
                         });
                     }
 
@@ -155,7 +155,7 @@ namespace ControlPagoLotes
                         pagoAtrasado = true;
                         cbxEstados.SelectedValue = (int)Enumeraciones.Estados.ATRASADO;
 
-                        lblInformacionPago.Text += "Mensualidad: $ "+montoMensualidad.ToString("N2")+"\r\nAtraso: $ "+montoAtrasado.ToString("N2");
+                        lblInformacionPago.Text += "Mensualidad: $ " + montoMensualidad.ToString("N2") + "\r\nAtraso: $ " + montoAtrasado.ToString("N2");
                     }
                     else if (Obj.Estado == estadoCorriente)
                     {
@@ -193,7 +193,7 @@ namespace ControlPagoLotes
             dgvRegistros.Columns[4].Visible = false; //id
             dgvRegistros.Columns[1].HeaderText = "MONTO";
             dgvRegistros.Columns[2].HeaderText = "FECHA";
-           
+
             dgvRegistros.AllowUserToAddRows = false;
             dgvRegistros.ReadOnly = false;
 
@@ -243,7 +243,7 @@ namespace ControlPagoLotes
         {
             DateTime fechaServidor = Global.FechaServidor();
 
-            if (Obj==null)
+            if (Obj == null)
             {
                 Obj = new Pago
                 {
@@ -282,17 +282,17 @@ namespace ControlPagoLotes
                 Obj.ZonaId = (int)cbxZona.SelectedValue;
                 Obj.DiaPago = txtDiaPago.Text;
                 Obj.Lotes = txtLotes.Text;
-                Obj.FechaRegistro = dtpFechaContrato.Value;                
+                Obj.FechaRegistro = dtpFechaContrato.Value;
                 Obj.Estado = cbxEstados.SelectedValue.ToString();
                 Obj.Telefonos = txtTelefono.Text;
                 guardoEncabezado = contextoPago.UpdatePago(Obj);
             }
 
-            if(((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.ATRASADO)))
+            if (((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.ATRASADO)))
             {
-                MessageBox.Show("Se guardo la información del cliente pero no se guardarón los pagos debido a que el contrato esta en estado "+Enumeraciones.Estados.ATRASADO+".", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Se guardo la información del cliente pero no se guardarón los pagos debido a que el contrato esta en estado " + Enumeraciones.Estados.ATRASADO + ".", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-            else if (guardoEncabezado && (ListaCeldas==null || ListaCeldas.Count <=0) )
+            else if (guardoEncabezado && (ListaCeldas == null || ListaCeldas.Count <= 0))
             {
                 MessageBox.Show("Se ha guardado correctamente la información del cliente en la boleta.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 InicializarModulo();
@@ -301,7 +301,7 @@ namespace ControlPagoLotes
             {
                 bool guardadoPartidasCorrecto = false;
                 ListaCeldasNuevas = ListaCeldas.Where(x => x.Id == null).ToList();
-                ListaCeldasModificar = ListaCeldas.Where(x => x.Id != null && (x.Modificar == true || x.Eliminar== true)).ToList();
+                ListaCeldasModificar = ListaCeldas.Where(x => x.Id != null && (x.Modificar == true || x.Eliminar == true)).ToList();
                 StringBuilder scriptInsert;
 
                 if (ListaCeldasNuevas.Count > 0)
@@ -357,12 +357,12 @@ namespace ControlPagoLotes
                 {
                     guardadoPartidasCorrecto = true;
                 }
-                    
-           
-                
-                if(!guardadoPartidasCorrecto)
+
+
+
+                if (!guardadoPartidasCorrecto)
                 {
-                    MessageBox.Show("Error al guardar los pagos en la boleta, intente cerrar y abrir el módulo nuevamente.", "Error en la operación", MessageBoxButtons.OK, MessageBoxIcon.Error);                    
+                    MessageBox.Show("Error al guardar los pagos en la boleta, intente cerrar y abrir el módulo nuevamente.", "Error en la operación", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 else
                 {
@@ -381,8 +381,8 @@ namespace ControlPagoLotes
                                     MontoOriginal = {ListaPartidas.FirstOrDefault(x => x.Id == item.Id).Monto}, 
                                     FechaModificacion = '{fechaServidor:yyyy-MM-dd HH:mm:ss}', 
                                     UsuarioModificoId = '{Global.ObjUsuario.Id}',
-                                    FechaBaja = {((item.Eliminar==true)?"'"+fechaServidor.ToString("yyyy-MM-dd HH:mm:ss")+"'": "NULL") },
-                                    UsuarioBajaId = {(( item.Eliminar == true)? Global.ObjUsuario.Id.ToString("N0") : "NULL")}
+                                    FechaBaja = {((item.Eliminar == true) ? "'" + fechaServidor.ToString("yyyy-MM-dd HH:mm:ss") + "'" : "NULL")},
+                                    UsuarioBajaId = {((item.Eliminar == true) ? Global.ObjUsuario.Id.ToString("N0") : "NULL")}
                                 WHERE Id = {item.Id};
                             ");
                         }
@@ -413,11 +413,11 @@ namespace ControlPagoLotes
 
         private void btnCancelar_Click(object sender, EventArgs e)
         {
-            if(MessageBox.Show("¿Desea regresar a la búsqueda general de pagos?", "Advertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (MessageBox.Show("¿Desea regresar a la búsqueda general de pagos?", "Advertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 Close();
             }
-            
+
         }
 
         private void btnAddPago_Click(object sender, EventArgs e)
@@ -429,7 +429,7 @@ namespace ControlPagoLotes
             else
             {
                 string msjAlert = string.Join(". \n", LstValidacionesmsj);
-                MessageBox.Show("Olvido llenar la siguiente información: \n"+msjAlert, "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Olvido llenar la siguiente información: \n" + msjAlert, "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             }
 
@@ -462,9 +462,9 @@ namespace ControlPagoLotes
 
             if (cbxEstados.SelectedIndex == -1)
             {
-                LstValidacionesmsj.Add( "*No ha seleccionado el ESTADO de la boleta");
+                LstValidacionesmsj.Add("*No ha seleccionado el ESTADO de la boleta");
             }
-            if(cbxZona.SelectedIndex == -1)
+            if (cbxZona.SelectedIndex == -1)
             {
                 LstValidacionesmsj.Add("*No ha seleccionado la ZONA");
             }
@@ -475,7 +475,7 @@ namespace ControlPagoLotes
 
             return LstValidacionesmsj.Count > 0;
 
-            
+
         }
 
         private void pegarContenidoToolStripMenuItem_Click(object sender, EventArgs e)
@@ -498,19 +498,20 @@ namespace ControlPagoLotes
                     ListaCeldas = new List<clsCELDASPAGOS>();
                 }
 
-                string[] lines = clipboardText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);                 
+                string[] lines = clipboardText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
                 foreach (var line in lines)
                 {
                     string[] cells = line.Split('\t');
-                    if (cells.Length >= 2) 
+                    if (cells.Length >= 2)
                     {
                         if (indexActual == -1)
                         {
-                            ListaCeldas.Add(new clsCELDASPAGOS { Monto = cells[0], Fecha = cells[1], FormaPago = cells.Length==2 ? 0 : Convert.ToInt32(cells[2]) });
-                        }else if (indexActual > -1)
+                            ListaCeldas.Add(new clsCELDASPAGOS { Monto = cells[0], Fecha = cells[1], FormaPago = cells.Length == 2 ? 0 : Convert.ToInt32(cells[2]) });
+                        }
+                        else if (indexActual > -1)
                         {
-                            ListaCeldas.Insert(indexActual, new clsCELDASPAGOS { Monto = cells[0], Fecha = cells[1], FormaPago = cells.Length==2 ? 0 : Convert.ToInt32(cells[2]) });
+                            ListaCeldas.Insert(indexActual, new clsCELDASPAGOS { Monto = cells[0], Fecha = cells[1], FormaPago = cells.Length == 2 ? 0 : Convert.ToInt32(cells[2]) });
                             indexActual++;
                         }
                     }
@@ -533,16 +534,16 @@ namespace ControlPagoLotes
             {
                 dgvRegistros.Rows.Add(item.Id, item.Monto, item.Fecha, item.Modificar, item.Eliminar, item.FormaPago);
 
-                if ((item.Eliminar == null || item.Eliminar == false) &&  decimal.TryParse(item.Monto, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal monto))
+                if ((item.Eliminar == null || item.Eliminar == false) && decimal.TryParse(item.Monto, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal monto))
                 {
                     acumulado += monto;
                 }
                 else
                 {
-                    acumulado += 0; 
+                    acumulado += 0;
                 }
 
-                if(item.Eliminar== true)
+                if (item.Eliminar == true)
                 {
                     dgvRegistros.Rows[rowIndex].DefaultCellStyle.BackColor = Color.Orange;
                 }
@@ -590,19 +591,19 @@ namespace ControlPagoLotes
         private void EliminarPartida()
         {
             if (dgvRegistros.Rows.Count <= 0) return;
-           
+
 
             if (dgvRegistros.CurrentRow.Cells[0].Value != null)
             {
-                int index =  ListaCeldas.FindIndex(x => x.Id == (int)dgvRegistros.CurrentRow.Cells[0].Value);                
-                ListaCeldas[index].Eliminar = ListaCeldas[index].Eliminar != true;               
+                int index = ListaCeldas.FindIndex(x => x.Id == (int)dgvRegistros.CurrentRow.Cells[0].Value);
+                ListaCeldas[index].Eliminar = ListaCeldas[index].Eliminar != true;
             }
             else
             {
                 indexActual = dgvRegistros.CurrentRow.Index;
                 ListaCeldas.RemoveAt(indexActual);
             }
-            
+
 
             MostrarCeldasEnDgv();
         }
@@ -614,13 +615,13 @@ namespace ControlPagoLotes
             {
                 MessageBox.Show("Primero debe guardar la boleta para poder modificar las partidas. Confirme el pago y cargue la boleta e intentelo nuevamente.", "´No se puede realizar la operación",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
-               
+
             }
             else
             {
                 ModificarValoresCeldas(e.RowIndex, e.ColumnIndex, dgvRegistros.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? null);
             }
-               
+
         }
 
         private void ModificarValoresCeldas(int row, int cell, string valor)
@@ -630,15 +631,15 @@ namespace ControlPagoLotes
 
 
 
-            if(cell == 1)
+            if (cell == 1)
             {
                 ListaCeldas[row].Monto = valor;
             }
-            else if(cell==2)
+            else if (cell == 2)
             {
                 ListaCeldas[row].Fecha = valor;
             }
-            else if(cell == 5)
+            else if (cell == 5)
             {
                 ListaCeldas[row].FormaPago = String.IsNullOrEmpty(valor) ? 0 : Convert.ToInt32(valor);
             }
@@ -647,12 +648,12 @@ namespace ControlPagoLotes
 
             obj = ListaPartidas.FirstOrDefault(x => x.Id == ListaCeldas[row].Id);
 
-            if (obj!=null && (ListaCeldas[row].Fecha != obj.Fecha.ToString("dd/MM/yyyy") || ListaCeldas[row].FormaPago != obj.FormaPago || Global.FormatearPesosADecimal(ListaCeldas[row].Monto) != obj.Monto))
+            if (obj != null && (ListaCeldas[row].Fecha != obj.Fecha.ToString("dd/MM/yyyy") || ListaCeldas[row].FormaPago != obj.FormaPago || Global.FormatearPesosADecimal(ListaCeldas[row].Monto) != obj.Monto))
             {
                 ListaCeldas[row].Modificar = true;
             }
 
-            MostrarCeldasEnDgv(); 
+            MostrarCeldasEnDgv();
 
         }
 
@@ -683,22 +684,22 @@ namespace ControlPagoLotes
                 montoPreliminarmentePAgado = total;
             }
 
-            montoAtrasado = montoPreliminarmentePAgado - montoPagadoAcumulado;
-           
+            montoAtrasado = montoPreliminarmentePAgado - (montoPagadoAcumulado - objPagoInicial.Monto);
+
 
 
             if (/*ListaPartidas.Sum(x => x.Monto)*/ montoPagadoAcumulado < montoPreliminarmentePAgado)
             {
-                msj.Add("*El monto acumulado a la boleta $ "+montoPagadoAcumulado.ToString("N2")+"  esta por debajo del estimado de $ " + montoPreliminarmentePAgado.ToString("N2")+".");
+                msj.Add("*El monto acumulado a la boleta $ " + montoPagadoAcumulado.ToString("N2") + "  esta por debajo del estimado de $ " + montoPreliminarmentePAgado.ToString("N2") + ".");
             }
 
             //if(ultimoPago.Fecha >= fechaActual.AddMonths(-3) /*&& ultimoPago.Fecha <= fechaActual*/)
-            if(((fechaActual.Year - ultimoPago.Fecha.Year) * 12) + ultimoPago.Fecha.Month - fechaActual.Month > 3)
+            if (((fechaActual.Year - ultimoPago.Fecha.Year) * 12) + ultimoPago.Fecha.Month - fechaActual.Month > 3)
             {
                 msj.Add("*No se han recibido pagos en más de tres meses.");
             }
 
-            if(msj.Count<=0 && Obj.Estado == ((int)Enumeraciones.Estados.ATRASADO).ToString())
+            if (msj.Count <= 0 && Obj.Estado == ((int)Enumeraciones.Estados.ATRASADO).ToString())
             {
                 msj.Add("*La boleta de pago tiene estado atrasado, verifiqué si tiene algún inconveniente, en caso contrario seleccionar el estado correspondiente.");
             }
@@ -721,31 +722,32 @@ namespace ControlPagoLotes
                     Obj.Estado = ((int)Enumeraciones.Estados.ATRASADO).ToString();
                     contextoPago.UpdatePago(Obj);
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
-            
+
         }
 
         private void MensajePorEstado(int estado)
         {
-            string msj=null;
-            string titulo=null;
+            string msj = null;
+            string titulo = null;
             MessageBoxIcon tipo = MessageBoxIcon.None;
 
             switch (estado)
             {
                 case 2:
                     titulo = "Aviso";
-                    msj = "El contrado ha sido "+Enumeraciones.Estados.PAGADO+".";
+                    msj = "El contrado ha sido " + Enumeraciones.Estados.PAGADO + ".";
                     tipo = MessageBoxIcon.Information;
-                   // btnAddPago.Enabled = false;
+                    // btnAddPago.Enabled = false;
                     break;
 
                 case 3:
                     titulo = "Aviso";
-                    msj = "El contrado ha sido "+Enumeraciones.Estados.CANCELADO+".";
+                    msj = "El contrado ha sido " + Enumeraciones.Estados.CANCELADO + ".";
                     tipo = MessageBoxIcon.Information;
                     break;
 
@@ -757,7 +759,7 @@ namespace ControlPagoLotes
 
                 case 5:
                     titulo = "ADVERTENCIA";
-                    msj = "El pago tiene el estado "+ Enumeraciones.Estados.DESCONOCIDO + ", verifique la inforción y guarde los cambios. ";
+                    msj = "El pago tiene el estado " + Enumeraciones.Estados.DESCONOCIDO + ", verifique la inforción y guarde los cambios. ";
                     tipo = MessageBoxIcon.Information;
                     break;
             }
@@ -765,14 +767,14 @@ namespace ControlPagoLotes
 
             if (!string.IsNullOrEmpty(msj))
             {
-                MessageBox.Show(msj, titulo, MessageBoxButtons.OK, tipo );
+                MessageBox.Show(msj, titulo, MessageBoxButtons.OK, tipo);
             }
 
         }
 
         private void btnExportar_Click(object sender, EventArgs e)
         {
-            if(Obj!=null && ListaCeldas!=null && ListaCeldas.Count > 0)
+            if (Obj != null && ListaCeldas != null && ListaCeldas.Count > 0)
             {
                 saveFileDialog1.Title = "Guardar archivo Excel";
                 saveFileDialog1.Filter = "Archivos Excel (*.xlsx)|*.xlsx";
@@ -785,7 +787,7 @@ namespace ControlPagoLotes
                     return;
                 }
                 string rutaArchivo = saveFileDialog1.FileName;
-                
+
                 ExportarExcel(Obj, ListaCeldas, rutaArchivo);
             }
             else
@@ -795,7 +797,7 @@ namespace ControlPagoLotes
 
         }
 
-        private void ExportarExcel(Pago ObjPago, List<clsCELDASPAGOS>ListaPartidas, string rutaArchivo)
+        private void ExportarExcel(Pago ObjPago, List<clsCELDASPAGOS> ListaPartidas, string rutaArchivo)
         {
             using (var workbook = new XLWorkbook())
             {
@@ -809,10 +811,10 @@ namespace ControlPagoLotes
                 // 1. Escribir el encabezado en las primeras 5 filas            
                 worksheet.Column(1).Width = 4.3;
                 worksheet.Column(2).Width = 16.7;
-                worksheet.Column(3).Width = 16.7;             
+                worksheet.Column(3).Width = 16.7;
 
                 //poste izquierdo
-                var rangoPosteIzdo = worksheet.Range("A1:A"+(noPagos+8));
+                var rangoPosteIzdo = worksheet.Range("A1:A" + (noPagos + 8));
                 rangoPosteIzdo.Style.Fill.BackgroundColor = XLColor.LightSteelBlue;
 
                 //style encabezado 
@@ -827,29 +829,29 @@ namespace ControlPagoLotes
 
                 //total y meses
                 worksheet.Cell(2, 2).Value = "$ " + Obj.Total;
-                worksheet.Cell(2, 3).Value = Obj.Meses + " MESES" ;                
-        
+                worksheet.Cell(2, 3).Value = Obj.Meses + " MESES";
+
                 //zona
                 var rangoZona = worksheet.Range("B3:C3");
                 rangoZona.Merge();
-                rangoZona.Value = listaZonas.First(x=>x.Id ==ObjPago.ZonaId).Nombre;
+                rangoZona.Value = listaZonas.First(x => x.Id == ObjPago.ZonaId).Nombre;
 
                 //lotes //dia pago
                 worksheet.Cell(4, 2).Value = Obj.Lotes;
-                worksheet.Cell(4, 3).Value = "Día pago: "+Obj.DiaPago;
+                worksheet.Cell(4, 3).Value = "Día pago: " + Obj.DiaPago;
 
                 //encabezado partidas
                 var rangoEncabezadoPartidas = worksheet.Range("B5:C5");
                 rangoEncabezadoPartidas.Style.Fill.BackgroundColor = XLColor.ForestGreen;
                 rangoEncabezadoPartidas.Style.Font.FontSize = 12;
                 worksheet.Cell(5, 2).Value = "MONTO";
-                worksheet.Cell(5, 3).Value = "FECHA";               
+                worksheet.Cell(5, 3).Value = "FECHA";
 
-                for(int pos = 1; pos<=noPagos; pos++)
+                for (int pos = 1; pos <= noPagos; pos++)
                 {
-                    worksheet.Cell(5+pos,1).Value = pos;
-                    worksheet.Cell(5 + pos, 2).Value = "$ "+ListaCeldas[pos-1].Monto;
-                    worksheet.Cell(5 + pos, 3).Value = ListaCeldas[pos-1].Fecha;
+                    worksheet.Cell(5 + pos, 1).Value = pos;
+                    worksheet.Cell(5 + pos, 2).Value = "$ " + ListaCeldas[pos - 1].Monto;
+                    worksheet.Cell(5 + pos, 3).Value = ListaCeldas[pos - 1].Fecha;
                     Console.WriteLine(ListaCeldas[pos - 1].Monto);
                     Acumulado += Convert.ToDecimal(ListaCeldas[pos - 1].Monto);
                 }
@@ -883,7 +885,7 @@ namespace ControlPagoLotes
             else
             {
                 MessageBox.Show("No hay un pago cargado para realizar la operación.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }    
+            }
         }
 
         private void GenerarReportViewer()
@@ -988,7 +990,7 @@ namespace ControlPagoLotes
 
             if (MessageBox.Show("¿Desea enviar la boleta de pago?", "Aviso", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-               
+
 
                 //bucar si existe el archivo tmeporal
                 string rutaMisDocumentos = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -1014,18 +1016,18 @@ namespace ControlPagoLotes
                 }
 
 
-                
 
-               
+
+
             }
-           
+
         }
 
         private void limpiarPagosToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (dgvRegistros.Rows.Count <= 0) return;
 
-            if (MessageBox.Show("¿Estás seguro de eliminar todos los pagos que se han cargado a la boleta.?", 
+            if (MessageBox.Show("¿Estás seguro de eliminar todos los pagos que se han cargado a la boleta.?",
                 "Advertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
             {
                 EliminarPagosRelacionados();

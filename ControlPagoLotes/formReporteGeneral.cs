@@ -14,7 +14,7 @@ using System.Windows.Forms;
 
 namespace ControlPagoLotes
 {
-    public partial class formReporteGeneral: Form
+    public partial class formReporteGeneral : Form
     {
         private ZonaLogica contextoZonas;
         private List<Zona> LstZonas;
@@ -54,16 +54,16 @@ namespace ControlPagoLotes
 
             using (var workbook = new XLWorkbook())
             {
-                foreach(var zona in lstRutasSeleccionadas)
+                foreach (var zona in lstRutasSeleccionadas)
                 {
                     // Crear una hoja de Excel
                     var worksheet = workbook.Worksheets.Add(zona.Nombre);
                     //consultar encabezados por zona
                     using (var contextoPagos = new PagoLogica())
                     {
-                       LstPagos = contextoPagos.ListarPagosxZona(zona.Id);
+                        LstPagos = contextoPagos.ListarPagosxZona(zona.Id);
 
-                        if(LstPagos!=null && LstPagos.Count > 0)
+                        if (LstPagos != null && LstPagos.Count > 0)
                         {
                             //consulta partidas por idpagosrelacionados y que noe sten eliminadas
                             using (var contextoPartidas = new PagoPartidaLogica())
@@ -75,9 +75,9 @@ namespace ControlPagoLotes
                                 {
                                     int colPos = 1;
                                     foreach (var ObjPago in LstPagos)
-                                    {                                        
+                                    {
                                         LstPartidasPagosAux = LstPartidasPagos.Where(x => x.PagoId == ObjPago.Id).ToList();
-                                        if(LstPartidasPagosAux!=null && LstPartidasPagosAux.Count > 0)
+                                        if (LstPartidasPagosAux != null && LstPartidasPagosAux.Count > 0)
                                         {
                                             //variables                                            
                                             int rowPos = 1;
@@ -86,55 +86,65 @@ namespace ControlPagoLotes
 
                                             // 1. Escribir el encabezado en las primeras 5 filas            
                                             worksheet.Column(colPos).Width = 4.3;
-                                            worksheet.Column(colPos+1).Width = 16.7;
-                                            worksheet.Column(colPos+2).Width = 16.7;
+                                            worksheet.Column(colPos + 1).Width = 16.7;
+                                            worksheet.Column(colPos + 2).Width = 16.7;
 
                                             //poste izquierdo
                                             //var rangoPosteIzdo = worksheet.Range("A1:A" + (noPagos + 8));
-                                            var rangoPosteIzdo = worksheet.Range(rowPos, colPos, noPagos+8, colPos);
+                                            var rangoPosteIzdo = worksheet.Range(rowPos, colPos, noPagos + 8, colPos);
                                             rangoPosteIzdo.Style.Fill.BackgroundColor = XLColor.LightSteelBlue;
 
                                             //style encabezado 
                                             //var rangoEncabezado = worksheet.Range("B1:C3");
-                                            var rangoEncabezado = worksheet.Range(rowPos, colPos+2, rowPos+2, colPos+3);
+                                            var rangoEncabezado = worksheet.Range(rowPos, colPos + 2, rowPos + 2, colPos + 3);
                                             rangoEncabezado.Style.Font.Bold = true;
                                             rangoEncabezado.Style.Font.FontSize = 12;
 
                                             //nombre cliente
                                             //var rangoNombre = worksheet.Range("B1:C1");
-                                            var rangoNombre = worksheet.Range(rowPos,colPos+1, rowPos, colPos+2);
+                                            var rangoNombre = worksheet.Range(rowPos, colPos + 1, rowPos, colPos + 2);
                                             rangoNombre.Merge();
                                             rangoNombre.Value = ObjPago.NombreCliente;
 
                                             //total y meses
                                             /*worksheet.Cell(2, 2).Value = "$ " + ObjPago.Total;
                                             worksheet.Cell(2, 3).Value = ObjPago.Meses + " MESES";*/
-                                            worksheet.Cell(rowPos+1, colPos+1).Value = "$ " + ObjPago.Total;
-                                            worksheet.Cell(rowPos+1, colPos+2).Value = ObjPago.Meses + " MESES";
+                                            worksheet.Cell(rowPos + 1, colPos + 1).Value = "$ " + ObjPago.Total;
+                                            worksheet.Cell(rowPos + 1, colPos + 2).Value = ObjPago.Meses + " MESES";
 
                                             //zona
                                             //var rangoZona = worksheet.Range("B3:C3");
-                                            var rangoZona = worksheet.Range(rowPos+2, colPos+1, rowPos+2, colPos+2);
-                                            rangoZona.Merge();
-                                            rangoZona.Value = zona.Nombre;
+                                            if (ObjPago.Estado == ((int)Enumeraciones.Estados.PAGADO).ToString("N0"))
+                                            {
+
+                                                worksheet.Cell(rowPos + 2, colPos + 1).Value = zona.Nombre;
+                                                worksheet.Cell(rowPos + 2, colPos + 2).Value = Enumeraciones.Estados.PAGADO.ToString();
+                                            }
+                                            else
+                                            {
+                                                var rangoZona = worksheet.Range(rowPos + 2, colPos + 1, rowPos + 2, colPos + 2);
+                                                rangoZona.Merge();
+                                                rangoZona.Value = zona.Nombre;
+                                            }
+
 
                                             //lotes //dia pago
-                                           /* worksheet.Cell(4, 2).Value = ObjPago.Lotes;
-                                            worksheet.Cell(4, 3).Value = "Día pago: " + ObjPago.DiaPago;*/
-                                            worksheet.Cell(rowPos+3,colPos+1).Value = ObjPago.Lotes;
-                                            worksheet.Cell(rowPos+3, colPos+2).Value = "Día pago: " + ObjPago.DiaPago;
+                                            /* worksheet.Cell(4, 2).Value = ObjPago.Lotes;
+                                             worksheet.Cell(4, 3).Value = "Día pago: " + ObjPago.DiaPago;*/
+                                            worksheet.Cell(rowPos + 3, colPos + 1).Value = ObjPago.Lotes;
+                                            worksheet.Cell(rowPos + 3, colPos + 2).Value = "Día pago: " + ObjPago.DiaPago;
 
                                             //encabezado partidas
                                             //var rangoEncabezadoPartidas = worksheet.Range("B5:C5");
-                                            var rangoEncabezadoPartidas = worksheet.Range(rowPos+4, colPos+1, rowPos+4, colPos+2);
+                                            var rangoEncabezadoPartidas = worksheet.Range(rowPos + 4, colPos + 1, rowPos + 4, colPos + 2);
                                             rangoEncabezadoPartidas.Style.Fill.BackgroundColor = XLColor.ForestGreen;
                                             rangoEncabezadoPartidas.Style.Font.FontSize = 12;
                                             /*worksheet.Cell(5, 2).Value = "MONTO";
                                             worksheet.Cell(5, 3).Value = "FECHA";*/
 
-                                            worksheet.Cell(rowPos+4, colPos+1).Value = "MONTO";
-                                            worksheet.Cell(rowPos+4, colPos+2).Value = "FECHA";
-                                            
+                                            worksheet.Cell(rowPos + 4, colPos + 1).Value = "MONTO";
+                                            worksheet.Cell(rowPos + 4, colPos + 2).Value = "FECHA";
+
 
                                             for (int pos = 1; pos <= noPagos; pos++)
                                             {
@@ -166,8 +176,8 @@ namespace ControlPagoLotes
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 1).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 1).Style.Font.Bold = true;
 
-                                            worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos+ 2).Value = Acumulado.ToString("N2");
-                                            worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos +2).Style.Font.FontSize = 12;
+                                            worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 2).Value = Acumulado.ToString("N2");
+                                            worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 2).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 5 + (3 + noPagos), colPos + 2).Style.Font.Bold = true;
 
 
@@ -184,7 +194,7 @@ namespace ControlPagoLotes
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 1).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 1).Style.Font.Bold = true;
 
-                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Value = Math.Max(montoPreliminarmentePAgado - Acumulado, 0).ToString("N2");
+                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Value = Math.Max(montoPreliminarmentePAgado - (Acumulado - objPagoInicial.Monto), 0).ToString("N2");
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Style.Font.Bold = true;
 
@@ -201,13 +211,13 @@ namespace ControlPagoLotes
                                         else
                                         {
                                             msjErr.Add("*No hay partidas registradas para la boleta del cliente " + ObjPago.NombreCliente + ", zona " + zona.Nombre);
-                                        }        
+                                        }
 
                                     }
                                 }
                                 else
                                 {
-                                    msjErr.Add("*Las boletas de pago de la zona "+zona.Nombre+" no tienen pagos registrados.");
+                                    msjErr.Add("*Las boletas de pago de la zona " + zona.Nombre + " no tienen pagos registrados.");
                                 }
 
                             }
@@ -217,15 +227,15 @@ namespace ControlPagoLotes
                         }
                         else
                         {
-                            msjErr .Add( "*No hay pagos registrados en la zona "+zona.Nombre+".");
-                        }                      
+                            msjErr.Add("*No hay pagos registrados en la zona " + zona.Nombre + ".");
+                        }
 
 
-                    }                   
+                    }
 
 
 
-                    
+
                 }
 
                 //guardar
@@ -252,7 +262,7 @@ namespace ControlPagoLotes
 
         private void btnEnviar_Click(object sender, EventArgs e)
         {
-            if(!chkTodos.Checked&& cbxZonas.SelectedIndex == -1)
+            if (!chkTodos.Checked && cbxZonas.SelectedIndex == -1)
             {
                 MessageBox.Show("No se ha seleccionado la zona a consultar.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
@@ -267,8 +277,8 @@ namespace ControlPagoLotes
                 {
                     GenerarReporte(chkTodos.Checked);
                 }
-            }               
-            
+            }
+
         }
 
         private void chkTodos_CheckedChanged(object sender, EventArgs e)
