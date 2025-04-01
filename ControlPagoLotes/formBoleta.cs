@@ -686,7 +686,7 @@ namespace ControlPagoLotes
                 montoPreliminarmentePAgado = total;
             }
 
-            montoAtrasado = montoPreliminarmentePAgado - (montoPagadoAcumulado - objPagoInicial.Monto);
+            montoAtrasado = montoPreliminarmentePAgado - montoPagadoAcumulado;
 
 
 
