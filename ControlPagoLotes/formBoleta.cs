@@ -670,6 +670,8 @@ namespace ControlPagoLotes
 
             montoPagadoAcumulado = (ListaPartidas == null || ListaPartidas.Count <= 0) ? 0 : ListaPartidas.Sum(x => x.Monto);
 
+            montoPagadoAcumulado -= objPagoInicial.Monto;
+
             int mesesTranscurridos = ((fechaActual.Year - objPagoInicial.Fecha.Year) * 12) + fechaActual.Month - objPagoInicial.Fecha.Month;
 
             decimal montoPreliminarmentePAgado = 0;
