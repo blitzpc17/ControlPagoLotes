@@ -52,8 +52,11 @@ namespace ControlPagoLotes
         {
             if (string.IsNullOrEmpty(txtObservaciones.Text))
             {
-                MessageBox.Show("No hay texto ingresado", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
+                if(MessageBox.Show("No hay texto ingresado, ¿Desea confirmar?", "Advertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                {
+                    observacion = null;
+                    Close();
+                }
             }
             else if (MessageBox.Show("¿Deseas guardar las observaciones?", "Advertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {

@@ -1105,6 +1105,15 @@ namespace ControlPagoLotes
             }
             else
             {
+                if (Obj != null)
+                {
+                    Obj.Observacion = null;
+                }
+                else
+                {
+                    observaciones = null;
+                }
+                    
                 btnObservaciones.Image = Properties.Resources.sincomentario;
             }
 
