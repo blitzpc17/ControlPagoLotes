@@ -21,8 +21,8 @@ namespace DAO.ADOS
         //, FechaPago, FechaRegistro
         //, @FechaPago, @FechaRegistro
         {
-            var query = @"INSERT INTO PAGOS (NombreCliente, Total, Meses, ZonaId, DiaPago, Lotes, FechaRegistro, Estado, FechaCreacion, Telefonos)
-                      VALUES (@NombreCliente, @Total, @Meses, @ZonaId, @DiaPago, @Lotes, @FechaRegistro, @Estado, @FechaCreacion, @Telefonos);
+            var query = @"INSERT INTO PAGOS (NombreCliente, Total, Meses, ZonaId, DiaPago, Lotes, FechaRegistro, Estado, FechaCreacion, Telefonos, Observacion)
+                      VALUES (@NombreCliente, @Total, @Meses, @ZonaId, @DiaPago, @Lotes, @FechaRegistro, @Estado, @FechaCreacion, @Telefonos, @Observacion);
                       SELECT CAST(SCOPE_IDENTITY() as int);";
 
             return connection.ExecuteScalar(query, Pagos);
@@ -40,7 +40,7 @@ namespace DAO.ADOS
         {
             var query = @"UPDATE PAGOS SET NombreCliente = @NombreCliente, Total = @Total, Meses = @Meses, 
                       ZonaId = @ZonaId, DiaPago = @DiaPago, Lotes = @Lotes, Estado = @Estado, 
-                      FechaRegistro = @FechaRegistro, Telefonos = @Telefonos 
+                      FechaRegistro = @FechaRegistro, Telefonos = @Telefonos, Observacion = @Observacion 
                       WHERE Id = @Id";
             return connection.Execute(query, Pagos) > 0;
         }

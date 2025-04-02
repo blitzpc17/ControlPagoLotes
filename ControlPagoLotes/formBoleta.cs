@@ -62,6 +62,8 @@ namespace ControlPagoLotes
         private decimal montoAtrasado = 0;
         private decimal montoMensualidad = 0;
 
+        private string observaciones;
+
 
         public formBoleta(int? idRegistro)
         {
@@ -90,7 +92,7 @@ namespace ControlPagoLotes
 
             InicializarVariables();
 
-            Global.LimpiarControles(this);
+            Global.LimpiarControles(this);            
 
             InicializarDgv();
 
@@ -182,6 +184,21 @@ namespace ControlPagoLotes
             }
 
 
+            InicializarBotonObservaciones();
+
+
+        }
+
+        private void InicializarBotonObservaciones()
+        {
+            if (Obj != null && !string.IsNullOrEmpty(Obj.Observacion))
+            {
+                btnObservaciones.Image = Properties.Resources.comentariocargado;
+            }
+            else
+            {
+                btnObservaciones.Image = Properties.Resources.sincomentario;
+            }
         }
 
         private void InicializarDgv()
@@ -257,6 +274,7 @@ namespace ControlPagoLotes
                     Estado = cbxEstados.SelectedValue.ToString(),
                     FechaCreacion = fechaServidor,
                     Telefonos = txtTelefono.Text,
+                    Observacion = observaciones
                 };
 
                 Obj.Id = contextoPago.AddPago(Obj);
@@ -264,17 +282,7 @@ namespace ControlPagoLotes
 
             }
             else
-            {
-                /*if (((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.CANCELADO)))
-                {
-                    MessageBox.Show("No se puede modificar la información de la boleta porque el contrato esta en estado " + Enumeraciones.Estados.CANCELADO + ".", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-                if (((int)cbxEstados.SelectedValue == Convert.ToInt32(Enumeraciones.Estados.PAGADO)))
-                {
-                    MessageBox.Show("No se puede modificar la información de la boleta porque el contrato esta en estado " + Enumeraciones.Estados.PAGADO + ".", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }*/
+            {              
 
                 Obj.NombreCliente = txtNombreCliente.Text;
                 Obj.Total = decimal.Parse(txtTotal.Text);
@@ -285,6 +293,7 @@ namespace ControlPagoLotes
                 Obj.FechaRegistro = dtpFechaContrato.Value;
                 Obj.Estado = cbxEstados.SelectedValue.ToString();
                 Obj.Telefonos = txtTelefono.Text;
+                
                 guardoEncabezado = contextoPago.UpdatePago(Obj);
             }
 
@@ -690,12 +699,11 @@ namespace ControlPagoLotes
 
 
 
-            if (/*ListaPartidas.Sum(x => x.Monto)*/ montoPagadoAcumulado < montoPreliminarmentePAgado)
+            if (montoPagadoAcumulado < montoPreliminarmentePAgado)
             {
                 msj.Add("*El monto acumulado a la boleta $ " + montoPagadoAcumulado.ToString("N2") + "  esta por debajo del estimado de $ " + montoPreliminarmentePAgado.ToString("N2") + ".");
             }
 
-            //if(ultimoPago.Fecha >= fechaActual.AddMonths(-3) /*&& ultimoPago.Fecha <= fechaActual*/)
             if (((fechaActual.Year - ultimoPago.Fecha.Year) * 12) + ultimoPago.Fecha.Month - fechaActual.Month > 3)
             {
                 msj.Add("*No se han recibido pagos en más de tres meses.");
@@ -744,7 +752,6 @@ namespace ControlPagoLotes
                     titulo = "Aviso";
                     msj = "El contrado ha sido " + Enumeraciones.Estados.PAGADO + ".";
                     tipo = MessageBoxIcon.Information;
-                    // btnAddPago.Enabled = false;
                     break;
 
                 case 3:
@@ -842,29 +849,34 @@ namespace ControlPagoLotes
                 worksheet.Cell(4, 2).Value = Obj.Lotes;
                 worksheet.Cell(4, 3).Value = "Día pago: " + Obj.DiaPago;
 
+                //obsevaciones
+                var rangoObservacion = worksheet.Range("B5:C5");
+                rangoObservacion.Merge();
+                rangoObservacion.Value = Obj.Observacion;
+
                 //encabezado partidas
-                var rangoEncabezadoPartidas = worksheet.Range("B5:C5");
+                var rangoEncabezadoPartidas = worksheet.Range("B6:C6");
                 rangoEncabezadoPartidas.Style.Fill.BackgroundColor = XLColor.ForestGreen;
                 rangoEncabezadoPartidas.Style.Font.FontSize = 12;
-                worksheet.Cell(5, 2).Value = "MONTO";
-                worksheet.Cell(5, 3).Value = "FECHA";
+                worksheet.Cell(6, 2).Value = "MONTO";
+                worksheet.Cell(6, 3).Value = "FECHA";
 
-                for (int pos = 1; pos <= noPagos; pos++)
+                for (int pos = 0; pos < noPagos; pos++)
                 {
-                    worksheet.Cell(5 + pos, 1).Value = pos;
-                    worksheet.Cell(5 + pos, 2).Value = "$ " + ListaCeldas[pos - 1].Monto;
-                    worksheet.Cell(5 + pos, 3).Value = ListaCeldas[pos - 1].Fecha;
-                    Console.WriteLine(ListaCeldas[pos - 1].Monto);
-                    Acumulado += Convert.ToDecimal(ListaCeldas[pos - 1].Monto);
+                    worksheet.Cell(6 + pos + 1, 1).Value = pos + 1;
+                    worksheet.Cell(6 + pos + 1, 2).Value = "$ " + ListaCeldas[pos].Monto;
+                    worksheet.Cell(6 + pos + 1, 3).Value = ListaCeldas[pos].Fecha;
+                    Console.WriteLine(ListaCeldas[pos].Monto);
+                    Acumulado += Convert.ToDecimal(ListaCeldas[pos].Monto);
                 }
 
-                worksheet.Cell(5 + (3 + noPagos), 2).Value = "Saldo ($):";
-                worksheet.Cell(5 + (3 + noPagos), 2).Style.Font.FontSize = 12;
-                worksheet.Cell(5 + (3 + noPagos), 2).Style.Font.Bold = true;
+                worksheet.Cell(6 + (3 + noPagos), 2).Value = "Saldo ($):";
+                worksheet.Cell(6 + (3 + noPagos), 2).Style.Font.FontSize = 12;
+                worksheet.Cell(6 + (3 + noPagos), 2).Style.Font.Bold = true;
 
-                worksheet.Cell(5 + (3 + noPagos), 3).Value = Acumulado;
-                worksheet.Cell(5 + (3 + noPagos), 3).Style.Font.FontSize = 12;
-                worksheet.Cell(5 + (3 + noPagos), 3).Style.Font.Bold = true;
+                worksheet.Cell(6 + (3 + noPagos), 3).Value = Acumulado;
+                worksheet.Cell(6 + (3 + noPagos), 3).Style.Font.FontSize = 12;
+                worksheet.Cell(6 + (3 + noPagos), 3).Style.Font.Bold = true;
 
 
 
@@ -1058,6 +1070,47 @@ namespace ControlPagoLotes
                     e.RowBounds.Location.Y + 4
                 );
             }
+        }
+
+        private void btnObservaciones_Click(object sender, EventArgs e)
+        {
+            formObservaciones obs;
+            if(Obj!=null && !string.IsNullOrEmpty(Obj.Observacion))
+            {
+                obs = new formObservaciones(Obj.Observacion);
+            }else if(Obj==null && !string.IsNullOrEmpty(observaciones))
+            {
+                obs = new formObservaciones(observaciones);
+            }
+            else
+            {
+                obs = new formObservaciones();
+            }
+
+            obs.ShowDialog();
+
+            if (!string.IsNullOrEmpty(obs.observacion))
+            {
+                if (Obj != null)
+                {
+                    Obj.Observacion = obs.observacion;
+                }
+                else
+                {
+                    observaciones = obs.observacion;
+                }
+
+                btnObservaciones.Image = Properties.Resources.comentariocargado;
+
+            }
+            else
+            {
+                btnObservaciones.Image = Properties.Resources.sincomentario;
+            }
+
+
+
+
         }
     }
 }

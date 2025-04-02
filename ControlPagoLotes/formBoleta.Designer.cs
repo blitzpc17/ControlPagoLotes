@@ -33,6 +33,7 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(formBoleta));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.lblInformacionPago = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.txtTelefono = new System.Windows.Forms.TextBox();
             this.dtpFechaContrato = new System.Windows.Forms.DateTimePicker();
@@ -64,12 +65,12 @@
             this.btnEnviar = new System.Windows.Forms.Button();
             this.btnImprimir = new System.Windows.Forms.Button();
             this.btnExportar = new System.Windows.Forms.Button();
+            this.btnObservaciones = new System.Windows.Forms.Button();
             this.pegarContenidoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.eliminarFilaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.nuevaPartidaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.limpiarPagosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.btnAddPago = new System.Windows.Forms.Button();
-            this.lblInformacionPago = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRegistros)).BeginInit();
@@ -81,6 +82,7 @@
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.btnObservaciones);
             this.groupBox1.Controls.Add(this.lblInformacionPago);
             this.groupBox1.Controls.Add(this.label9);
             this.groupBox1.Controls.Add(this.txtTelefono);
@@ -107,6 +109,14 @@
             this.groupBox1.Size = new System.Drawing.Size(685, 542);
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
+            // 
+            // lblInformacionPago
+            // 
+            this.lblInformacionPago.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblInformacionPago.Location = new System.Drawing.Point(443, 170);
+            this.lblInformacionPago.Name = "lblInformacionPago";
+            this.lblInformacionPago.Size = new System.Drawing.Size(218, 38);
+            this.lblInformacionPago.TabIndex = 103;
             // 
             // label9
             // 
@@ -448,6 +458,20 @@
             this.btnExportar.UseVisualStyleBackColor = true;
             this.btnExportar.Click += new System.EventHandler(this.btnExportar_Click);
             // 
+            // btnObservaciones
+            // 
+            this.btnObservaciones.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.btnObservaciones.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnObservaciones.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnObservaciones.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.btnObservaciones.Image = global::ControlPagoLotes.Properties.Resources.sincomentario;
+            this.btnObservaciones.Location = new System.Drawing.Point(338, 170);
+            this.btnObservaciones.Name = "btnObservaciones";
+            this.btnObservaciones.Size = new System.Drawing.Size(35, 35);
+            this.btnObservaciones.TabIndex = 104;
+            this.btnObservaciones.UseVisualStyleBackColor = false;
+            this.btnObservaciones.Click += new System.EventHandler(this.btnObservaciones_Click);
+            // 
             // pegarContenidoToolStripMenuItem
             // 
             this.pegarContenidoToolStripMenuItem.Image = global::ControlPagoLotes.Properties.Resources.pegar;
@@ -496,14 +520,6 @@
             this.btnAddPago.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btnAddPago.UseVisualStyleBackColor = false;
             this.btnAddPago.Click += new System.EventHandler(this.btnAddPago_Click);
-            // 
-            // lblInformacionPago
-            // 
-            this.lblInformacionPago.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblInformacionPago.Location = new System.Drawing.Point(443, 170);
-            this.lblInformacionPago.Name = "lblInformacionPago";
-            this.lblInformacionPago.Size = new System.Drawing.Size(218, 38);
-            this.lblInformacionPago.TabIndex = 103;
             // 
             // formBoleta
             // 
@@ -573,6 +589,7 @@
         private System.Windows.Forms.TextBox txtTelefono;
         private System.Windows.Forms.ToolStripMenuItem limpiarPagosToolStripMenuItem;
         private System.Windows.Forms.Label lblInformacionPago;
+        private System.Windows.Forms.Button btnObservaciones;
     }
 }
 

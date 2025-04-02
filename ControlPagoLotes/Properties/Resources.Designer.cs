@@ -63,6 +63,16 @@ namespace ControlPagoLotes.Properties {
         /// <summary>
         ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap aceptar {
+            get {
+                object obj = ResourceManager.GetObject("aceptar", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap anadir {
             get {
                 object obj = ResourceManager.GetObject("anadir", resourceCulture);
@@ -96,6 +106,26 @@ namespace ControlPagoLotes.Properties {
         internal static System.Drawing.Bitmap claro {
             get {
                 object obj = ResourceManager.GetObject("claro", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap comentario {
+            get {
+                object obj = ResourceManager.GetObject("comentario", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap comentariocargado {
+            get {
+                object obj = ResourceManager.GetObject("comentariocargado", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -406,6 +436,16 @@ namespace ControlPagoLotes.Properties {
         internal static System.Drawing.Bitmap salvar1 {
             get {
                 object obj = ResourceManager.GetObject("salvar1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap sincomentario {
+            get {
+                object obj = ResourceManager.GetObject("sincomentario", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

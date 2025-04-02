@@ -129,29 +129,33 @@ namespace ControlPagoLotes
 
 
                                             //lotes //dia pago
-                                            /* worksheet.Cell(4, 2).Value = ObjPago.Lotes;
-                                             worksheet.Cell(4, 3).Value = "Día pago: " + ObjPago.DiaPago;*/
+                                          
                                             worksheet.Cell(rowPos + 3, colPos + 1).Value = ObjPago.Lotes;
                                             worksheet.Cell(rowPos + 3, colPos + 2).Value = "Día pago: " + ObjPago.DiaPago;
 
-                                            //encabezado partidas
-                                            //var rangoEncabezadoPartidas = worksheet.Range("B5:C5");
-                                            var rangoEncabezadoPartidas = worksheet.Range(rowPos + 4, colPos + 1, rowPos + 4, colPos + 2);
+
+                                            var rangoObservaciones = worksheet.Range(rowPos + 4, colPos + 1, rowPos + 4, colPos + 2);
+                                            rangoObservaciones.Merge();
+                                            rangoObservaciones.Value = ObjPago.Observacion;
+
+
+                                            //encabezado partidas                                       
+                                            var rangoEncabezadoPartidas = worksheet.Range(rowPos + 5, colPos + 1, rowPos + 5, colPos + 2);
                                             rangoEncabezadoPartidas.Style.Fill.BackgroundColor = XLColor.ForestGreen;
                                             rangoEncabezadoPartidas.Style.Font.FontSize = 12;
-                                            /*worksheet.Cell(5, 2).Value = "MONTO";
-                                            worksheet.Cell(5, 3).Value = "FECHA";*/
+                                        
 
-                                            worksheet.Cell(rowPos + 4, colPos + 1).Value = "MONTO";
-                                            worksheet.Cell(rowPos + 4, colPos + 2).Value = "FECHA";
+                                            worksheet.Cell(rowPos + 5, colPos + 1).Value = "MONTO";
+                                            worksheet.Cell(rowPos + 5, colPos + 2).Value = "FECHA";
 
 
-                                            for (int pos = 1; pos <= noPagos; pos++)
+                                            for (int pos = 0; pos < noPagos; pos++)
                                             {
-                                                worksheet.Cell(rowPos + 5 + pos, colPos).Value = pos;
-                                                worksheet.Cell(rowPos + 5 + pos, colPos + 1).Value = "$ " + LstPartidasPagosAux[pos - 1].Monto;
-                                                worksheet.Cell(rowPos + 5 + pos, colPos + 2).Value = LstPartidasPagosAux[pos - 1].Fecha;
-                                                Acumulado += Convert.ToDecimal(LstPartidasPagosAux[pos - 1].Monto);
+                                                worksheet.Cell(rowPos + 6 + pos, colPos).Value = pos+1;
+                                                worksheet.Cell(rowPos + 6 + pos, colPos + 1).Value = "$ " + LstPartidasPagosAux[pos].Monto;
+                                                worksheet.Cell(rowPos + 6 + pos, colPos + 2).Value = LstPartidasPagosAux[pos].Fecha;
+                                                
+                                                Acumulado += Convert.ToDecimal(LstPartidasPagosAux[pos].Monto);
                                             }
 
                                             decimal montoCalculado = 0;
@@ -161,11 +165,15 @@ namespace ControlPagoLotes
                                             int mesesTranscurridos = ((fechaActual.Year - objPagoInicial.Fecha.Year) * 12) + fechaActual.Month - objPagoInicial.Fecha.Month;
                                             decimal total = ObjPago.Total;
                                             int meses = Convert.ToInt32(ObjPago.Meses);
+                                            decimal mensualidad = (total - objPagoInicial.Monto) / meses;
+                                            
+
+                                            Acumulado = Acumulado - objPagoInicial.Monto;
 
                                             decimal montoPreliminarmentePAgado = 0;
                                             if (mesesTranscurridos < meses)
                                             {
-                                                montoPreliminarmentePAgado = ((total - objPagoInicial.Monto) / meses) * mesesTranscurridos;
+                                                montoPreliminarmentePAgado = mensualidad * mesesTranscurridos;
                                             }
                                             else
                                             {
@@ -194,7 +202,7 @@ namespace ControlPagoLotes
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 1).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 1).Style.Font.Bold = true;
 
-                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Value = Math.Max(montoPreliminarmentePAgado - (Acumulado - objPagoInicial.Monto), 0).ToString("N2");
+                                            worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Value = Math.Max(montoPreliminarmentePAgado - Acumulado, 0).ToString("N2");
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Style.Font.FontSize = 12;
                                             worksheet.Cell(rowPos + 7 + (3 + noPagos), colPos + 2).Style.Font.Bold = true;
 

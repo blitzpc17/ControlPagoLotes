@@ -230,6 +230,12 @@
     <Compile Include="formLogin.Designer.cs">
       <DependentUpon>formLogin.cs</DependentUpon>
     </Compile>
+    <Compile Include="formObservaciones.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="formObservaciones.Designer.cs">
+      <DependentUpon>formObservaciones.cs</DependentUpon>
+    </Compile>
     <Compile Include="formReporteGeneral.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -277,6 +283,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="formLogin.resx">
       <DependentUpon>formLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="formObservaciones.resx">
+      <DependentUpon>formObservaciones.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="formReporteGeneral.resx">
       <DependentUpon>formReporteGeneral.cs</DependentUpon>
@@ -434,6 +443,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="JAADE-PNG.ico" />
+    <None Include="Resources\sincomentario.png" />
+    <None Include="Resources\comentariocargado.png" />
+    <None Include="Resources\comentario.png" />
+    <None Include="Resources\aceptar.png" />
     <None Include="Resources\pago-en-efectivo.png" />
     <None Include="Resources\claro.png" />
   </ItemGroup>
