@@ -59,6 +59,8 @@
             this.bntExportar = new System.Windows.Forms.Button();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.toolStripLabel8 = new System.Windows.Forms.ToolStripLabel();
+            this.tsTotalTransferencias = new System.Windows.Forms.ToolStripLabel();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRegistros)).BeginInit();
             this.panel1.SuspendLayout();
@@ -73,6 +75,8 @@
             this.toolStripSeparator1,
             this.toolStripLabel2,
             this.tsTotalDia,
+            this.toolStripLabel8,
+            this.tsTotalTransferencias,
             this.toolStripLabel3,
             this.tsNuevoIngreso,
             this.toolStripSeparator2,
@@ -209,14 +213,14 @@
             // toolStripLabel6
             // 
             this.toolStripLabel6.Name = "toolStripLabel6";
-            this.toolStripLabel6.Size = new System.Drawing.Size(134, 22);
+            this.toolStripLabel6.Size = new System.Drawing.Size(134, 15);
             this.toolStripLabel6.Text = "Monto migrados modif:";
             // 
             // tsMigradosModificados
             // 
             this.tsMigradosModificados.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
             this.tsMigradosModificados.Name = "tsMigradosModificados";
-            this.tsMigradosModificados.Size = new System.Drawing.Size(15, 22);
+            this.tsMigradosModificados.Size = new System.Drawing.Size(15, 17);
             this.tsMigradosModificados.Text = "0";
             // 
             // dgvRegistros
@@ -320,6 +324,20 @@
             this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
+            // toolStripLabel8
+            // 
+            this.toolStripLabel8.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.toolStripLabel8.Name = "toolStripLabel8";
+            this.toolStripLabel8.Size = new System.Drawing.Size(80, 22);
+            this.toolStripLabel8.Text = "Total transf:";
+            // 
+            // tsTotalTransferencias
+            // 
+            this.tsTotalTransferencias.Font = new System.Drawing.Font("Segoe UI Black", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tsTotalTransferencias.Name = "tsTotalTransferencias";
+            this.tsTotalTransferencias.Size = new System.Drawing.Size(16, 22);
+            this.tsTotalTransferencias.Text = "0";
+            // 
             // formCorteCaja
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -374,5 +392,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripLabel toolStripLabel6;
         private System.Windows.Forms.ToolStripLabel tsMigradosModificados;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel8;
+        private System.Windows.Forms.ToolStripLabel tsTotalTransferencias;
     }
 }

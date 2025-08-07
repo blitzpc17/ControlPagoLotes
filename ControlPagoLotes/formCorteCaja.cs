@@ -18,6 +18,7 @@ namespace ControlPagoLotes
         private PagoPartidaLogica contexto;
         private List<clsDATACORTE> ListaPagosDiarios;
         private decimal montoNuevos = 0;
+        private decimal montoTransferencias = 0;
         private decimal montoNuevosMismoDiaModificados = 0;
         private decimal montoModificados = 0;
         private decimal montoModificadosMigrados = 0;
@@ -46,10 +47,16 @@ namespace ControlPagoLotes
           
             //agregar monto migrados
            montoNuevos = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? (ListaPagosDiarios
-                    .Where(x => x.FormaPagoTipo!=0
+                    .Where(x => x.FormaPagoTipo == 1   //se cambia  a puro efectivo
                         && (x.FechaElimino == null && x.UsuarioElimino == null)
                         && (x.UsuarioModifico == null && x.FechaModifico == null)                           
                     ).Sum(x => x.Monto)) : 0; 
+
+            montoTransferencias = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? (ListaPagosDiarios
+                    .Where(x => x.FormaPagoTipo == 2   //se agrego para transferencias
+                        && (x.FechaElimino == null && x.UsuarioElimino == null)
+                        && (x.UsuarioModifico == null && x.FechaModifico == null)
+                    ).Sum(x => x.Monto)) : 0;
 
             montoNuevosMismoDiaModificados = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? (ListaPagosDiarios
                     .Where(x => x.FormaPagoTipo != 0
@@ -283,6 +290,8 @@ namespace ControlPagoLotes
             tsTotalDia.Text = (montoNuevos + montoModificados+montoNuevosMismoDiaModificados).ToString("N2");
             tsTotalMigrado.Text = montoMigrado.ToString("N2");
             tsMigradosModificados.Text = montoModificadosMigrados.ToString("N2");
+
+            tsTotalTransferencias.Text = montoTransferencias.ToString("N2");
             Apariencias();
 
             tsCargandoInformacion.Text = "";

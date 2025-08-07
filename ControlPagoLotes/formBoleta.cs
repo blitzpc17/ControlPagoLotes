@@ -30,6 +30,7 @@ using static ControlPagoLotes.Enumeraciones;
 using System.Collections;
 using Color = System.Drawing.Color;
 using Path = System.IO.Path;
+using Org.BouncyCastle.Asn1;
 
 namespace ControlPagoLotes
 {
@@ -53,6 +54,9 @@ namespace ControlPagoLotes
         List<clsCELDASPAGOS> ListaCeldas;
         List<clsCELDASPAGOS> ListaCeldasNuevas;
         List<clsCELDASPAGOS> ListaCeldasModificar;
+
+
+        PagoPartida objPagoInicial;
 
         List<string> LstValidacionesmsj;
         List<string> LstValidacionesAtrasos;
@@ -134,7 +138,7 @@ namespace ControlPagoLotes
                 {
                     ListaCeldas = new List<clsCELDASPAGOS>();
 
-                    foreach (var r in ListaPartidas)
+                    foreach (var r in ListaPartidas.OrderBy(x => x.Fecha))
                     {
                         dgvRegistros.Rows.Add(r.Id, r.Monto, r.Fecha.ToShortDateString(), false, false, r.FormaPago);
                         ListaCeldas.Add(new clsCELDASPAGOS
@@ -150,6 +154,7 @@ namespace ControlPagoLotes
 
                     string estadoAtrasado = ((int)Enumeraciones.Estados.ATRASADO).ToString();
                     string estadoCorriente = ((int)Enumeraciones.Estados.CORRIENTE).ToString();
+                    string estadoPagado = ((int)Enumeraciones.Estados.PAGADO).ToString();   
                     List<string> lstValidacionesPago = ValidarAtrasoPago();
 
                     if ((Obj.Estado == estadoAtrasado || (Obj.Estado == estadoCorriente)) && lstValidacionesPago.Count > 0)
@@ -165,6 +170,12 @@ namespace ControlPagoLotes
                         cbxEstados.SelectedValue = (int)Enumeraciones.Estados.CORRIENTE;
                         lblInformacionPago.Text += "Mensualidad: $ " + montoMensualidad.ToString("N2") + "\r\nAtraso: $ 0.00";
                     }
+                    else if(Obj.Estado == estadoPagado)
+                    {
+                        pagoAtrasado = false;
+                        cbxEstados.SelectedValue = (int)Enumeraciones.Estados.PAGADO;
+                        lblInformacionPago.Text = "EL CONTRATO HA SIDO LIQUIDADO.";
+                    }
                     else
                     {
                         lblInformacionPago.Text += "Mensualidad: $ " + montoMensualidad.ToString("N2") + "\r\nAtraso: $ " + montoAtrasado.ToString("N2");
@@ -173,7 +184,7 @@ namespace ControlPagoLotes
                 else
                 {
                     tsTotalRegistros.Text = @"0";
-                    tsAcumulado.Text = @"0.00";
+                    tsAcumulado.Text = @"0.00";                    
                     lblInformacionPago.Text += "Mensualidad: $ " + montoMensualidad.ToString("N2") + "\r\nAtraso: $ 0.00";
                 }
 
@@ -183,6 +194,8 @@ namespace ControlPagoLotes
                 lblInformacionPago.Text = "";
             }
 
+            //preguntar si el restante 
+            tsRestante.Text = Obj == null ? "0.00" : (Obj.Total  - acumulado).ToString("N2");
 
             InicializarBotonObservaciones();
 
@@ -535,10 +548,18 @@ namespace ControlPagoLotes
 
         private void MostrarCeldasEnDgv()
         {
+            
             dgvRegistros.EndEdit();
             dgvRegistros.Rows.Clear();
             acumulado = 0;
             int rowIndex = 0;
+
+            if (!ListaCeldas.Any(x => x.Fecha == null))
+            {
+                ListaCeldas = ListaCeldas.OrderBy(x => DateTime.ParseExact(x.Fecha, "dd/MM/yyyy", CultureInfo.InvariantCulture)).ToList();
+
+            }
+
             foreach (var item in ListaCeldas)
             {
                 dgvRegistros.Rows.Add(item.Id, item.Monto, item.Fecha, item.Modificar, item.Eliminar, item.FormaPago);
@@ -590,8 +611,9 @@ namespace ControlPagoLotes
             else
             {
                 indexActual = dgvRegistros.CurrentRow.Index;
-                ListaCeldas.Insert(indexActual, new clsCELDASPAGOS());
-            }
+                //ListaCeldas.Insert(indexActual, new clsCELDASPAGOS());
+                ListaCeldas.Add(new clsCELDASPAGOS());
+            }          
 
             MostrarCeldasEnDgv();
 
@@ -636,9 +658,7 @@ namespace ControlPagoLotes
         private void ModificarValoresCeldas(int row, int cell, string valor)
         {
             if (dgvRegistros.RowCount < 1) return;
-            if (ListaCeldas == null || ListaCeldas.Count < 1) return;
-
-
+            if (ListaCeldas == null || ListaCeldas.Count < 1) return;            
 
             if (cell == 1)
             {
@@ -671,10 +691,19 @@ namespace ControlPagoLotes
             List<string> msj = new List<string>();
 
             DateTime fechaActual = Global.FechaServidor();
+
+            if(ListaPartidas.Sum(x=>x.Monto) >= Obj.Total && Obj.Estado != ((int)Enumeraciones.Estados.PAGADO).ToString())
+            {
+                Obj.Estado = ((int)Enumeraciones.Estados.PAGADO).ToString();
+                contextoPago.UpdatePago(Obj);
+            }
+
+
+
             PagoPartida ultimoPago = ListaPartidas.OrderByDescending(x => x.Fecha).First();
             int noPagos = Convert.ToInt32(Obj.Meses);
             decimal total = Obj.Total;
-            PagoPartida objPagoInicial = ListaPartidas.OrderBy(x => x.Fecha).First(x => x.FechaBaja == null);
+            objPagoInicial = ListaPartidas.OrderBy(x => x.Fecha).First(x => x.FechaBaja == null);
             decimal montoPagadoAcumulado = 0;
 
             montoPagadoAcumulado = (ListaPartidas == null || ListaPartidas.Count <= 0) ? 0 : ListaPartidas.Sum(x => x.Monto);
@@ -683,17 +712,26 @@ namespace ControlPagoLotes
 
             int mesesTranscurridos = ((fechaActual.Year - objPagoInicial.Fecha.Year) * 12) + fechaActual.Month - objPagoInicial.Fecha.Month;
 
+            if (mesesTranscurridos > noPagos)
+            {
+                mesesTranscurridos = noPagos; //esta concicion puede cambiar si van a cobrir interes despues de cumplir los meses de paago.
+            }
+
             decimal montoPreliminarmentePAgado = 0;
             montoMensualidad = ((total - objPagoInicial.Monto) / noPagos);
 
-            if (mesesTranscurridos < noPagos)
+            //=>>>>>>preguntar si requiere que cuando el acumulado - el total son mayor al restante en el monto de la mensualidad se va aa seguir maanteniendo ese valor o se pone la diferencia (restante)
+
+            /*if (mesesTranscurridos < noPagos)
             {
                 montoPreliminarmentePAgado = montoMensualidad * mesesTranscurridos;
             }
             else
             {
                 montoPreliminarmentePAgado = total;
-            }
+            }*/
+
+            montoPreliminarmentePAgado = montoMensualidad * mesesTranscurridos;
 
             montoAtrasado = montoPreliminarmentePAgado - montoPagadoAcumulado;
 
