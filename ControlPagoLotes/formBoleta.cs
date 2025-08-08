@@ -559,13 +559,13 @@ namespace ControlPagoLotes
                 ListaCeldas = ListaCeldas.OrderBy(x =>
                 {
                     string[] formatos = {
-        "dd-MM-yyyy", "d-MM-yyyy", "dd-M-yyyy", "d-M-yyyy",
-        "dd/MM/yyyy", "d/MM/yyyy", "dd/M/yyyy", "d/M/yyyy",
-        "dd-MM-yy", "d-MM-yy", "dd-M-yy", "d-M-yy",
-        "dd/MM/yy", "d/MM/yy", "dd/M/yy", "d/M/yy",
-        "M/d/yyyy", "M/d/yy", "MM/dd/yyyy", "MM/dd/yy",
-        "yyyy-MM-dd", "yyyy/MM/dd", "yy-MM-dd", "yy/MM/dd"
-    };
+                        "dd-MM-yyyy", "d-MM-yyyy", "dd-M-yyyy", "d-M-yyyy",
+                        "dd/MM/yyyy", "d/MM/yyyy", "dd/M/yyyy", "d/M/yyyy",
+                        "dd-MM-yy", "d-MM-yy", "dd-M-yy", "d-M-yy",
+                        "dd/MM/yy", "d/MM/yy", "dd/M/yy", "d/M/yy",
+                        "M/d/yyyy", "M/d/yy", "MM/dd/yyyy", "MM/dd/yy",
+                        "yyyy-MM-dd", "yyyy/MM/dd", "yy-MM-dd", "yy/MM/dd"
+                    };
 
                     if (DateTime.TryParseExact(x.Fecha, formatos, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fecha))
                     {
@@ -647,11 +647,20 @@ namespace ControlPagoLotes
         {
             if (dgvRegistros.Rows.Count <= 0) return;
 
-
+            
             if (dgvRegistros.CurrentRow.Cells[0].Value != null)
             {
-                int index = ListaCeldas.FindIndex(x => x.Id == (int)dgvRegistros.CurrentRow.Cells[0].Value);
-                ListaCeldas[index].Eliminar = ListaCeldas[index].Eliminar != true;
+                if (string.IsNullOrEmpty(dgvRegistros.CurrentRow.Cells[0].Value.ToString()))
+                {
+                    int index = ListaCeldas.FindIndex(x => x.Fecha == dgvRegistros.CurrentRow.Cells[2].Value.ToString());
+                    ListaCeldas[index].Eliminar = ListaCeldas[index].Eliminar != true;
+                }
+                else
+                {
+                    int index = ListaCeldas.FindIndex(x => x.Id == (int)dgvRegistros.CurrentRow.Cells[0].Value);
+                    ListaCeldas[index].Eliminar = ListaCeldas[index].Eliminar != true;
+                }
+               
             }
             else
             {
