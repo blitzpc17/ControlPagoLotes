@@ -554,9 +554,33 @@ namespace ControlPagoLotes
             acumulado = 0;
             int rowIndex = 0;
 
-            if (!ListaCeldas.Any(x => x.Fecha == null))
+            if (!ListaCeldas.Any(x => x.Fecha == null || string.IsNullOrEmpty(x.Fecha)))
             {
-                ListaCeldas = ListaCeldas.OrderBy(x => DateTime.ParseExact(x.Fecha, "dd/MM/yyyy", CultureInfo.InvariantCulture)).ToList();
+                ListaCeldas = ListaCeldas.OrderBy(x =>
+                {
+                    string[] formatos = {
+        "dd-MM-yyyy", "d-MM-yyyy", "dd-M-yyyy", "d-M-yyyy",
+        "dd/MM/yyyy", "d/MM/yyyy", "dd/M/yyyy", "d/M/yyyy",
+        "dd-MM-yy", "d-MM-yy", "dd-M-yy", "d-M-yy",
+        "dd/MM/yy", "d/MM/yy", "dd/M/yy", "d/M/yy",
+        "M/d/yyyy", "M/d/yy", "MM/dd/yyyy", "MM/dd/yy",
+        "yyyy-MM-dd", "yyyy/MM/dd", "yy-MM-dd", "yy/MM/dd"
+    };
+
+                    if (DateTime.TryParseExact(x.Fecha, formatos, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fecha))
+                    {
+                        return fecha;
+                    }
+
+                    // Opción 1: Poner fechas no válidas al principio
+                    return DateTime.MinValue;
+
+                    // Opción 2: Poner fechas no válidas al final
+                    // return DateTime.MaxValue;
+
+                    // Opción 3: Lanzar excepción para fechas no válidas
+                    // throw new FormatException($"Formato de fecha no reconocido: {x.Fecha}");
+                }).ToList();
 
             }
 
