@@ -24,6 +24,7 @@ namespace ControlPagoLotes
         private decimal montoModificadosMigrados = 0;
         private decimal montoEliminados = 0;
         private decimal montoMigrado = 0;
+        private Enumeraciones.Periodo periodoSeleccionado;
         public formCorteCaja()
         {
             InitializeComponent();
@@ -32,7 +33,30 @@ namespace ControlPagoLotes
         private void InicializarFormulario()
         {
             contexto = new PagoPartidaLogica();
-            Global.LimpiarControles(this);            
+           
+            InicializarControles();
+           
+        }
+
+        private void InicializarControles()
+        {
+            Global.LimpiarControles(this);
+            ComboBoxHelper.LlenarComboBox<Enumeraciones.Periodo>(cbxPeriodo, true);
+            cbxPeriodo.SelectedIndex = -1;
+            ComboBoxHelper.LlenarComboBox<Enumeraciones.Meses>(cbxMeses, true);
+            cbxMeses.SelectedIndex = -1;
+            CargarLotificaciones();
+            
+           
+        }
+
+        private void CargarLotificaciones()
+        {
+            contexto.ListarLotificaciones();
+            cbxLotificaciones.DataSource = contexto.LstZona;
+            cbxLotificaciones.DisplayMember = "Nombre";
+            cbxLotificaciones.ValueMember = "Id";   
+            cbxLotificaciones.SelectedIndex = -1;
         }
 
         private void dtpFechaContrato_ValueChanged(object sender, EventArgs e)
@@ -41,9 +65,9 @@ namespace ControlPagoLotes
             backgroundWorker1.RunWorkerAsync();
         }
 
-        private void ListarPagosPorFecha(DateTime fecha)
+        private void ListarPagosPorFecha()
         {
-            ListaPagosDiarios = contexto.ListarPagoPorFecha(fecha);
+            ListaPagosDiarios = contexto.ListarPagoPorFecha(contexto.objConsulta);
           
             //agregar monto migrados
            montoNuevos = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? (ListaPagosDiarios
@@ -277,7 +301,7 @@ namespace ControlPagoLotes
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
-            ListarPagosPorFecha(dtpFechaContrato.Value);
+            ListarPagosPorFecha();
         }
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -295,6 +319,108 @@ namespace ControlPagoLotes
             Apariencias();
 
             tsCargandoInformacion.Text = "";
+        }
+
+        private void cbxPeriodo_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if ( cbxPeriodo.Items.Count<=0)
+            {
+                MostrarPanelPeriodo(0);
+            }
+            else
+            {
+                periodoSeleccionado = ComboBoxHelper.ObtenerValorSeleccionado<Enumeraciones.Periodo>(cbxPeriodo);
+                MostrarPanelPeriodo((int)periodoSeleccionado);
+            }
+
+              
+        }
+
+        private void MostrarPanelPeriodo(int pos)
+        {
+            switch (pos)
+            {
+                case 0: //ninguno
+                    panelDia.Visible = false;
+                    panelSemana.Visible = false;
+                    panelMes.Visible = false;
+                    break;
+
+                case 1: //DIA
+                    panelDia.Visible = true;
+                    panelSemana.Visible = false;
+                    panelMes.Visible = false;
+                    break;
+
+                case 2: //semana
+                    panelDia.Visible = false;
+                    panelSemana.Visible = true;
+                    panelMes.Visible = false;
+                    break;
+
+                case 3: //mes
+                    panelDia.Visible = false;
+                    panelSemana.Visible = false;
+                    panelMes.Visible = true;
+                    break;
+            }
+        }
+
+        private void chkTodas_CheckedChanged(object sender, EventArgs e)
+        {
+            cbxLotificaciones.Enabled = !chkTodas.Checked;
+        }
+
+        private void btnConsultar_Click(object sender, EventArgs e)
+        {
+            contexto.InicializarObjConsulta();
+            contexto.objConsulta.todas = chkTodas.Checked;
+            if (!chkTodas.Checked)
+            {
+                if(cbxLotificaciones.SelectedIndex == -1)                 {
+                    MessageBox.Show("Debe seleccionar una lotificación para realizar la consulta.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                contexto.objConsulta.LotificacionId = (int?)cbxLotificaciones.SelectedValue;
+
+            }
+
+            if (cbxPeriodo.SelectedIndex == -1) { 
+                MessageBox.Show("Debe seleccionar un periodo para realizar la consulta.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);            
+            }
+            else
+            {
+                switch (periodoSeleccionado)
+                {
+                    case Enumeraciones.Periodo.DIA:
+                        contexto.objConsulta.Tipo = Enumeraciones.Periodo.DIA.ToString();
+                        contexto.objConsulta.Fecha = dtpFechaContrato.Value;
+                        break;
+
+                    case Enumeraciones.Periodo.SEMANA:
+                        contexto.objConsulta.Tipo = Enumeraciones.Periodo.SEMANA.ToString();
+                        contexto.objConsulta.NumeroSemana = (int?)numSemana.Value;
+                        contexto.objConsulta.Anio = (int?)numSemana.Value;
+                        break;
+
+                    case Enumeraciones.Periodo.MES:
+                        contexto.objConsulta.Tipo = Enumeraciones.Periodo.MES.ToString();
+                        contexto.objConsulta.Mes = (int?)cbxMeses.SelectedValue;
+                        contexto.objConsulta.Anio = (int?)numAnioMes.Value;
+                        break;
+
+                    default:
+                        contexto.objConsulta.Tipo = "SIN PERIODO";
+                        break;
+                }
+
+
+                tsCargandoInformacion.Text = "Cargando información...";
+                backgroundWorker1.RunWorkerAsync();
+            }
+
+               
         }
     }
 }

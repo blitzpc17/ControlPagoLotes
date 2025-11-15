@@ -199,6 +199,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ComboBoxHelper.cs" />
     <Compile Include="Enumeraciones.cs" />
     <Compile Include="formBoleta.cs">
       <SubType>Form</SubType>
@@ -260,12 +261,6 @@
     <Compile Include="formZonas.Designer.cs">
       <DependentUpon>formZonas.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmPruebaCorte.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmPruebaCorte.Designer.cs">
-      <DependentUpon>frmPruebaCorte.cs</DependentUpon>
-    </Compile>
     <Compile Include="Global.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -298,9 +293,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="formZonas.resx">
       <DependentUpon>formZonas.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmPruebaCorte.resx">
-      <DependentUpon>frmPruebaCorte.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -443,6 +435,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="JAADE-PNG.ico" />
+    <None Include="Resources\buscar.png" />
     <None Include="Resources\sincomentario.png" />
     <None Include="Resources\comentariocargado.png" />
     <None Include="Resources\comentario.png" />

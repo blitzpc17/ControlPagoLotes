@@ -114,6 +114,7 @@
     <Compile Include="clsWhatsApp.cs" />
     <Compile Include="Pago.cs" />
     <Compile Include="PagoPartida.cs" />
+    <Compile Include="PeriodoConsulta.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UsuarioL.cs" />
     <Compile Include="Zona.cs" />

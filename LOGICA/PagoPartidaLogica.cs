@@ -11,10 +11,21 @@ namespace LOGICA
     public class PagoPartidaLogica:IDisposable
     {
         PagoPartidasRepository contexto;
+        ZonasRepository contextoZonas;
+
+        public List<Zona> LstZona;
+        public PeriodoConsulta objConsulta;
+
         public PagoPartidaLogica()
         {
 
             contexto = new PagoPartidasRepository();
+            contextoZonas = new ZonasRepository();
+        }
+
+        public void InicializarObjConsulta()
+        {
+            objConsulta = new PeriodoConsulta();
         }
 
         // Crear PagoPartida
@@ -56,9 +67,9 @@ namespace LOGICA
         {
             return contexto.InsertarPartidasPago(query);
         }
-        public List<clsDATACORTE> ListarPagoPorFecha(DateTime fecha)
+        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj)
         {
-            return contexto.ListarPagoPorFecha(fecha);
+            return contexto.ListarPagoPorFecha(obj);
         }
 
         public void Dispose()
@@ -69,6 +80,11 @@ namespace LOGICA
         public List<PagoPartida> ListarPartidasPagos(string idsRelacionados)
         {
             return contexto.ListarPartidasPagos(idsRelacionados);
+        }
+
+        public void ListarLotificaciones()
+        {
+            LstZona = contextoZonas.GetAllZonas();
         }
     }
 }

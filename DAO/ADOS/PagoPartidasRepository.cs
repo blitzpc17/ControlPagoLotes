@@ -1,4 +1,5 @@
-﻿using Entidades;
+﻿using Dapper;
+using Entidades;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,8 +68,52 @@ namespace DAO.ADOS
             return connection.Execute(complemento);
         }
 
-        public List<clsDATACORTE> ListarPagoPorFecha(DateTime fecha)
+        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj)
         {
+            string condiciones = "";
+
+            switch (obj.Tipo.ToUpper())
+            {
+                case "DIA":
+                    string fecha = Convert.ToDateTime(obj.Fecha).ToString("yyyy-MM-dd");
+                    condiciones += " (CAST(pp.FechaCreacion AS DATE) = '" + fecha + "'" +
+                                 " OR CAST(pp.FechaModificacion AS DATE) = '" + fecha + "'" +
+                                 " OR CAST(pp.FechaBaja AS DATE) = '" + fecha + "')";
+                    break;
+
+                case "SEMANA":
+                    if (obj.NumeroSemana.HasValue && obj.Anio.HasValue)
+                    {
+                        // Usar funciones de SQL para manejar la semana
+                        condiciones += $@"( (DATEPART(YEAR, pp.FechaCreacion) = {obj.Anio.Value} 
+                                AND DATEPART(WEEK, pp.FechaCreacion) = {obj.NumeroSemana.Value}
+                                OR DATEPART(YEAR, pp.FechaModificacion) = {obj.Anio.Value} 
+                                AND DATEPART(WEEK, pp.FechaModificacion) = {obj.NumeroSemana.Value}
+                                OR DATEPART(YEAR, pp.FechaBaja) = {obj.Anio.Value} 
+                                AND DATEPART(WEEK, pp.FechaBaja) = {obj.NumeroSemana.Value})) ";
+                    }
+                    break;
+
+                case "MES":
+                    if (obj.Mes.HasValue && obj.Anio.HasValue)
+                    {
+                        condiciones += $@" ((DATEPART(YEAR, pp.FechaCreacion) = {obj.Anio.Value} 
+                                AND DATEPART(MONTH, pp.FechaCreacion) = {obj.Mes.Value}
+                                OR DATEPART(YEAR, pp.FechaModificacion) = {obj.Anio.Value} 
+                                AND DATEPART(MONTH, pp.FechaModificacion) = {obj.Mes.Value}
+                                OR DATEPART(YEAR, pp.FechaBaja) = {obj.Anio.Value} 
+                                AND DATEPART(MONTH, pp.FechaBaja) = {obj.Mes.Value}))";
+                    }
+                    break;
+            }
+
+           
+            // Lotificaciones
+            if (!obj.todas)
+            {
+                condiciones += " AND z.Id = " + obj.LotificacionId.Value;
+            }
+
             var query = "SELECT \r\n" +
                         "    pa.NombreCliente,\r\n" +
                         "    z.Nombre as Zona,\r\n" +
@@ -81,7 +126,7 @@ namespace DAO.ADOS
                         "    pp.FechaModificacion AS FechaModifico, \r\n" +
                         "    um.Usuario AS UsuarioModifico, \r\n" +
                         "    pp.FechaBaja AS FechaElimino, \r\n" +
-                        "    ue.Usuario AS UsuarioElimino, \r\n" + 
+                        "    ue.Usuario AS UsuarioElimino, \r\n" +
                         "    pp.FormaPago AS FormaPagoTipo, \r\n" +
                         "    CASE WHEN pp.FormaPago = 0 THEN 'MIGRADO' ELSE (CASE WHEN pp.FormaPago = 1 THEN 'EFECTIVO' ELSE 'TRANSFERENCIA' END) END AS FormaPago \r\n" +
                         "FROM pagos pa\r\n" +
@@ -90,12 +135,47 @@ namespace DAO.ADOS
                         "JOIN USUARIOS u ON pp.UsuarioId = u.Id \r\n" +
                         "LEFT JOIN USUARIOS um ON pp.UsuarioModificoId = um.Id \r\n" +
                         "LEFT JOIN USUARIOS ue ON pp.UsuarioBajaId = ue.Id \r\n" +
-                        "WHERE CAST(pp.FechaCreacion AS DATE) = @Fecha \r\n" + 
-                        "   OR CAST(pp.FechaModificacion AS DATE) = @Fecha \r\n" +
-                        "   OR CAST(pp.FechaBaja AS DATE) = @Fecha;";
+                        "WHERE " + condiciones;
 
+            return connection.Query<clsDATACORTE>(query).ToList();
+        }
 
-            return connection.Query<clsDATACORTE>(query, new { Fecha =  fecha.ToString("yyyy-MM-dd")}).ToList();
+        public List<clsDATACORTE> ListarPagoPorPeriodo(PeriodoConsulta periodo, int? idZona)
+        {
+            var query = new StringBuilder();
+            query.AppendLine("SELECT ..."); // mismo SELECT anterior
+
+            query.AppendLine("WHERE 1 = 1");
+
+            var parameters = new DynamicParameters();
+
+            switch (periodo.Tipo.ToUpper())
+            {
+                case "DIA":
+                    query.AppendLine("AND (CAST(pp.FechaCreacion AS DATE) = @Fecha");
+                    query.AppendLine("   OR CAST(pp.FechaModificacion AS DATE) = @Fecha");
+                    query.AppendLine("   OR CAST(pp.FechaBaja AS DATE) = @Fecha)");
+                    parameters.Add("Fecha", periodo.Fecha.Value.ToString("yyyy-MM-dd"));
+                    break;
+
+                case "SEMANA":
+                    query.AppendLine("AND (DATEPART(WEEK, pp.FechaCreacion) = @NumeroSemana AND DATEPART(YEAR, pp.FechaCreacion) = @Anio");
+                    query.AppendLine("   OR DATEPART(WEEK, pp.FechaModificacion) = @NumeroSemana AND DATEPART(YEAR, pp.FechaModificacion) = @Anio");
+                    query.AppendLine("   OR DATEPART(WEEK, pp.FechaBaja) = @NumeroSemana AND DATEPART(YEAR, pp.FechaBaja) = @Anio)");
+                    parameters.Add("NumeroSemana", periodo.NumeroSemana.Value);
+                    parameters.Add("Anio", periodo.Anio.Value);
+                    break;
+
+                case "MES":
+                    query.AppendLine("AND (MONTH(pp.FechaCreacion) = @NumeroMes AND YEAR(pp.FechaCreacion) = @AnioMes");
+                    query.AppendLine("   OR MONTH(pp.FechaModificacion) = @NumeroMes AND YEAR(pp.FechaModificacion) = @AnioMes");
+                    query.AppendLine("   OR MONTH(pp.FechaBaja) = @NumeroMes AND YEAR(pp.FechaBaja) = @AnioMes)");
+                    parameters.Add("NumeroMes", periodo.Mes);
+                    parameters.Add("AnioMes", periodo.Anio);
+                    break;
+            }
+
+            return connection.Query<clsDATACORTE>(query.ToString(), parameters).ToList();
         }
 
         public void Dispose()
