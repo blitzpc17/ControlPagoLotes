@@ -34,7 +34,7 @@ namespace ControlPagoLotes
 
         public enum Meses
         {
-            NERO = 1,
+            ENERO = 1,
             FEBRERO = 2,
             MARZO = 3,
             ABRIL = 4,

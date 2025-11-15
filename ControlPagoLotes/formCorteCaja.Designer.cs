@@ -62,13 +62,13 @@
             this.cbxLotificaciones = new System.Windows.Forms.ComboBox();
             this.label7 = new System.Windows.Forms.Label();
             this.panelMes = new System.Windows.Forms.Panel();
-            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.numericAnioMes = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.cbxMeses = new System.Windows.Forms.ComboBox();
             this.panelSemana = new System.Windows.Forms.Panel();
             this.numSemana = new System.Windows.Forms.NumericUpDown();
-            this.numAnioMes = new System.Windows.Forms.NumericUpDown();
+            this.numAnioSemana = new System.Windows.Forms.NumericUpDown();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.cbxPeriodo = new System.Windows.Forms.ComboBox();
@@ -82,10 +82,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvRegistros)).BeginInit();
             this.panel1.SuspendLayout();
             this.panelMes.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericAnioMes)).BeginInit();
             this.panelSemana.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numSemana)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numAnioMes)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numAnioSemana)).BeginInit();
             this.panelDia.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -318,8 +318,8 @@
             this.panel1.Controls.Add(this.btnConsultar);
             this.panel1.Controls.Add(this.chkTodas);
             this.panel1.Controls.Add(this.cbxLotificaciones);
-            this.panel1.Controls.Add(this.label7);
             this.panel1.Controls.Add(this.panelMes);
+            this.panel1.Controls.Add(this.label7);
             this.panel1.Controls.Add(this.panelSemana);
             this.panel1.Controls.Add(this.cbxPeriodo);
             this.panel1.Controls.Add(this.panelDia);
@@ -385,35 +385,35 @@
             // 
             // panelMes
             // 
-            this.panelMes.Controls.Add(this.numericUpDown1);
+            this.panelMes.Controls.Add(this.numericAnioMes);
             this.panelMes.Controls.Add(this.label4);
             this.panelMes.Controls.Add(this.label5);
             this.panelMes.Controls.Add(this.cbxMeses);
-            this.panelMes.Location = new System.Drawing.Point(444, 67);
+            this.panelMes.Location = new System.Drawing.Point(444, 69);
             this.panelMes.Name = "panelMes";
             this.panelMes.Size = new System.Drawing.Size(313, 32);
             this.panelMes.TabIndex = 42;
             this.panelMes.Visible = false;
             // 
-            // numericUpDown1
+            // numericAnioMes
             // 
-            this.numericUpDown1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.numericUpDown1.Location = new System.Drawing.Point(253, 2);
-            this.numericUpDown1.Maximum = new decimal(new int[] {
+            this.numericAnioMes.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
+            this.numericAnioMes.Location = new System.Drawing.Point(253, 2);
+            this.numericAnioMes.Maximum = new decimal(new int[] {
             2100,
             0,
             0,
             0});
-            this.numericUpDown1.Minimum = new decimal(new int[] {
+            this.numericAnioMes.Minimum = new decimal(new int[] {
             2000,
             0,
             0,
             0});
-            this.numericUpDown1.Name = "numericUpDown1";
-            this.numericUpDown1.Size = new System.Drawing.Size(60, 26);
-            this.numericUpDown1.TabIndex = 43;
-            this.numericUpDown1.Value = new decimal(new int[] {
-            2024,
+            this.numericAnioMes.Name = "numericAnioMes";
+            this.numericAnioMes.Size = new System.Drawing.Size(60, 26);
+            this.numericAnioMes.TabIndex = 43;
+            this.numericAnioMes.Value = new decimal(new int[] {
+            2025,
             0,
             0,
             0});
@@ -446,11 +446,12 @@
             this.cbxMeses.Name = "cbxMeses";
             this.cbxMeses.Size = new System.Drawing.Size(97, 28);
             this.cbxMeses.TabIndex = 0;
+            this.cbxMeses.SelectedIndexChanged += new System.EventHandler(this.cbxMeses_SelectedIndexChanged);
             // 
             // panelSemana
             // 
             this.panelSemana.Controls.Add(this.numSemana);
-            this.panelSemana.Controls.Add(this.numAnioMes);
+            this.panelSemana.Controls.Add(this.numAnioSemana);
             this.panelSemana.Controls.Add(this.label3);
             this.panelSemana.Controls.Add(this.label2);
             this.panelSemana.Location = new System.Drawing.Point(444, 67);
@@ -482,24 +483,24 @@
             0,
             0});
             // 
-            // numAnioMes
+            // numAnioSemana
             // 
-            this.numAnioMes.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.numAnioMes.Location = new System.Drawing.Point(243, 3);
-            this.numAnioMes.Maximum = new decimal(new int[] {
+            this.numAnioSemana.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
+            this.numAnioSemana.Location = new System.Drawing.Point(243, 3);
+            this.numAnioSemana.Maximum = new decimal(new int[] {
             2100,
             0,
             0,
             0});
-            this.numAnioMes.Minimum = new decimal(new int[] {
+            this.numAnioSemana.Minimum = new decimal(new int[] {
             2000,
             0,
             0,
             0});
-            this.numAnioMes.Name = "numAnioMes";
-            this.numAnioMes.Size = new System.Drawing.Size(70, 26);
-            this.numAnioMes.TabIndex = 42;
-            this.numAnioMes.Value = new decimal(new int[] {
+            this.numAnioSemana.Name = "numAnioSemana";
+            this.numAnioSemana.Size = new System.Drawing.Size(70, 26);
+            this.numAnioSemana.TabIndex = 42;
+            this.numAnioSemana.Value = new decimal(new int[] {
             2024,
             0,
             0,
@@ -611,11 +612,11 @@
             this.panel1.PerformLayout();
             this.panelMes.ResumeLayout(false);
             this.panelMes.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericAnioMes)).EndInit();
             this.panelSemana.ResumeLayout(false);
             this.panelSemana.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numSemana)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numAnioMes)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numAnioSemana)).EndInit();
             this.panelDia.ResumeLayout(false);
             this.panelDia.PerformLayout();
             this.ResumeLayout(false);
@@ -665,8 +666,8 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.NumericUpDown numAnioMes;
-        private System.Windows.Forms.NumericUpDown numericUpDown1;
+        private System.Windows.Forms.NumericUpDown numAnioSemana;
+        private System.Windows.Forms.NumericUpDown numericAnioMes;
         private System.Windows.Forms.NumericUpDown numSemana;
         private System.Windows.Forms.ComboBox cbxLotificaciones;
         private System.Windows.Forms.Label label7;

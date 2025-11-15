@@ -25,6 +25,7 @@ namespace ControlPagoLotes
         private decimal montoEliminados = 0;
         private decimal montoMigrado = 0;
         private Enumeraciones.Periodo periodoSeleccionado;
+        private Enumeraciones.Meses mesSeleccionado;
         public formCorteCaja()
         {
             InitializeComponent();
@@ -46,8 +47,11 @@ namespace ControlPagoLotes
             ComboBoxHelper.LlenarComboBox<Enumeraciones.Meses>(cbxMeses, true);
             cbxMeses.SelectedIndex = -1;
             CargarLotificaciones();
-            
-           
+
+            numericAnioMes.Value = DateTime.Now.Year;
+            numAnioSemana.Value = DateTime.Now.Year;
+
+
         }
 
         private void CargarLotificaciones()
@@ -401,13 +405,14 @@ namespace ControlPagoLotes
                     case Enumeraciones.Periodo.SEMANA:
                         contexto.objConsulta.Tipo = Enumeraciones.Periodo.SEMANA.ToString();
                         contexto.objConsulta.NumeroSemana = (int?)numSemana.Value;
-                        contexto.objConsulta.Anio = (int?)numSemana.Value;
+                        contexto.objConsulta.Anio = (int?)numAnioSemana.Value;
                         break;
 
                     case Enumeraciones.Periodo.MES:
                         contexto.objConsulta.Tipo = Enumeraciones.Periodo.MES.ToString();
-                        contexto.objConsulta.Mes = (int?)cbxMeses.SelectedValue;
-                        contexto.objConsulta.Anio = (int?)numAnioMes.Value;
+
+                        contexto.objConsulta.Mes = (int)mesSeleccionado;//(int?)cbxMeses.SelectedValue;
+                        contexto.objConsulta.Anio = (int?)numericAnioMes.Value;
                         break;
 
                     default:
@@ -421,6 +426,12 @@ namespace ControlPagoLotes
             }
 
                
+        }
+
+        private void cbxMeses_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cbxMeses.Items.Count <= 0) return;
+            mesSeleccionado = ComboBoxHelper.ObtenerValorSeleccionado<Enumeraciones.Meses>(cbxMeses);
         }
     }
 }
