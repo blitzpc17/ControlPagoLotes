@@ -65,6 +65,8 @@ namespace ControlPagoLotes
 
         private decimal montoAtrasado = 0;
         private decimal montoMensualidad = 0;
+        private decimal montoPagadoAcumulado = 0;  
+        private decimal montoPreliminarmentePagado = 0; 
 
         private string observaciones;
 
@@ -96,7 +98,7 @@ namespace ControlPagoLotes
 
             InicializarVariables();
 
-            Global.LimpiarControles(this);            
+            Global.LimpiarControles(this);
 
             InicializarDgv();
 
@@ -152,40 +154,41 @@ namespace ControlPagoLotes
 
                     MostrarCeldasEnDgv();
 
-                    string estadoAtrasado = ((int)Enumeraciones.Estados.ATRASADO).ToString();
-                    string estadoCorriente = ((int)Enumeraciones.Estados.CORRIENTE).ToString();
-                    string estadoPagado = ((int)Enumeraciones.Estados.PAGADO).ToString();   
+                    // Validar atrasos y actualizar estado automáticamente
                     List<string> lstValidacionesPago = ValidarAtrasoPago();
 
-                    if ((Obj.Estado == estadoAtrasado || (Obj.Estado == estadoCorriente)) && lstValidacionesPago.Count > 0)
-                    {
-                        pagoAtrasado = true;
-                        cbxEstados.SelectedValue = (int)Enumeraciones.Estados.ATRASADO;
+                    // El método ValidarAtrasoPago ahora actualiza:
+                    // 1. El estado en la base de datos (si cambia)
+                    // 2. La variable pagoAtrasado
+                    // 3. La etiqueta lblInformacionPago
+                    // Solo necesitamos sincronizar el combobox
+                    cbxEstados.SelectedValue = Convert.ToInt32(Obj.Estado);
 
-                        lblInformacionPago.Text += "Mensualidad: $ " + montoMensualidad.ToString("N2") + "\r\nAtraso: $ " + montoAtrasado.ToString("N2");
-                    }
-                    else if (Obj.Estado == estadoCorriente)
+                    // Mostrar mensajes de validación si existen
+                    if (lstValidacionesPago.Count > 0 && Obj.Estado != ((int)Enumeraciones.Estados.PAGADO).ToString())
                     {
-                        pagoAtrasado = false;
-                        cbxEstados.SelectedValue = (int)Enumeraciones.Estados.CORRIENTE;
-                        lblInformacionPago.Text += "Mensualidad: $ " + montoMensualidad.ToString("N2") + "\r\nAtraso: $ 0.00";
-                    }
-                    else if(Obj.Estado == estadoPagado)
-                    {
-                        pagoAtrasado = false;
-                        cbxEstados.SelectedValue = (int)Enumeraciones.Estados.PAGADO;
-                        lblInformacionPago.Text = "EL CONTRATO HA SIDO LIQUIDADO.";
-                    }
-                    else
-                    {
-                        lblInformacionPago.Text += "Mensualidad: $ " + montoMensualidad.ToString("N2") + "\r\nAtraso: $ " + montoAtrasado.ToString("N2");
+                        string msjAlert = string.Join("\n", lstValidacionesPago);
+                        MessageBox.Show("Validaciones detectadas:\n" + msjAlert,
+                            "Información del Pago",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
                     }
                 }
                 else
                 {
                     tsTotalRegistros.Text = @"0";
-                    tsAcumulado.Text = @"0.00";                    
-                    lblInformacionPago.Text += "Mensualidad: $ " + montoMensualidad.ToString("N2") + "\r\nAtraso: $ 0.00";
+                    tsAcumulado.Text = @"0.00";
+
+                    // Si no hay partidas, mostrar información básica
+                    if (Obj.Estado == ((int)Enumeraciones.Estados.PAGADO).ToString())
+                    {
+                        lblInformacionPago.Text = "EL CONTRATO HA SIDO LIQUIDADO.";
+                    }
+                    else
+                    {
+                        lblInformacionPago.Text = $"Mensualidad: $ {montoMensualidad.ToString("N2")}\n" +
+                                                  $"Atraso: $ 0.00";
+                    }
                 }
 
             }
@@ -195,11 +198,51 @@ namespace ControlPagoLotes
             }
 
             //preguntar si el restante 
-            tsRestante.Text = Obj == null ? "0.00" : (Obj.Total  - acumulado).ToString("N2");
+            tsRestante.Text = Obj == null ? "0.00" : (Obj.Total - acumulado).ToString("N2");
 
             InicializarBotonObservaciones();
+        }
 
+        private void ActualizarEtiquetaInformacionPago()
+        {
+            if (Obj == null) return;
 
+            string estadoActual = Obj.Estado;
+
+            if (estadoActual == ((int)Enumeraciones.Estados.PAGADO).ToString())
+            {
+                lblInformacionPago.Text = "EL CONTRATO HA SIDO LIQUIDADO (PAGADO COMPLETAMENTE).";
+            }
+            else if (estadoActual == ((int)Enumeraciones.Estados.CANCELADO).ToString())
+            {
+                lblInformacionPago.Text = "EL CONTRATO HA SIDO CANCELADO.";
+            }
+            else if (estadoActual == ((int)Enumeraciones.Estados.ATRASADO).ToString())
+            {
+                lblInformacionPago.Text = $"Mensualidad: $ {montoMensualidad.ToString("N2")}\n" +
+                                          $"Atraso: $ {montoAtrasado.ToString("N2")}";
+            }
+            else if (estadoActual == ((int)Enumeraciones.Estados.CORRIENTE).ToString())
+            {
+                // Calcular saldo a favor si aplica
+                if (montoPagadoAcumulado > 0 && montoPreliminarmentePagado > 0)
+                {
+                    decimal saldoAFavor = Math.Max(0, (montoPagadoAcumulado - montoPreliminarmentePagado));
+                    lblInformacionPago.Text = $"Mensualidad: $ {montoMensualidad.ToString("N2")}\n" +
+                                              $"Saldo a favor: $ {saldoAFavor.ToString("N2")}";
+                }
+                else
+                {
+                    lblInformacionPago.Text = $"Mensualidad: $ {montoMensualidad.ToString("N2")}\n" +
+                                              $"Atraso: $ 0.00";
+                }
+            }
+            else
+            {
+                // Para otros estados (DESCONOCIDO, etc.)
+                lblInformacionPago.Text = $"Mensualidad: $ {montoMensualidad.ToString("N2")}\n" +
+                                          $"Atraso: $ {montoAtrasado.ToString("N2")}";
+            }
         }
 
         private void InicializarBotonObservaciones()
@@ -723,67 +766,139 @@ namespace ControlPagoLotes
         {
             List<string> msj = new List<string>();
 
+            // VALIDACIÓN PARA ESTADOS FINALES: PAGADO o CANCELADO
+            if (Obj.Estado == ((int)Enumeraciones.Estados.PAGADO).ToString())
+            {
+                msj.Add("La boleta ha sido PAGADA completamente.");
+                LstValidacionesAtrasos = msj;
+                return msj; // No continuar con validaciones
+            }
+
+            if (Obj.Estado == ((int)Enumeraciones.Estados.CANCELADO).ToString())
+            {
+                msj.Add("La boleta ha sido CANCELADA.");
+                LstValidacionesAtrasos = msj;
+                return msj; // No continuar con validaciones
+            }
+
+            bool cambiarEstadoACorriente = false;
+            bool cambiarEstadoAAtrasado = false;
+
             DateTime fechaActual = Global.FechaServidor();
 
-            if(ListaPartidas.Sum(x=>x.Monto) >= Obj.Total && Obj.Estado != ((int)Enumeraciones.Estados.PAGADO).ToString())
+            // Verificar si ya está pagado completamente
+            if (ListaPartidas.Sum(x => x.Monto) >= Obj.Total && Obj.Estado != ((int)Enumeraciones.Estados.PAGADO).ToString())
             {
                 Obj.Estado = ((int)Enumeraciones.Estados.PAGADO).ToString();
                 contextoPago.UpdatePago(Obj);
+                msj.Add("La boleta ha sido PAGADA completamente.");
+                LstValidacionesAtrasos = msj;
+                return msj;
             }
-
-
 
             PagoPartida ultimoPago = ListaPartidas.OrderByDescending(x => x.Fecha).First();
             int noPagos = Convert.ToInt32(Obj.Meses);
             decimal total = Obj.Total;
             objPagoInicial = ListaPartidas.OrderBy(x => x.Fecha).First(x => x.FechaBaja == null);
-            decimal montoPagadoAcumulado = 0;
 
+            // USAR LAS VARIABLES DE CLASE
             montoPagadoAcumulado = (ListaPartidas == null || ListaPartidas.Count <= 0) ? 0 : ListaPartidas.Sum(x => x.Monto);
-
             montoPagadoAcumulado -= objPagoInicial.Monto;
 
-            int mesesTranscurridos = ((fechaActual.Year - objPagoInicial.Fecha.Year) * 12) + fechaActual.Month - objPagoInicial.Fecha.Month;
+            // Cálculo CORRECTO de meses transcurridos desde el pago inicial
+            int mesesTranscurridos = ((fechaActual.Year - objPagoInicial.Fecha.Year) * 12) +
+                                     (fechaActual.Month - objPagoInicial.Fecha.Month);
+
+            if (fechaActual.Day < objPagoInicial.Fecha.Day)
+            {
+                mesesTranscurridos--;
+            }
 
             if (mesesTranscurridos > noPagos)
             {
-                mesesTranscurridos = noPagos; //esta concicion puede cambiar si van a cobrir interes despues de cumplir los meses de paago.
+                mesesTranscurridos = noPagos;
             }
 
-            decimal montoPreliminarmentePAgado = 0;
+            // USAR LAS VARIABLES DE CLASE
+            montoPreliminarmentePagado = 0;
             montoMensualidad = ((total - objPagoInicial.Monto) / noPagos);
+            montoPreliminarmentePagado = montoMensualidad * mesesTranscurridos;
+            montoAtrasado = montoPreliminarmentePagado - montoPagadoAcumulado;
 
-            //=>>>>>>preguntar si requiere que cuando el acumulado - el total son mayor al restante en el monto de la mensualidad se va aa seguir maanteniendo ese valor o se pone la diferencia (restante)
+            // Cálculo CORRECTO de meses desde el último pago
+            int mesesDesdeUltimoPago = ((fechaActual.Year - ultimoPago.Fecha.Year) * 12) +
+                                       (fechaActual.Month - ultimoPago.Fecha.Month);
 
-            /*if (mesesTranscurridos < noPagos)
+            if (fechaActual.Day < ultimoPago.Fecha.Day)
             {
-                montoPreliminarmentePAgado = montoMensualidad * mesesTranscurridos;
+                mesesDesdeUltimoPago--;
+            }
+
+            // VALIDACIÓN PRINCIPAL: Saldo a favor
+            if (montoPagadoAcumulado > montoPreliminarmentePagado)
+            {
+                decimal saldoAFavor = montoPagadoAcumulado - montoPreliminarmentePagado;
+
+                if (mesesDesdeUltimoPago > 3)
+                {
+                    // Tiene saldo pero lleva más de 3 meses sin pagar
+                    cambiarEstadoAAtrasado = true;
+                    msj.Add($"*El cliente tiene saldo a favor de $ {saldoAFavor.ToString("N2")}, pero lleva {mesesDesdeUltimoPago} meses sin realizar pagos.");
+                    msj.Add($"*Estado cambiado a ATRASADO por inactividad en pagos.");
+                }
+                else
+                {
+                    // Tiene saldo y está al corriente en tiempo
+                    cambiarEstadoACorriente = true;
+                    msj.Add($"*El pago está al corriente con saldo a favor de $ {saldoAFavor.ToString("N2")}.");
+                    msj.Add($"*Estado cambiado a CORRIENTE (saldo positivo).");
+                }
+            }
+            else if (montoPagadoAcumulado < montoPreliminarmentePagado)
+            {
+                // Hay atraso en pagos
+                msj.Add($"*El monto acumulado a la boleta $ {montoPagadoAcumulado.ToString("N2")} está por debajo del estimado de $ {montoPreliminarmentePagado.ToString("N2")}.");
+
+                if (mesesDesdeUltimoPago > 3)
+                {
+                    msj.Add($"*No se han recibido pagos en {mesesDesdeUltimoPago} meses.");
+                    cambiarEstadoAAtrasado = true;
+                }
             }
             else
             {
-                montoPreliminarmentePAgado = total;
-            }*/
+                // Está exactamente al día
+                msj.Add($"*El pago está exactamente al día (sin atraso ni saldo a favor).");
 
-            montoPreliminarmentePAgado = montoMensualidad * mesesTranscurridos;
-
-            montoAtrasado = montoPreliminarmentePAgado - montoPagadoAcumulado;
-
-
-
-            if (montoPagadoAcumulado < montoPreliminarmentePAgado)
-            {
-                msj.Add("*El monto acumulado a la boleta $ " + montoPagadoAcumulado.ToString("N2") + "  esta por debajo del estimado de $ " + montoPreliminarmentePAgado.ToString("N2") + ".");
+                if (mesesDesdeUltimoPago > 3)
+                {
+                    msj.Add($"*Aunque está al día, no se han recibido pagos en {mesesDesdeUltimoPago} meses.");
+                    cambiarEstadoAAtrasado = true;
+                }
+                else
+                {
+                    cambiarEstadoACorriente = true;
+                }
             }
 
-            if (((fechaActual.Year - ultimoPago.Fecha.Year) * 12) + ultimoPago.Fecha.Month - fechaActual.Month > 3)
+            // APLICAR CAMBIOS DE ESTADO (solo si no es PAGADO o CANCELADO)
+            if (cambiarEstadoACorriente && Obj.Estado != ((int)Enumeraciones.Estados.CORRIENTE).ToString())
             {
-                msj.Add("*No se han recibido pagos en más de tres meses.");
+                Obj.Estado = ((int)Enumeraciones.Estados.CORRIENTE).ToString();
+                contextoPago.UpdatePago(Obj);
+                cbxEstados.SelectedValue = (int)Enumeraciones.Estados.CORRIENTE;
+                pagoAtrasado = false;
+            }
+            else if (cambiarEstadoAAtrasado && Obj.Estado != ((int)Enumeraciones.Estados.ATRASADO).ToString())
+            {
+                Obj.Estado = ((int)Enumeraciones.Estados.ATRASADO).ToString();
+                contextoPago.UpdatePago(Obj);
+                cbxEstados.SelectedValue = (int)Enumeraciones.Estados.ATRASADO;
+                pagoAtrasado = true;
             }
 
-            if (msj.Count <= 0 && Obj.Estado == ((int)Enumeraciones.Estados.ATRASADO).ToString())
-            {
-                msj.Add("*La boleta de pago tiene estado atrasado, verifiqué si tiene algún inconveniente, en caso contrario seleccionar el estado correspondiente.");
-            }
+            // Actualizar etiqueta de información
+            ActualizarEtiquetaInformacionPago();
 
             if (msj.Count > 0)
             {
@@ -791,7 +906,6 @@ namespace ControlPagoLotes
             }
 
             return msj;
-
         }
 
         private void formBoleta_FormClosing(object sender, FormClosingEventArgs e)

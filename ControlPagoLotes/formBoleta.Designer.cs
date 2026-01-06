@@ -48,6 +48,8 @@
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
             this.tsAcumulado = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripLabel3 = new System.Windows.Forms.ToolStripLabel();
+            this.tsRestante = new System.Windows.Forms.ToolStripLabel();
             this.dgvRegistros = new System.Windows.Forms.DataGridView();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.pegarContenidoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -71,8 +73,6 @@
             this.btnImprimir = new System.Windows.Forms.Button();
             this.btnExportar = new System.Windows.Forms.Button();
             this.btnAddPago = new System.Windows.Forms.Button();
-            this.toolStripLabel3 = new System.Windows.Forms.ToolStripLabel();
-            this.tsRestante = new System.Windows.Forms.ToolStripLabel();
             this.groupBox1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRegistros)).BeginInit();
@@ -255,6 +255,20 @@
             this.tsAcumulado.Name = "tsAcumulado";
             this.tsAcumulado.Size = new System.Drawing.Size(19, 22);
             this.tsAcumulado.Text = "0";
+            // 
+            // toolStripLabel3
+            // 
+            this.toolStripLabel3.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.toolStripLabel3.Name = "toolStripLabel3";
+            this.toolStripLabel3.Size = new System.Drawing.Size(73, 22);
+            this.toolStripLabel3.Text = "Restante:";
+            // 
+            // tsRestante
+            // 
+            this.tsRestante.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.tsRestante.Name = "tsRestante";
+            this.tsRestante.Size = new System.Drawing.Size(19, 22);
+            this.tsRestante.Text = "0";
             // 
             // dgvRegistros
             // 
@@ -525,20 +539,6 @@
             this.btnAddPago.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btnAddPago.UseVisualStyleBackColor = false;
             this.btnAddPago.Click += new System.EventHandler(this.btnAddPago_Click);
-            // 
-            // toolStripLabel3
-            // 
-            this.toolStripLabel3.Font = new System.Drawing.Font("Segoe UI", 12F);
-            this.toolStripLabel3.Name = "toolStripLabel3";
-            this.toolStripLabel3.Size = new System.Drawing.Size(73, 22);
-            this.toolStripLabel3.Text = "Restante:";
-            // 
-            // tsRestante
-            // 
-            this.tsRestante.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            this.tsRestante.Name = "tsRestante";
-            this.tsRestante.Size = new System.Drawing.Size(19, 22);
-            this.tsRestante.Text = "0";
             // 
             // formBoleta
             // 
