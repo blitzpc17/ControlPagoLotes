@@ -128,12 +128,12 @@
             // 
             // lblInformacionPago
             // 
+            this.lblInformacionPago.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.lblInformacionPago.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblInformacionPago.Location = new System.Drawing.Point(443, 170);
+            this.lblInformacionPago.Location = new System.Drawing.Point(379, 170);
             this.lblInformacionPago.Name = "lblInformacionPago";
-            this.lblInformacionPago.Size = new System.Drawing.Size(218, 38);
+            this.lblInformacionPago.Size = new System.Drawing.Size(282, 54);
             this.lblInformacionPago.TabIndex = 103;
-            this.lblInformacionPago.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label9
             // 
@@ -295,11 +295,11 @@
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dgvRegistros.DefaultCellStyle = dataGridViewCellStyle2;
-            this.dgvRegistros.Location = new System.Drawing.Point(32, 211);
+            this.dgvRegistros.Location = new System.Drawing.Point(32, 227);
             this.dgvRegistros.Name = "dgvRegistros";
             this.dgvRegistros.ReadOnly = true;
             this.dgvRegistros.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvRegistros.Size = new System.Drawing.Size(629, 300);
+            this.dgvRegistros.Size = new System.Drawing.Size(629, 284);
             this.dgvRegistros.TabIndex = 100;
             this.dgvRegistros.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvRegistros_CellValueChanged);
             this.dgvRegistros.RowPostPaint += new System.Windows.Forms.DataGridViewRowPostPaintEventHandler(this.dgvRegistros_RowPostPaint);

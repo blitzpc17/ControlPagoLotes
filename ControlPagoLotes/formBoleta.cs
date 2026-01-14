@@ -212,37 +212,23 @@ namespace ControlPagoLotes
             if (estadoActual == ((int)Enumeraciones.Estados.PAGADO).ToString())
             {
                 lblInformacionPago.Text = "EL CONTRATO HA SIDO LIQUIDADO (PAGADO COMPLETAMENTE).";
+                return;
             }
-            else if (estadoActual == ((int)Enumeraciones.Estados.CANCELADO).ToString())
+
+            if (estadoActual == ((int)Enumeraciones.Estados.CANCELADO).ToString())
             {
                 lblInformacionPago.Text = "EL CONTRATO HA SIDO CANCELADO.";
+                return;
             }
-            else if (estadoActual == ((int)Enumeraciones.Estados.ATRASADO).ToString())
-            {
-                lblInformacionPago.Text = $"Mensualidad: $ {montoMensualidad.ToString("N2")}\n" +
-                                          $"Atraso: $ {montoAtrasado.ToString("N2")}";
-            }
-            else if (estadoActual == ((int)Enumeraciones.Estados.CORRIENTE).ToString())
-            {
-                // Calcular saldo a favor si aplica
-                if (montoPagadoAcumulado > 0 && montoPreliminarmentePagado > 0)
-                {
-                    decimal saldoAFavor = Math.Max(0, (montoPagadoAcumulado - montoPreliminarmentePagado));
-                    lblInformacionPago.Text = $"Mensualidad: $ {montoMensualidad.ToString("N2")}\n" +
-                                              $"Saldo a favor: $ {saldoAFavor.ToString("N2")}";
-                }
-                else
-                {
-                    lblInformacionPago.Text = $"Mensualidad: $ {montoMensualidad.ToString("N2")}\n" +
-                                              $"Atraso: $ 0.00";
-                }
-            }
-            else
-            {
-                // Para otros estados (DESCONOCIDO, etc.)
-                lblInformacionPago.Text = $"Mensualidad: $ {montoMensualidad.ToString("N2")}\n" +
-                                          $"Atraso: $ {montoAtrasado.ToString("N2")}";
-            }
+
+            // Normalizar atraso / saldo a favor
+            decimal atraso = Math.Max(0, montoAtrasado);
+            decimal saldoAFavor = Math.Max(0, montoPagadoAcumulado - montoPreliminarmentePagado);
+
+            lblInformacionPago.Text =
+                $"Mensualidad: $ {montoMensualidad:N2}\n" +
+                $"Atraso: $ {atraso:N2}\n" +
+                $"Saldo a favor: $ {saldoAFavor:N2}";
         }
 
         private void InicializarBotonObservaciones()
@@ -771,14 +757,16 @@ namespace ControlPagoLotes
             {
                 msj.Add("La boleta ha sido PAGADA completamente.");
                 LstValidacionesAtrasos = msj;
-                return msj; // No continuar con validaciones
+                ActualizarEtiquetaInformacionPago();
+                return msj;
             }
 
             if (Obj.Estado == ((int)Enumeraciones.Estados.CANCELADO).ToString())
             {
                 msj.Add("La boleta ha sido CANCELADA.");
                 LstValidacionesAtrasos = msj;
-                return msj; // No continuar con validaciones
+                ActualizarEtiquetaInformacionPago();
+                return msj;
             }
 
             bool cambiarEstadoACorriente = false;
@@ -793,71 +781,70 @@ namespace ControlPagoLotes
                 contextoPago.UpdatePago(Obj);
                 msj.Add("La boleta ha sido PAGADA completamente.");
                 LstValidacionesAtrasos = msj;
+                ActualizarEtiquetaInformacionPago();
                 return msj;
             }
 
             PagoPartida ultimoPago = ListaPartidas.OrderByDescending(x => x.Fecha).First();
             int noPagos = Convert.ToInt32(Obj.Meses);
             decimal total = Obj.Total;
-            objPagoInicial = ListaPartidas.OrderBy(x => x.Fecha).First(x => x.FechaBaja == null);
 
-            // USAR LAS VARIABLES DE CLASE
+            objPagoInicial = ListaPartidas
+                .OrderBy(x => x.Fecha)
+                .First(x => x.FechaBaja == null);
+
+            // USAR VARIABLES DE CLASE
             montoPagadoAcumulado = (ListaPartidas == null || ListaPartidas.Count <= 0) ? 0 : ListaPartidas.Sum(x => x.Monto);
+
+            // Si tu lógica considera el primer pago como "enganche", lo excluimos
             montoPagadoAcumulado -= objPagoInicial.Monto;
 
-            // Cálculo CORRECTO de meses transcurridos desde el pago inicial
+            // ✅ Meses transcurridos HASTA EL MES ACTUAL (sin restar por día)
             int mesesTranscurridos = ((fechaActual.Year - objPagoInicial.Fecha.Year) * 12) +
                                      (fechaActual.Month - objPagoInicial.Fecha.Month);
 
-            if (fechaActual.Day < objPagoInicial.Fecha.Day)
-            {
-                mesesTranscurridos--;
-            }
+            if (mesesTranscurridos < 0) mesesTranscurridos = 0;
+            if (mesesTranscurridos > noPagos) mesesTranscurridos = noPagos;
 
-            if (mesesTranscurridos > noPagos)
-            {
-                mesesTranscurridos = noPagos;
-            }
-
-            // USAR LAS VARIABLES DE CLASE
+            // Cálculos
             montoPreliminarmentePagado = 0;
             montoMensualidad = ((total - objPagoInicial.Monto) / noPagos);
+
             montoPreliminarmentePagado = montoMensualidad * mesesTranscurridos;
+
+            // montoAtrasado puede ser negativo (eso significa saldo a favor)
             montoAtrasado = montoPreliminarmentePagado - montoPagadoAcumulado;
 
-            // Cálculo CORRECTO de meses desde el último pago
+            // ✅ Meses desde el último pago HASTA EL MES ACTUAL (sin restar por día)
             int mesesDesdeUltimoPago = ((fechaActual.Year - ultimoPago.Fecha.Year) * 12) +
                                        (fechaActual.Month - ultimoPago.Fecha.Month);
 
-            if (fechaActual.Day < ultimoPago.Fecha.Day)
-            {
-                mesesDesdeUltimoPago--;
-            }
+            if (mesesDesdeUltimoPago < 0) mesesDesdeUltimoPago = 0;
 
-            // VALIDACIÓN PRINCIPAL: Saldo a favor
-            if (montoPagadoAcumulado > montoPreliminarmentePagado)
-            {
-                decimal saldoAFavor = montoPagadoAcumulado - montoPreliminarmentePagado;
+            // Normalizados
+            decimal atraso = Math.Max(0, montoAtrasado);
+            decimal saldoAFavor = Math.Max(0, montoPagadoAcumulado - montoPreliminarmentePagado);
 
+            // VALIDACIÓN PRINCIPAL
+            if (saldoAFavor > 0)
+            {
                 if (mesesDesdeUltimoPago > 3)
                 {
-                    // Tiene saldo pero lleva más de 3 meses sin pagar
                     cambiarEstadoAAtrasado = true;
-                    msj.Add($"*El cliente tiene saldo a favor de $ {saldoAFavor.ToString("N2")}, pero lleva {mesesDesdeUltimoPago} meses sin realizar pagos.");
-                    msj.Add($"*Estado cambiado a ATRASADO por inactividad en pagos.");
+                    msj.Add($"*El cliente tiene saldo a favor de $ {saldoAFavor:N2}, pero lleva {mesesDesdeUltimoPago} meses sin realizar pagos.");
+                    msj.Add("*Estado cambiado a ATRASADO por inactividad en pagos.");
                 }
                 else
                 {
-                    // Tiene saldo y está al corriente en tiempo
                     cambiarEstadoACorriente = true;
-                    msj.Add($"*El pago está al corriente con saldo a favor de $ {saldoAFavor.ToString("N2")}.");
-                    msj.Add($"*Estado cambiado a CORRIENTE (saldo positivo).");
+                    msj.Add($"*El pago está al corriente con saldo a favor de $ {saldoAFavor:N2}.");
+                    msj.Add("*Estado cambiado a CORRIENTE (saldo positivo).");
                 }
             }
-            else if (montoPagadoAcumulado < montoPreliminarmentePagado)
+            else if (atraso > 0)
             {
-                // Hay atraso en pagos
-                msj.Add($"*El monto acumulado a la boleta $ {montoPagadoAcumulado.ToString("N2")} está por debajo del estimado de $ {montoPreliminarmentePagado.ToString("N2")}.");
+                msj.Add($"*El monto acumulado a la boleta $ {montoPagadoAcumulado:N2} está por debajo del estimado de $ {montoPreliminarmentePagado:N2}.");
+                msj.Add($"*Atraso actual: $ {atraso:N2}");
 
                 if (mesesDesdeUltimoPago > 3)
                 {
@@ -867,8 +854,7 @@ namespace ControlPagoLotes
             }
             else
             {
-                // Está exactamente al día
-                msj.Add($"*El pago está exactamente al día (sin atraso ni saldo a favor).");
+                msj.Add("*El pago está exactamente al día (sin atraso ni saldo a favor).");
 
                 if (mesesDesdeUltimoPago > 3)
                 {
@@ -881,7 +867,7 @@ namespace ControlPagoLotes
                 }
             }
 
-            // APLICAR CAMBIOS DE ESTADO (solo si no es PAGADO o CANCELADO)
+            // Aplicar cambios de estado (solo si no es PAGADO o CANCELADO)
             if (cambiarEstadoACorriente && Obj.Estado != ((int)Enumeraciones.Estados.CORRIENTE).ToString())
             {
                 Obj.Estado = ((int)Enumeraciones.Estados.CORRIENTE).ToString();
@@ -897,13 +883,11 @@ namespace ControlPagoLotes
                 pagoAtrasado = true;
             }
 
-            // Actualizar etiqueta de información
+            // Actualizar etiqueta SIEMPRE
             ActualizarEtiquetaInformacionPago();
 
             if (msj.Count > 0)
-            {
                 LstValidacionesAtrasos = msj;
-            }
 
             return msj;
         }
