@@ -34,20 +34,20 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(formBusqueda));
             this.dgvRegistros = new System.Windows.Forms.DataGridView();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.btnReportes = new System.Windows.Forms.Button();
-            this.btnSalir = new System.Windows.Forms.Button();
-            this.btnUsuarios = new System.Windows.Forms.Button();
-            this.btnZonas = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.txtBusqueda = new System.Windows.Forms.TextBox();
-            this.btnNuevoPago = new System.Windows.Forms.Button();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.tsTotalRegistros = new System.Windows.Forms.ToolStripLabel();
             this.tsCargandoInformacion = new System.Windows.Forms.ToolStripLabel();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.cargarBoletaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.bgCargadoInfo = new System.ComponentModel.BackgroundWorker();
+            this.btnReportes = new System.Windows.Forms.Button();
+            this.btnSalir = new System.Windows.Forms.Button();
+            this.btnUsuarios = new System.Windows.Forms.Button();
+            this.btnZonas = new System.Windows.Forms.Button();
+            this.btnNuevoPago = new System.Windows.Forms.Button();
+            this.cargarBoletaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRegistros)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -109,62 +109,6 @@
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             // 
-            // btnReportes
-            // 
-            this.btnReportes.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnReportes.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnReportes.Image = global::ControlPagoLotes.Properties.Resources.reporte_de_negocios__1_;
-            this.btnReportes.Location = new System.Drawing.Point(514, 38);
-            this.btnReportes.Name = "btnReportes";
-            this.btnReportes.Size = new System.Drawing.Size(154, 116);
-            this.btnReportes.TabIndex = 8;
-            this.btnReportes.Text = "REPORTES";
-            this.btnReportes.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.btnReportes.UseVisualStyleBackColor = true;
-            this.btnReportes.Click += new System.EventHandler(this.btnReportes_Click);
-            // 
-            // btnSalir
-            // 
-            this.btnSalir.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnSalir.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSalir.Image = global::ControlPagoLotes.Properties.Resources.salida;
-            this.btnSalir.Location = new System.Drawing.Point(674, 38);
-            this.btnSalir.Name = "btnSalir";
-            this.btnSalir.Size = new System.Drawing.Size(154, 116);
-            this.btnSalir.TabIndex = 7;
-            this.btnSalir.Text = "SALIR";
-            this.btnSalir.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.btnSalir.UseVisualStyleBackColor = true;
-            this.btnSalir.Click += new System.EventHandler(this.btnSalir_Click);
-            // 
-            // btnUsuarios
-            // 
-            this.btnUsuarios.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnUsuarios.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnUsuarios.Image = global::ControlPagoLotes.Properties.Resources.perfil;
-            this.btnUsuarios.Location = new System.Drawing.Point(354, 38);
-            this.btnUsuarios.Name = "btnUsuarios";
-            this.btnUsuarios.Size = new System.Drawing.Size(154, 116);
-            this.btnUsuarios.TabIndex = 6;
-            this.btnUsuarios.Text = "USUARIOS";
-            this.btnUsuarios.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.btnUsuarios.UseVisualStyleBackColor = true;
-            this.btnUsuarios.Click += new System.EventHandler(this.btnUsuarios_Click);
-            // 
-            // btnZonas
-            // 
-            this.btnZonas.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnZonas.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnZonas.Image = global::ControlPagoLotes.Properties.Resources.lugar2;
-            this.btnZonas.Location = new System.Drawing.Point(194, 38);
-            this.btnZonas.Name = "btnZonas";
-            this.btnZonas.Size = new System.Drawing.Size(154, 116);
-            this.btnZonas.TabIndex = 5;
-            this.btnZonas.Text = "ZONAS";
-            this.btnZonas.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.btnZonas.UseVisualStyleBackColor = true;
-            this.btnZonas.Click += new System.EventHandler(this.btnZonas_Click);
-            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -184,20 +128,6 @@
             this.txtBusqueda.Size = new System.Drawing.Size(722, 26);
             this.txtBusqueda.TabIndex = 3;
             this.txtBusqueda.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtBusqueda_KeyUp);
-            // 
-            // btnNuevoPago
-            // 
-            this.btnNuevoPago.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnNuevoPago.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnNuevoPago.Image = global::ControlPagoLotes.Properties.Resources.pagar;
-            this.btnNuevoPago.Location = new System.Drawing.Point(34, 38);
-            this.btnNuevoPago.Name = "btnNuevoPago";
-            this.btnNuevoPago.Size = new System.Drawing.Size(154, 116);
-            this.btnNuevoPago.TabIndex = 2;
-            this.btnNuevoPago.Text = "NUEVO PAGO";
-            this.btnNuevoPago.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.btnNuevoPago.UseVisualStyleBackColor = true;
-            this.btnNuevoPago.Click += new System.EventHandler(this.btnNuevoPago_Click);
             // 
             // toolStrip1
             // 
@@ -241,6 +171,81 @@
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(172, 30);
             // 
+            // bgCargadoInfo
+            // 
+            this.bgCargadoInfo.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
+            this.bgCargadoInfo.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
+            // 
+            // btnReportes
+            // 
+            this.btnReportes.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnReportes.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnReportes.Image = global::ControlPagoLotes.Properties.Resources.reporte_de_negocios__1_;
+            this.btnReportes.Location = new System.Drawing.Point(514, 38);
+            this.btnReportes.Name = "btnReportes";
+            this.btnReportes.Size = new System.Drawing.Size(154, 116);
+            this.btnReportes.TabIndex = 8;
+            this.btnReportes.Text = "REPORTES";
+            this.btnReportes.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.btnReportes.UseVisualStyleBackColor = true;
+            this.btnReportes.Click += new System.EventHandler(this.btnReportes_Click);
+            // 
+            // btnSalir
+            // 
+            this.btnSalir.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnSalir.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSalir.Image = global::ControlPagoLotes.Properties.Resources.salida;
+            this.btnSalir.Location = new System.Drawing.Point(674, 38);
+            this.btnSalir.Name = "btnSalir";
+            this.btnSalir.Size = new System.Drawing.Size(154, 116);
+            this.btnSalir.TabIndex = 7;
+            this.btnSalir.Text = "SALIR";
+            this.btnSalir.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.btnSalir.UseVisualStyleBackColor = true;
+            this.btnSalir.Click += new System.EventHandler(this.btnSalir_Click);
+            // 
+            // btnUsuarios
+            // 
+            this.btnUsuarios.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnUsuarios.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnUsuarios.Image = global::ControlPagoLotes.Properties.Resources.perfil;
+            this.btnUsuarios.Location = new System.Drawing.Point(354, 38);
+            this.btnUsuarios.Name = "btnUsuarios";
+            this.btnUsuarios.Size = new System.Drawing.Size(154, 116);
+            this.btnUsuarios.TabIndex = 6;
+            this.btnUsuarios.Text = "SISTEMA";
+            this.btnUsuarios.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.btnUsuarios.UseVisualStyleBackColor = true;
+            this.btnUsuarios.Click += new System.EventHandler(this.btnUsuarios_Click);
+            // 
+            // btnZonas
+            // 
+            this.btnZonas.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnZonas.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnZonas.Image = global::ControlPagoLotes.Properties.Resources.lugar2;
+            this.btnZonas.Location = new System.Drawing.Point(194, 38);
+            this.btnZonas.Name = "btnZonas";
+            this.btnZonas.Size = new System.Drawing.Size(154, 116);
+            this.btnZonas.TabIndex = 5;
+            this.btnZonas.Text = "ZONAS";
+            this.btnZonas.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.btnZonas.UseVisualStyleBackColor = true;
+            this.btnZonas.Click += new System.EventHandler(this.btnZonas_Click);
+            // 
+            // btnNuevoPago
+            // 
+            this.btnNuevoPago.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnNuevoPago.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnNuevoPago.Image = global::ControlPagoLotes.Properties.Resources.pagar;
+            this.btnNuevoPago.Location = new System.Drawing.Point(34, 38);
+            this.btnNuevoPago.Name = "btnNuevoPago";
+            this.btnNuevoPago.Size = new System.Drawing.Size(154, 116);
+            this.btnNuevoPago.TabIndex = 2;
+            this.btnNuevoPago.Text = "NUEVO PAGO";
+            this.btnNuevoPago.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.btnNuevoPago.UseVisualStyleBackColor = true;
+            this.btnNuevoPago.Click += new System.EventHandler(this.btnNuevoPago_Click);
+            // 
             // cargarBoletaToolStripMenuItem
             // 
             this.cargarBoletaToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 12F);
@@ -249,11 +254,6 @@
             this.cargarBoletaToolStripMenuItem.Size = new System.Drawing.Size(171, 26);
             this.cargarBoletaToolStripMenuItem.Text = "Cargar boleta";
             this.cargarBoletaToolStripMenuItem.Click += new System.EventHandler(this.cargarBoletaToolStripMenuItem_Click);
-            // 
-            // bgCargadoInfo
-            // 
-            this.bgCargadoInfo.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
-            this.bgCargadoInfo.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
             // formBusqueda
             // 

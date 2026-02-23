@@ -3,12 +3,7 @@ using LOGICA;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ControlPagoLotes
@@ -18,12 +13,22 @@ namespace ControlPagoLotes
         private PagoLogica contexto;
         private List<clsPagosBusqueda> Lista;
         private List<clsPagosBusqueda> ListaAux;
-        private int opc = 1;//default nombre cliente
-        private int columna = 1;//default por nombre del cliente
+        private int opc = 1;
+        private int columna = 1;
+
         public formBusqueda()
         {
             InitializeComponent();
         }
+
+        // ✅ cuando el form vuelve a activarse (después de cerrar un modal hijo)
+        protected override void OnActivated(EventArgs e)
+        {
+            base.OnActivated(e);
+            if (AppState.MustRestartToLogin)
+                this.Close();
+        }
+
         private void InicializarModulo()
         {
             contexto = new PagoLogica();
@@ -33,42 +38,59 @@ namespace ControlPagoLotes
 
         private void CerrarSesion()
         {
-            if (MessageBox.Show("¿Desea cerrar la sesión?", "Advertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Question)== DialogResult.Yes)
+            if (MessageBox.Show("¿Desea cerrar la sesión?", "Advertencia",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 Close();
             }
-         
         }
+
         private void NuevaZona()
         {
-            formZonas formZonas = new formZonas();
-            formZonas.ShowDialog();
+            using (var f = new formZonas())
+                f.ShowDialog();
+
+            if (AppState.MustRestartToLogin) { this.Close(); return; }
             InicializarModulo();
         }
-        
+
         private void SeleccionarRegistro()
         {
-            formBoleta formBoleta = new formBoleta((int)dgvRegistros.CurrentRow.Cells[0].Value);
-            formBoleta.ShowDialog();
+            using (var f = new formBoleta((int)dgvRegistros.CurrentRow.Cells[0].Value))
+                f.ShowDialog();
+
+            if (AppState.MustRestartToLogin) { this.Close(); return; }
             InicializarModulo();
         }
+
         private void NuevoUsuario()
         {
-            formUsuarios formUsuarios = new formUsuarios();
-            formUsuarios.ShowDialog();
-            InicializarModulo();
+            using (var f = new frmMenuSystem())
+                f.ShowDialog();
+
+            // ✅ importantísimo: si desde el menú cambiaron conexión, cerrar búsqueda
+            if (AppState.MustRestartToLogin)
+            {
+                this.Close();
+                return;
+            }
         }
 
         private void NuevoPago()
         {
-            formBoleta formBoleta = new formBoleta(null);
-            formBoleta.ShowDialog();
+            using (var f = new formBoleta(null))
+                f.ShowDialog();
+
+            if (AppState.MustRestartToLogin) { this.Close(); return; }
             InicializarModulo();
         }
+
         private void btnReportes_Click(object sender, EventArgs e)
         {
-            formReportes fr = new formReportes();
-            fr.ShowDialog();
+            using (var fr = new formReportes())
+                fr.ShowDialog();
+
+            if (AppState.MustRestartToLogin) { this.Close(); return; }
             InicializarModulo();
         }
 
@@ -78,32 +100,13 @@ namespace ControlPagoLotes
 
             switch (columna)
             {
-                case 1: //cliente
-                    ListaAux = ListaAux.Where(x => x.Cliente.Contains(palabra)).OrderBy(x => x.Cliente).ToList();
-                    break;
-
-                case 2: // zona
-                    ListaAux = ListaAux.Where(x => x.Zona.Contains(palabra)).OrderBy(x => x.Cliente).ToList();
-                    break;
-
-                case 3: //lotes
-                    ListaAux = ListaAux.Where(x => x.Lotes.Contains(palabra)).OrderBy(x => x.Zona).ThenBy(x=>x.Cliente).ThenBy(x=>x.Lotes).ToList();
-                    break;
-
-                case 4: //total
-                    ListaAux = ListaAux.Where(x => x.Total.Contains(palabra)).OrderBy(x => x.Zona).ThenBy(x=>x.Cliente).ThenBy(x=>x.Total).ThenBy(x=>x.Lotes).ToList();
-                    break;
-
-                case 5: //fecha pago
-                    ListaAux = ListaAux.Where(x => x.Fecha.Contains(palabra)).OrderBy(x => x.Fecha).ThenBy(x=>x.Cliente).ThenBy(x=>x.Zona).ToList();
-                    break;
-
-                case 7: //estado
-                    ListaAux = ListaAux.Where(x => x.NombreEstado.Contains(palabra)).OrderBy(x => x.NombreEstado).ThenBy(x=>x.Cliente).ThenBy(x=>x.Zona).ThenBy(x=>x.Lotes).ToList();
-                    break;
+                case 1: ListaAux = ListaAux.Where(x => x.Cliente.Contains(palabra)).OrderBy(x => x.Cliente).ToList(); break;
+                case 2: ListaAux = ListaAux.Where(x => x.Zona.Contains(palabra)).OrderBy(x => x.Cliente).ToList(); break;
+                case 3: ListaAux = ListaAux.Where(x => x.Lotes.Contains(palabra)).OrderBy(x => x.Zona).ThenBy(x => x.Cliente).ThenBy(x => x.Lotes).ToList(); break;
+                case 4: ListaAux = ListaAux.Where(x => x.Total.Contains(palabra)).OrderBy(x => x.Zona).ThenBy(x => x.Cliente).ThenBy(x => x.Total).ThenBy(x => x.Lotes).ToList(); break;
+                case 5: ListaAux = ListaAux.Where(x => x.Fecha.Contains(palabra)).OrderBy(x => x.Fecha).ThenBy(x => x.Cliente).ThenBy(x => x.Zona).ToList(); break;
+                case 7: ListaAux = ListaAux.Where(x => x.NombreEstado.Contains(palabra)).OrderBy(x => x.NombreEstado).ThenBy(x => x.Cliente).ThenBy(x => x.Zona).ThenBy(x => x.Lotes).ToList(); break;
             }
-
-            
         }
 
         private void SetDataDatagridView()
@@ -134,20 +137,10 @@ namespace ControlPagoLotes
             }
         }
 
-        private void btnNuevoPago_Click(object sender, EventArgs e)
-        {
-            NuevoPago();
-        }       
-
-        private void btnZonas_Click(object sender, EventArgs e)
-        {
-            NuevaZona();
-        }        
-
-        private void btnUsuarios_Click(object sender, EventArgs e)
-        {
-            NuevoUsuario();
-        }   
+        private void btnNuevoPago_Click(object sender, EventArgs e) => NuevoPago();
+        private void btnZonas_Click(object sender, EventArgs e) => NuevaZona();
+        private void btnUsuarios_Click(object sender, EventArgs e) => NuevoUsuario();
+        private void btnSalir_Click(object sender, EventArgs e) => CerrarSesion();
 
         private void dgvRegistros_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -155,15 +148,7 @@ namespace ControlPagoLotes
             SeleccionarRegistro();
         }
 
-        private void btnSalir_Click(object sender, EventArgs e)
-        {
-            CerrarSesion();
-        }
-
-        private void formBusqueda_Load(object sender, EventArgs e)
-        {
-            InicializarModulo();
-        }   
+        private void formBusqueda_Load(object sender, EventArgs e) => InicializarModulo();
 
         private void txtBusqueda_KeyUp(object sender, KeyEventArgs e)
         {
@@ -178,7 +163,6 @@ namespace ControlPagoLotes
             txtBusqueda.Clear();
             ListaAux = Lista;
             SetDataDatagridView();
-
         }
 
         private void cargarBoletaToolStripMenuItem_Click(object sender, EventArgs e)
@@ -196,7 +180,7 @@ namespace ControlPagoLotes
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             SetDataDatagridView();
-            tsCargandoInformacion.Text="";
+            tsCargandoInformacion.Text = "";
         }
     }
 }

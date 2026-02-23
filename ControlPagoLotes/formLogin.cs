@@ -1,12 +1,5 @@
 ﻿using LOGICA;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ControlPagoLotes
@@ -19,10 +12,16 @@ namespace ControlPagoLotes
         {
             InitializeComponent();
         }
+
         private void InicializarModulo()
         {
             Global.LimpiarControles(this);
             contexto = new LoginLogica();
+        }
+
+        private void formLogin_Load(object sender, EventArgs e)
+        {
+            InicializarModulo();
         }
 
         private void btnAcceder_Click(object sender, EventArgs e)
@@ -32,22 +31,37 @@ namespace ControlPagoLotes
 
         private void IniciarSecion()
         {
-            Global.ObjUsuario = contexto.ValidarAcceso(txtUsuario.Text, txtPassword.Text);
-
-            if(Global.ObjUsuario == null)
+            try
             {
-                MessageBox.Show("No se pudo iniciar sesión, verifique su información.", "Adveretencia", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                Global.ObjUsuario = contexto.ValidarAcceso(txtUsuario.Text, txtPassword.Text);
+
+                if (Global.ObjUsuario == null)
+                {
+                    MessageBox.Show(
+                        "No se pudo iniciar sesión, verifique su información.",
+                        "Advertencia",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Exclamation);
+
+                    // Opcional: focus al usuario
+                    txtUsuario.Focus();
+                    return;
+                }
+
+                MessageBox.Show(
+                    "¡Hola " + Global.ObjUsuario.Usuario + "!",
+                    "Bienvenido",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                // ✅ IMPORTANTE: el Host abrirá el siguiente form
+                this.DialogResult = DialogResult.OK;
+                this.Close();
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("¡Hola "+Global.ObjUsuario.Usuario+"!", "Bienvenido", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                formBusqueda bus = new formBusqueda();
-                Hide();
-                bus.ShowDialog();
-                InicializarModulo();
-                Show();
-            }          
-
+                MessageBox.Show(ex.Message, "Error de inicio de sesión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btnSalir_Click(object sender, EventArgs e)
@@ -57,12 +71,9 @@ namespace ControlPagoLotes
 
         private void CerrarModulo()
         {
-            Close();
-        }
-
-        private void formLogin_Load(object sender, EventArgs e)
-        {
-            InicializarModulo();
+            // ✅ para que el Host sepa que se canceló
+            this.DialogResult = DialogResult.Cancel;
+            this.Close();
         }
     }
 }
