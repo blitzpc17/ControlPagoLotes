@@ -83,6 +83,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ADOS\VariablesGlobalesRepository.cs" />
     <Compile Include="ADOS\LocalConnectionsRepository.cs" />
     <Compile Include="ADOS\PagoPartidasRepository.cs" />
     <Compile Include="ADOS\PagosRepository.cs" />

@@ -103,7 +103,7 @@ namespace ControlPagoLotes
             InicializarDgv();
 
             // btnAddPago.Enabled = true;
-            listaZonas = contextoZonas.GetAllZonas();
+            listaZonas = contextoZonas.GetAllZonas(Global.ObjUsuario.Id);
             cbxZona.DataSource = listaZonas;
             cbxZona.DisplayMember = "Nombre";
             cbxZona.ValueMember = "Id";

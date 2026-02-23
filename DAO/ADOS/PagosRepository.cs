@@ -59,23 +59,38 @@ namespace DAO.ADOS
             return connection.Query<Pago>(query).ToList();
         }
 
-        public List<clsPagosBusqueda> GetAllPagosBusqueda()
+        public List<clsPagosBusqueda> GetAllPagosBusqueda(int usuarioId)
         {
-            var query = "SELECT \r\n    CAST(p.Id AS NVARCHAR(MAX)) AS Id,\r\n    " +
-                "CAST(p.NombreCliente AS NVARCHAR(MAX)) AS Cliente,\r\n    " +
-                "CAST(zn.Nombre AS NVARCHAR(MAX)) AS Zona,\r\n    " +
-                "CAST(p.Lotes AS NVARCHAR(MAX)) AS Lotes,\r\n    " +
-                "FORMAT(p.Total, '$0.00') AS Total,\r\n    " +
-                "FORMAT(p.FechaRegistro, 'dd/MM/yyyy') AS Fecha,\r\n    " +
-                "CAST(p.Estado AS NVARCHAR(MAX)) AS ClaveEstado,\r\n    CASE \r\n        " +
-                "WHEN p.Estado = '1' THEN 'AL CORRIENTE'\r\n        " +
-                "WHEN p.Estado = '2' THEN 'PAGADO'\r\n        " +
-                "WHEN p.Estado = '3' THEN 'CANCELADO'\r\n        " +
-                "WHEN p.Estado = '4' THEN 'ATRASADO'\r\n        " +
-                "ELSE 'DESCONOCIDO'\r\n    " +
-                "END AS NombreEstado\r\nFROM PAGOS p\r\nJOIN ZONAS zn ON p.ZonaId = zn.Id;";
+            var query = @"
+                            DECLARE @HasFilter BIT =
+                                CASE WHEN EXISTS (SELECT 1 FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId)) THEN 1 ELSE 0 END;
 
-            return connection.Query<clsPagosBusqueda>(query).ToList();
+                            SELECT 
+                                CAST(p.Id AS NVARCHAR(MAX)) AS Id,
+                                CAST(p.NombreCliente AS NVARCHAR(MAX)) AS Cliente,
+                                CAST(zn.Nombre AS NVARCHAR(MAX)) AS Zona,
+                                CAST(p.Lotes AS NVARCHAR(MAX)) AS Lotes,
+                                FORMAT(p.Total, '$0.00') AS Total,
+                                FORMAT(p.FechaRegistro, 'dd/MM/yyyy') AS Fecha,
+                                CAST(p.Estado AS NVARCHAR(MAX)) AS ClaveEstado,
+                                CASE 
+                                    WHEN p.Estado = '1' THEN 'AL CORRIENTE'
+                                    WHEN p.Estado = '2' THEN 'PAGADO'
+                                    WHEN p.Estado = '3' THEN 'CANCELADO'
+                                    WHEN p.Estado = '4' THEN 'ATRASADO'
+                                    ELSE 'DESCONOCIDO'
+                                END AS NombreEstado
+                            FROM PAGOS p
+                            JOIN ZONAS zn ON p.ZonaId = zn.Id
+                            WHERE
+                                (@HasFilter = 0 OR EXISTS (
+                                    SELECT 1
+                                    FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId) f
+                                    WHERE f.ZonaId = p.ZonaId
+                                ));
+                            ";
+
+            return connection.Query<clsPagosBusqueda>(query, new { UsuarioId = usuarioId }).ToList();
         }
 
         public void Dispose()

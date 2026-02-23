@@ -48,9 +48,9 @@ namespace LOGICA
         }
 
         //leer pago busqueda
-        public List<clsPagosBusqueda> GetAllPagosBusqueda()
+        public List<clsPagosBusqueda> GetAllPagosBusqueda(int idUsuario)
         {
-            return contexto.GetAllPagosBusqueda();
+            return contexto.GetAllPagosBusqueda(idUsuario);
         }
 
         public void Dispose()

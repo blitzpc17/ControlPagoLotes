@@ -84,7 +84,7 @@
             // 
             this.btnZonas.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnZonas.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnZonas.Image = global::ControlPagoLotes.Properties.Resources.lugar2;
+            this.btnZonas.Image = global::ControlPagoLotes.Properties.Resources.reclutamiento;
             this.btnZonas.Location = new System.Drawing.Point(194, 38);
             this.btnZonas.Name = "btnZonas";
             this.btnZonas.Size = new System.Drawing.Size(154, 116);
@@ -98,7 +98,7 @@
             // 
             this.btnNuevoPago.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnNuevoPago.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnNuevoPago.Image = global::ControlPagoLotes.Properties.Resources.pagar;
+            this.btnNuevoPago.Image = global::ControlPagoLotes.Properties.Resources.base_de_datos;
             this.btnNuevoPago.Location = new System.Drawing.Point(354, 38);
             this.btnNuevoPago.Name = "btnNuevoPago";
             this.btnNuevoPago.Size = new System.Drawing.Size(154, 116);

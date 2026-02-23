@@ -68,7 +68,7 @@ namespace DAO.ADOS
             return connection.Execute(complemento);
         }
 
-        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj)
+        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj, int usuarioId)
         {
             string condiciones = "";
 
@@ -76,68 +76,89 @@ namespace DAO.ADOS
             {
                 case "DIA":
                     string fecha = Convert.ToDateTime(obj.Fecha).ToString("yyyy-MM-dd");
-                    condiciones += " (CAST(pp.FechaCreacion AS DATE) = '" + fecha + "'" +
-                                 " OR CAST(pp.FechaModificacion AS DATE) = '" + fecha + "'" +
-                                 " OR CAST(pp.FechaBaja AS DATE) = '" + fecha + "')";
+                    condiciones += " (CAST(pp.FechaCreacion AS DATE) = @fecha " +
+                                  " OR CAST(pp.FechaModificacion AS DATE) = @fecha " +
+                                  " OR CAST(pp.FechaBaja AS DATE) = @fecha)";
                     break;
 
                 case "SEMANA":
                     if (obj.NumeroSemana.HasValue && obj.Anio.HasValue)
                     {
-                        // Usar funciones de SQL para manejar la semana
-                        condiciones += $@"( (DATEPART(YEAR, pp.FechaCreacion) = {obj.Anio.Value} 
-                                AND DATEPART(WEEK, pp.FechaCreacion) = {obj.NumeroSemana.Value}
-                                OR DATEPART(YEAR, pp.FechaModificacion) = {obj.Anio.Value} 
-                                AND DATEPART(WEEK, pp.FechaModificacion) = {obj.NumeroSemana.Value}
-                                OR DATEPART(YEAR, pp.FechaBaja) = {obj.Anio.Value} 
-                                AND DATEPART(WEEK, pp.FechaBaja) = {obj.NumeroSemana.Value})) ";
+                        condiciones += $@"(
+                    (DATEPART(YEAR, pp.FechaCreacion) = @anio AND DATEPART(WEEK, pp.FechaCreacion) = @semana)
+                 OR (DATEPART(YEAR, pp.FechaModificacion) = @anio AND DATEPART(WEEK, pp.FechaModificacion) = @semana)
+                 OR (DATEPART(YEAR, pp.FechaBaja) = @anio AND DATEPART(WEEK, pp.FechaBaja) = @semana)
+                )";
                     }
                     break;
 
                 case "MES":
                     if (obj.Mes.HasValue && obj.Anio.HasValue)
                     {
-                        condiciones += $@" ((DATEPART(YEAR, pp.FechaCreacion) = {obj.Anio.Value} 
-                                AND DATEPART(MONTH, pp.FechaCreacion) = {obj.Mes.Value}
-                                OR DATEPART(YEAR, pp.FechaModificacion) = {obj.Anio.Value} 
-                                AND DATEPART(MONTH, pp.FechaModificacion) = {obj.Mes.Value}
-                                OR DATEPART(YEAR, pp.FechaBaja) = {obj.Anio.Value} 
-                                AND DATEPART(MONTH, pp.FechaBaja) = {obj.Mes.Value}))";
+                        condiciones += $@"(
+                    (DATEPART(YEAR, pp.FechaCreacion) = @anio AND DATEPART(MONTH, pp.FechaCreacion) = @mes)
+                 OR (DATEPART(YEAR, pp.FechaModificacion) = @anio AND DATEPART(MONTH, pp.FechaModificacion) = @mes)
+                 OR (DATEPART(YEAR, pp.FechaBaja) = @anio AND DATEPART(MONTH, pp.FechaBaja) = @mes)
+                )";
                     }
                     break;
             }
 
-           
             // Lotificaciones
             if (!obj.todas)
             {
-                condiciones += " AND z.Id = " + obj.LotificacionId.Value;
+                condiciones += " AND z.Id = @lotificacionId ";
             }
 
-            var query = "SELECT \r\n" +
-                        "    pa.NombreCliente,\r\n" +
-                        "    z.Nombre as Zona,\r\n" +
-                        "    pa.Lotes,\r\n" +
-                        "    pp.Monto,\r\n" +
-                        "    (CASE WHEN (pp.MontoOriginal IS NULL) THEN 0 ELSE pp.MontoOriginal END) AS CantidadOriginal, \r\n" +
-                        "    pp.Fecha AS FechaPago,\r\n" +
-                        "    pp.FechaCreacion AS FechaMovimiento, \r\n" +
-                        "    u.Usuario AS UsuarioRecibe, \r\n" +
-                        "    pp.FechaModificacion AS FechaModifico, \r\n" +
-                        "    um.Usuario AS UsuarioModifico, \r\n" +
-                        "    pp.FechaBaja AS FechaElimino, \r\n" +
-                        "    ue.Usuario AS UsuarioElimino, \r\n" +
-                        "    pp.FormaPago AS FormaPagoTipo, \r\n" +
-                        "    CASE WHEN pp.FormaPago = 0 THEN 'MIGRADO' ELSE (CASE WHEN pp.FormaPago = 1 THEN 'EFECTIVO' ELSE 'TRANSFERENCIA' END) END AS FormaPago \r\n" +
-                        "FROM pagos pa\r\n" +
-                        "JOIN pagospartidas pp ON pa.Id = pp.PagoId \r\n" +
-                        "JOIN ZONAS z ON pa.ZonaId = z.Id \r\n" +
-                        "JOIN USUARIOS u ON pp.UsuarioId = u.Id \r\n" +
-                        "LEFT JOIN USUARIOS um ON pp.UsuarioModificoId = um.Id \r\n" +
-                        "LEFT JOIN USUARIOS ue ON pp.UsuarioBajaId = ue.Id \r\n" +
-                        "WHERE " + condiciones;
+            var query = $@"
+                            DECLARE @HasFilter BIT =
+                                CASE WHEN EXISTS (SELECT 1 FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId)) THEN 1 ELSE 0 END;
 
-            return connection.Query<clsDATACORTE>(query).ToList();
+                            SELECT 
+                                pa.NombreCliente,
+                                z.Nombre as Zona,
+                                pa.Lotes,
+                                pp.Monto,
+                                (CASE WHEN (pp.MontoOriginal IS NULL) THEN 0 ELSE pp.MontoOriginal END) AS CantidadOriginal,
+                                pp.Fecha AS FechaPago,
+                                pp.FechaCreacion AS FechaMovimiento,
+                                u.Usuario AS UsuarioRecibe,
+                                pp.FechaModificacion AS FechaModifico,
+                                um.Usuario AS UsuarioModifico,
+                                pp.FechaBaja AS FechaElimino,
+                                ue.Usuario AS UsuarioElimino,
+                                pp.FormaPago AS FormaPagoTipo,
+                                CASE WHEN pp.FormaPago = 0 THEN 'MIGRADO'
+                                     ELSE (CASE WHEN pp.FormaPago = 1 THEN 'EFECTIVO' ELSE 'TRANSFERENCIA' END)
+                                END AS FormaPago
+                            FROM pagos pa
+                            JOIN pagospartidas pp ON pa.Id = pp.PagoId
+                            JOIN ZONAS z ON pa.ZonaId = z.Id
+                            JOIN USUARIOS u ON pp.UsuarioId = u.Id
+                            LEFT JOIN USUARIOS um ON pp.UsuarioModificoId = um.Id
+                            LEFT JOIN USUARIOS ue ON pp.UsuarioBajaId = ue.Id
+                            WHERE {condiciones}
+                              AND (
+                                    @HasFilter = 0 OR EXISTS (
+                                        SELECT 1
+                                        FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId) f
+                                        WHERE f.ZonaId = pa.ZonaId
+                                    )
+                                  );
+                            ";
+
+            // Parámetros para Dapper
+            var p = new
+            {
+                UsuarioId = usuarioId,
+                fecha = obj.Tipo.ToUpper() == "DIA" ? (DateTime?)Convert.ToDateTime(obj.Fecha).Date : null,
+                anio = obj.Anio,
+                semana = obj.NumeroSemana,
+                mes = obj.Mes,
+                lotificacionId = obj.LotificacionId
+            };
+
+            return connection.Query<clsDATACORTE>(query, p).ToList();
         }
 
         public List<clsDATACORTE> ListarPagoPorPeriodo(PeriodoConsulta periodo, int? idZona)

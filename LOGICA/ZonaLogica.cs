@@ -40,9 +40,9 @@ namespace LOGICA
         }
 
         // Leer Zona
-        public List<Zona> GetAllZonas()
+        public List<Zona> GetAllZonas(int? usuarioId = null )
         {
-            return contexto.GetAllZonas();
+            return contexto.GetAllZonas(usuarioId);
         }
     }
 }

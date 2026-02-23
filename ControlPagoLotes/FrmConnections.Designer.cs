@@ -14,6 +14,7 @@
 
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmConnections));
             this.dgv = new System.Windows.Forms.DataGridView();
             this.grp = new System.Windows.Forms.GroupBox();
             this.lblStatus = new System.Windows.Forms.Label();
@@ -369,12 +370,11 @@
             this.Controls.Add(this.grp);
             this.Controls.Add(this.dgv);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(1016, 689);
             this.Name = "FrmConnections";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Conexiones (SQL Server)";
-            //this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmConnections_FormClosing);
-            //this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FrmConnections_FormClosed);
             this.Load += new System.EventHandler(this.FrmConnections_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();
             this.grp.ResumeLayout(false);

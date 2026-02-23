@@ -59,5 +59,6 @@ namespace DAO.ADOS
             var query = "SELECT *FROM Usuarios WHERE Usuario = @usuario AND Password = @pass";
             return connection.QuerySingle< UsuarioL> (query, new { usuario = usuario, pass = pass });
         }
+
     }
 }

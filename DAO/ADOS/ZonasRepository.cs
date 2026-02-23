@@ -46,10 +46,34 @@ public class ZonasRepository
     }
 
     // Leer Zona
-    public List<Zona> GetAllZonas()        
+    public List<Zona> GetAllZonas(int? usuarioId = null)
     {
-        var query = "SELECT * FROM ZONAS";
-        return connection.Query<Zona>(query).ToList();
+        var query = @"
+-- Si no mandan usuarioId (NULL o 0) => todas
+IF (@UsuarioId IS NULL OR @UsuarioId = 0)
+BEGIN
+    SELECT *
+    FROM ZONAS
+    ORDER BY Nombre;
+    RETURN;
+END
+
+-- Si mandan usuarioId, revisar si tiene filtro
+DECLARE @HasFilter BIT =
+    CASE WHEN EXISTS (SELECT 1 FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId)) THEN 1 ELSE 0 END;
+
+SELECT z.*
+FROM ZONAS z
+WHERE
+    (@HasFilter = 0 OR EXISTS (
+        SELECT 1
+        FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId) f
+        WHERE f.ZonaId = z.Id
+    ))
+ORDER BY z.Nombre;
+";
+
+        return connection.Query<Zona>(query, new { UsuarioId = usuarioId }).ToList();
     }
 
 

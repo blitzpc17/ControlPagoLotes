@@ -67,9 +67,9 @@ namespace LOGICA
         {
             return contexto.InsertarPartidasPago(query);
         }
-        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj)
+        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj, int usuarioId)
         {
-            return contexto.ListarPagoPorFecha(obj);
+            return contexto.ListarPagoPorFecha(obj, usuarioId);
         }
 
         public void Dispose()

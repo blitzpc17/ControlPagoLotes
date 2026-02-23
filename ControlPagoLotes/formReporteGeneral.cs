@@ -40,7 +40,7 @@ namespace ControlPagoLotes
 
         private void LlenarComboRutas()
         {
-            LstZonas = contextoZonas.GetAllZonas();
+            LstZonas = contextoZonas.GetAllZonas(Global.ObjUsuario.Id);
             cbxZonas.DataSource = LstZonas;
             cbxZonas.DisplayMember = "Nombre";
             cbxZonas.ValueMember = "Id";

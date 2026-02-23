@@ -112,6 +112,7 @@
     <Compile Include="clsDATACORTE.cs" />
     <Compile Include="clsPagosBusqueda.cs" />
     <Compile Include="clsWhatsApp.cs" />
+    <Compile Include="FiltroZonasEntry.cs" />
     <Compile Include="Pago.cs" />
     <Compile Include="PagoPartida.cs" />
     <Compile Include="PeriodoConsulta.cs" />

@@ -83,6 +83,16 @@ namespace ControlPagoLotes.Properties {
         /// <summary>
         ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap base_de_datos {
+            get {
+                object obj = ResourceManager.GetObject("base-de-datos", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap borrar {
             get {
                 object obj = ResourceManager.GetObject("borrar", resourceCulture);
@@ -223,6 +233,16 @@ namespace ControlPagoLotes.Properties {
         /// <summary>
         ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap information_system {
+            get {
+                object obj = ResourceManager.GetObject("information-system", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap ingresos {
             get {
                 object obj = ResourceManager.GetObject("ingresos", resourceCulture);
@@ -356,6 +376,16 @@ namespace ControlPagoLotes.Properties {
         internal static System.Drawing.Bitmap presupuesto1 {
             get {
                 object obj = ResourceManager.GetObject("presupuesto1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap reclutamiento {
+            get {
+                object obj = ResourceManager.GetObject("reclutamiento", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

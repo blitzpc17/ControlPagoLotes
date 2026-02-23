@@ -173,7 +173,7 @@ namespace ControlPagoLotes
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
-            Lista = contexto.GetAllPagosBusqueda();
+            Lista = contexto.GetAllPagosBusqueda(Global.ObjUsuario.Id);
             ListaAux = Lista;
         }
 

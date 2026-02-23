@@ -71,7 +71,7 @@ namespace ControlPagoLotes
 
         private void ListarPagosPorFecha()
         {
-            ListaPagosDiarios = contexto.ListarPagoPorFecha(contexto.objConsulta);
+            ListaPagosDiarios = contexto.ListarPagoPorFecha(contexto.objConsulta, Global.ObjUsuario.Id);
           
             //agregar monto migrados
            montoNuevos = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? (ListaPagosDiarios

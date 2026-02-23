@@ -300,6 +300,12 @@
     <Compile Include="frmMenuSystem.Designer.cs">
       <DependentUpon>frmMenuSystem.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmRutasConfig.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmRutasConfig.Designer.cs">
+      <DependentUpon>frmRutasConfig.cs</DependentUpon>
+    </Compile>
     <Compile Include="Global.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -481,6 +487,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="JAADE-PNG.ico" />
+    <None Include="Resources\reclutamiento.png" />
+    <None Include="Resources\information-system.png" />
+    <None Include="Resources\base-de-datos.png" />
     <None Include="Resources\buscar.png" />
     <None Include="Resources\sincomentario.png" />
     <None Include="Resources\comentariocargado.png" />

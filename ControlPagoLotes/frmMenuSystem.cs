@@ -29,10 +29,10 @@ namespace ControlPagoLotes
 
         private void NuevoConfiguracionZona()
         {
-            using (var f = new formUsuarios())
+            using (var f = new frmRutasConfig())
                 f.ShowDialog();
 
-            if (AppState.MustRestartToLogin) { this.Close(); return; }
+            if (AppState.MustRestartToLogin) this.Close();
         }
 
         private void NuevoConexionRemota()
