@@ -182,7 +182,7 @@ namespace ControlPagoLotes
         private void TriggerRestartToLogin()
         {
             AppState.MustRestartToLogin = true;
-            this.DialogResult = DialogResult.OK; // opcional
+            this.DialogResult = DialogResult.OK;
             this.Close();
         }
 
@@ -217,7 +217,9 @@ namespace ControlPagoLotes
                 var r = TestSql(cs);
 
                 lblStatus.Text = r.ok ? r.msg : $"ERROR: {r.msg}";
-                MessageBox.Show(r.msg, r.ok ? "Conexión OK" : "Error",
+                MessageBox.Show(
+                    r.msg,
+                    r.ok ? "Conexión OK" : "Error",
                     MessageBoxButtons.OK,
                     r.ok ? MessageBoxIcon.Information : MessageBoxIcon.Error);
             }
@@ -262,55 +264,51 @@ namespace ControlPagoLotes
                         }
                     }
 
-                    if (_selectedId == null)
+                    using (var cmd = cn.CreateCommand())
                     {
-                        using (var cmd = cn.CreateCommand())
+                        cmd.Transaction = tx;
+
+                        if (_selectedId == null)
                         {
-                            cmd.Transaction = tx;
                             cmd.CommandText = @"
-INSERT INTO connections(label, conn_string, is_default)
-VALUES(@label,@cs,@def);";
-                            cmd.Parameters.AddWithValue("@label", label);
-                            cmd.Parameters.AddWithValue("@cs", cs);
-                            cmd.Parameters.AddWithValue("@def", chkDefault.Checked ? 1 : 0);
-                            cmd.ExecuteNonQuery();
+INSERT INTO connections(label, conn_string, is_default, updated_at)
+VALUES(@label, @conn, @def, datetime('now'));";
                         }
-                    }
-                    else
-                    {
-                        using (var cmd = cn.CreateCommand())
+                        else
                         {
-                            cmd.Transaction = tx;
                             cmd.CommandText = @"
 UPDATE connections
-SET label=@label, conn_string=@cs, is_default=@def, updated_at=datetime('now')
-WHERE id=@id;";
+SET label = @label,
+    conn_string = @conn,
+    is_default = @def,
+    updated_at = datetime('now')
+WHERE id = @id;";
                             cmd.Parameters.AddWithValue("@id", _selectedId.Value);
-                            cmd.Parameters.AddWithValue("@label", label);
-                            cmd.Parameters.AddWithValue("@cs", cs);
-                            cmd.Parameters.AddWithValue("@def", chkDefault.Checked ? 1 : 0);
-                            cmd.ExecuteNonQuery();
                         }
+
+                        cmd.Parameters.AddWithValue("@label", label);
+                        cmd.Parameters.AddWithValue("@conn", cs);
+                        cmd.Parameters.AddWithValue("@def", chkDefault.Checked ? 1 : 0);
+                        cmd.ExecuteNonQuery();
                     }
 
                     tx.Commit();
                 }
 
+                LoadGrid();
+                lblStatus.Text = "Conexión guardada correctamente.";
+
                 if (chkDefault.Checked)
                 {
-                    MessageBox.Show(
-                        "Conexión principal actualizada. Se regresará al login.",
-                        "Listo",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-
                     TriggerRestartToLogin();
                     return;
                 }
 
-                lblStatus.Text = "Guardado.";
-                LoadGrid();
-                ClearForm();
+                MessageBox.Show(
+                    "Conexión guardada correctamente.",
+                    "OK",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {

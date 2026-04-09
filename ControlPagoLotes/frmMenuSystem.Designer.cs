@@ -33,7 +33,7 @@
             this.btnSalir = new System.Windows.Forms.Button();
             this.btnUsuarios = new System.Windows.Forms.Button();
             this.btnZonas = new System.Windows.Forms.Button();
-            this.btnNuevoPago = new System.Windows.Forms.Button();
+            this.btnConexiones = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -45,7 +45,7 @@
             this.groupBox1.Controls.Add(this.btnSalir);
             this.groupBox1.Controls.Add(this.btnUsuarios);
             this.groupBox1.Controls.Add(this.btnZonas);
-            this.groupBox1.Controls.Add(this.btnNuevoPago);
+            this.groupBox1.Controls.Add(this.btnConexiones);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(702, 245);
@@ -94,19 +94,19 @@
             this.btnZonas.UseVisualStyleBackColor = true;
             this.btnZonas.Click += new System.EventHandler(this.btnZonas_Click);
             // 
-            // btnNuevoPago
+            // btnConexiones
             // 
-            this.btnNuevoPago.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnNuevoPago.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnNuevoPago.Image = global::ControlPagoLotes.Properties.Resources.base_de_datos;
-            this.btnNuevoPago.Location = new System.Drawing.Point(354, 38);
-            this.btnNuevoPago.Name = "btnNuevoPago";
-            this.btnNuevoPago.Size = new System.Drawing.Size(154, 116);
-            this.btnNuevoPago.TabIndex = 2;
-            this.btnNuevoPago.Text = "CONEXIONES";
-            this.btnNuevoPago.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.btnNuevoPago.UseVisualStyleBackColor = true;
-            this.btnNuevoPago.Click += new System.EventHandler(this.btnNuevoPago_Click);
+            this.btnConexiones.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnConexiones.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnConexiones.Image = global::ControlPagoLotes.Properties.Resources.base_de_datos;
+            this.btnConexiones.Location = new System.Drawing.Point(354, 38);
+            this.btnConexiones.Name = "btnConexiones";
+            this.btnConexiones.Size = new System.Drawing.Size(154, 116);
+            this.btnConexiones.TabIndex = 2;
+            this.btnConexiones.Text = "CONEXIONES";
+            this.btnConexiones.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.btnConexiones.UseVisualStyleBackColor = true;
+            this.btnConexiones.Click += new System.EventHandler(this.btnNuevoPago_Click);
             // 
             // frmMenuSystem
             // 
@@ -129,6 +129,6 @@
         private System.Windows.Forms.Button btnSalir;
         private System.Windows.Forms.Button btnUsuarios;
         private System.Windows.Forms.Button btnZonas;
-        private System.Windows.Forms.Button btnNuevoPago;
+        private System.Windows.Forms.Button btnConexiones;
     }
 }

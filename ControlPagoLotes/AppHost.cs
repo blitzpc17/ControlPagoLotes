@@ -27,50 +27,72 @@ namespace ControlPagoLotes
         {
             while (true)
             {
-                // 0) Si no hay conexión principal, obligar a configurar
-                if (!ConnectionStorage.HasDefaultConnection(_sqlitePath))
+                string errorConexion="";
+
+                while (
+                    !ConnectionStorage.HasDefaultConnection(_sqlitePath) ||
+                    !ConnectionStorage.CanConnectToDefault(_sqlitePath, out errorConexion)
+                )
                 {
+                    var hayDefault = ConnectionStorage.HasDefaultConnection(_sqlitePath);
+
+                    var mensaje = !hayDefault
+                        ? "Debes configurar una conexión principal para continuar."
+                        : "No se pudo conectar con la conexión principal actual.\n\n" +
+                          $"Detalle: {errorConexion}\n\n" +
+                          "Selecciona o configura otra conexión.";
+
+                    MessageBox.Show(
+                        mensaje,
+                        "Configuración de conexión",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
                     using (var cfg = new FrmConnections())
                         cfg.ShowDialog();
 
-                    if (!ConnectionStorage.HasDefaultConnection(_sqlitePath))
-                    {
-                        MessageBox.Show(
-                            "Debes configurar una conexión principal para continuar.",
-                            "Conexión requerida",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Warning);
+                    bool hayConexionValida =
+                        ConnectionStorage.HasDefaultConnection(_sqlitePath) &&
+                        ConnectionStorage.CanConnectToDefault(_sqlitePath, out errorConexion);
 
-                        Close();
-                        return;
+                    if (!hayConexionValida)
+                    {
+                        var salir = MessageBox.Show(
+                            "No hay una conexión válida configurada.\n\n¿Deseas salir de la aplicación?",
+                            "Conexión requerida",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+
+                        if (salir == DialogResult.Yes)
+                        {
+                            Close();
+                            return;
+                        }
                     }
                 }
 
-                // 1) Login (MODAL)
+                // 1) Login
                 DialogResult loginResult;
                 using (var login = new formLogin())
                     loginResult = login.ShowDialog();
 
-                // Si el usuario cerró login => salir
                 if (loginResult != DialogResult.OK)
                 {
                     Close();
                     return;
                 }
 
-                // 2) Principal (MODAL) - tu pantalla: formBusqueda
+                // 2) Pantalla principal
                 using (var main = new formBusqueda())
                     main.ShowDialog();
 
-                // 3) Si alguien cambió conexión, regresamos al login
+                // 3) Si cambiaron conexión, volver al inicio
                 if (AppState.MustRestartToLogin)
                 {
                     AppState.MustRestartToLogin = false;
-                    continue; // vuelve al inicio del while => login
+                    continue;
                 }
 
-                // Si no hay restart, aquí decides si sales o vuelves a login.
-                // Yo cierro la app cuando se cierre formBusqueda.
                 Close();
                 return;
             }

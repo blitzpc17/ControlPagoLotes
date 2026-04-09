@@ -65,27 +65,16 @@ namespace ControlPagoLotes
 
         private void NuevoUsuario()
         {
-            var usuariosPermitidos = new List<string> { "ADMIN", "DIANA", "DONATO", "EMMANUEL" };
-
-            if (!usuariosPermitidos.Contains(Global.ObjUsuario.Usuario.ToUpper()))
-            {
-                MessageBox.Show("No tiene permisos para acceder a esta sección.",
-                                "Acceso denegado",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Warning);
-                return;
-            }
-
             using (var f = new frmMenuSystem())
                 f.ShowDialog();
 
-            // ✅ importantísimo: si desde el menú cambiaron conexión, cerrar búsqueda
             if (AppState.MustRestartToLogin)
             {
                 this.Close();
                 return;
             }
         }
+
 
         private void NuevoPago()
         {

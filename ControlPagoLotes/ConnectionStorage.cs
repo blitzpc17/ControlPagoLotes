@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.SQLite;
+using System.Data.SqlClient;
 
 namespace ControlPagoLotes
 {
@@ -23,7 +24,7 @@ WHERE is_default = 1;";
                     }
                 }
             }
-            catch(Exception ex)
+            catch
             {
                 return false;
             }
@@ -44,8 +45,30 @@ LIMIT 1;";
                     var cs = cmd.ExecuteScalar() as string;
                     if (string.IsNullOrWhiteSpace(cs))
                         throw new InvalidOperationException("No hay conexión principal configurada.");
+
                     return cs;
                 }
+            }
+        }
+
+        public static bool CanConnectToDefault(string sqlitePath, out string error)
+        {
+            error = null;
+
+            try
+            {
+                var cs = GetDefaultConnectionString(sqlitePath);
+
+                using (var cn = new SqlConnection(cs))
+                {
+                    cn.Open();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+                return false;
             }
         }
     }
