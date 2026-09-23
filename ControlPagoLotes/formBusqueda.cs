@@ -108,11 +108,12 @@ namespace ControlPagoLotes
             switch (columna)
             {
                 case 1: ListaAux = ListaAux.Where(x => x.Cliente != null && x.Cliente.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Cliente).ToList(); break;
-                case 2: ListaAux = ListaAux.Where(x => x.Zona != null && x.Zona.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Cliente).ToList(); break;
-                case 3: ListaAux = ListaAux.Where(x => x.Lotes != null && x.Lotes.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Zona).ThenBy(x => x.Cliente).ThenBy(x => x.Lotes).ToList(); break;
-                case 4: ListaAux = ListaAux.Where(x => x.Total != null && x.Total.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Zona).ThenBy(x => x.Cliente).ThenBy(x => x.Total).ThenBy(x => x.Lotes).ToList(); break;
-                case 5: ListaAux = ListaAux.Where(x => x.Fecha != null && x.Fecha.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Fecha).ThenBy(x => x.Cliente).ThenBy(x => x.Zona).ToList(); break;
-                case 7: ListaAux = ListaAux.Where(x => x.NombreEstado != null && x.NombreEstado.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.NombreEstado).ThenBy(x => x.Cliente).ThenBy(x => x.Zona).ThenBy(x => x.Lotes).ToList(); break;
+                case 2: ListaAux = ListaAux.Where(x => x.Zona != null && x.Zona.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Zona).ThenBy(x => x.Cliente).ToList(); break;
+                case 3: ListaAux = ListaAux.Where(x => x.Lotes != null && x.Lotes.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Lotes).ThenBy(x => x.Cliente).ToList(); break;
+                case 4: ListaAux = ListaAux.Where(x => x.Total != null && x.Total.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Total).ThenBy(x => x.Cliente).ToList(); break;
+                case 5: ListaAux = ListaAux.Where(x => x.Fecha != null && x.Fecha.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Fecha).ThenBy(x => x.Cliente).ToList(); break;
+                case 7: ListaAux = ListaAux.Where(x => x.NombreEstado != null && x.NombreEstado.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.NombreEstado).ThenBy(x => x.Cliente).ToList(); break;
+                case 9: ListaAux = ListaAux.Where(x => x.Plaza != null && x.Plaza.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Plaza).ThenBy(x => x.Cliente).ToList(); break;
                 default:
                     ListaAux = ListaAux.Where(x => 
                         (x.Cliente != null && x.Cliente.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0) ||
@@ -182,8 +183,18 @@ namespace ControlPagoLotes
 
         private void dgvRegistros_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (columna == e.ColumnIndex) return;
-            columna = e.ColumnIndex;
+            CambiarColumna(e.ColumnIndex);
+        }
+
+        private void dgvRegistros_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            CambiarColumna(e.ColumnIndex);
+        }
+
+        private void CambiarColumna(int nuevaColumna)
+        {
+            if (columna == nuevaColumna) return;
+            columna = nuevaColumna;
             txtBusqueda.Clear();
             ListaAux = Lista;
             SetDataDatagridView();

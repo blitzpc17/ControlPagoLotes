@@ -1,4 +1,4 @@
-﻿namespace ControlPagoLotes
+namespace ControlPagoLotes
 {
     partial class formBusqueda
     {
@@ -88,6 +88,7 @@
             this.dgvRegistros.TabIndex = 0;
             this.dgvRegistros.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvRegistros_CellClick);
             this.dgvRegistros.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvRegistros_CellDoubleClick);
+            this.dgvRegistros.ColumnHeaderMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvRegistros_ColumnHeaderMouseClick);
             // 
             // groupBox1
             // 
