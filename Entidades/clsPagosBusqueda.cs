@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +16,8 @@ namespace Entidades
         public string Fecha { get; set; }
         public string ClaveEstado { get; set; }  
         public string NombreEstado { get; set; }    
+        public long ConnectionId { get; set; }
+        public string Plaza { get; set; }
 
     }
 }

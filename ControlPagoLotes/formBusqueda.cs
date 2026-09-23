@@ -1,4 +1,4 @@
-﻿using Entidades;
+using Entidades;
 using LOGICA;
 using System;
 using System.Collections.Generic;
@@ -56,7 +56,11 @@ namespace ControlPagoLotes
 
         private void SeleccionarRegistro()
         {
-            using (var f = new formBoleta((int)dgvRegistros.CurrentRow.Cells[0].Value))
+            if (dgvRegistros.CurrentRow == null) return;
+            var pago = dgvRegistros.CurrentRow.DataBoundItem as clsPagosBusqueda;
+            if (pago == null) return;
+
+            using (var f = new formBoleta(pago.Id, pago.ConnectionId))
                 f.ShowDialog();
 
             if (AppState.MustRestartToLogin) { this.Close(); return; }
@@ -98,14 +102,25 @@ namespace ControlPagoLotes
         {
             ListaAux = Lista;
 
+            if (string.IsNullOrWhiteSpace(palabra))
+                return;
+
             switch (columna)
             {
-                case 1: ListaAux = ListaAux.Where(x => x.Cliente.Contains(palabra)).OrderBy(x => x.Cliente).ToList(); break;
-                case 2: ListaAux = ListaAux.Where(x => x.Zona.Contains(palabra)).OrderBy(x => x.Cliente).ToList(); break;
-                case 3: ListaAux = ListaAux.Where(x => x.Lotes.Contains(palabra)).OrderBy(x => x.Zona).ThenBy(x => x.Cliente).ThenBy(x => x.Lotes).ToList(); break;
-                case 4: ListaAux = ListaAux.Where(x => x.Total.Contains(palabra)).OrderBy(x => x.Zona).ThenBy(x => x.Cliente).ThenBy(x => x.Total).ThenBy(x => x.Lotes).ToList(); break;
-                case 5: ListaAux = ListaAux.Where(x => x.Fecha.Contains(palabra)).OrderBy(x => x.Fecha).ThenBy(x => x.Cliente).ThenBy(x => x.Zona).ToList(); break;
-                case 7: ListaAux = ListaAux.Where(x => x.NombreEstado.Contains(palabra)).OrderBy(x => x.NombreEstado).ThenBy(x => x.Cliente).ThenBy(x => x.Zona).ThenBy(x => x.Lotes).ToList(); break;
+                case 1: ListaAux = ListaAux.Where(x => x.Cliente != null && x.Cliente.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Cliente).ToList(); break;
+                case 2: ListaAux = ListaAux.Where(x => x.Zona != null && x.Zona.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Cliente).ToList(); break;
+                case 3: ListaAux = ListaAux.Where(x => x.Lotes != null && x.Lotes.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Zona).ThenBy(x => x.Cliente).ThenBy(x => x.Lotes).ToList(); break;
+                case 4: ListaAux = ListaAux.Where(x => x.Total != null && x.Total.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Zona).ThenBy(x => x.Cliente).ThenBy(x => x.Total).ThenBy(x => x.Lotes).ToList(); break;
+                case 5: ListaAux = ListaAux.Where(x => x.Fecha != null && x.Fecha.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Fecha).ThenBy(x => x.Cliente).ThenBy(x => x.Zona).ToList(); break;
+                case 7: ListaAux = ListaAux.Where(x => x.NombreEstado != null && x.NombreEstado.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.NombreEstado).ThenBy(x => x.Cliente).ThenBy(x => x.Zona).ThenBy(x => x.Lotes).ToList(); break;
+                default:
+                    ListaAux = ListaAux.Where(x => 
+                        (x.Cliente != null && x.Cliente.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (x.Zona != null && x.Zona.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (x.Plaza != null && x.Plaza.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (x.Lotes != null && x.Lotes.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0)
+                    ).ToList();
+                    break;
             }
         }
 
@@ -122,18 +137,27 @@ namespace ControlPagoLotes
             {
                 dgvRegistros.Columns[0].Visible = false;
                 dgvRegistros.Columns[1].HeaderText = "Cliente";
-                dgvRegistros.Columns[1].Width = 500;
+                dgvRegistros.Columns[1].Width = 320;
                 dgvRegistros.Columns[2].HeaderText = "Zona";
-                dgvRegistros.Columns[2].Width = 350;
+                dgvRegistros.Columns[2].Width = 240;
                 dgvRegistros.Columns[3].HeaderText = "Lotes";
-                dgvRegistros.Columns[3].Width = 350;
+                dgvRegistros.Columns[3].Width = 200;
                 dgvRegistros.Columns[4].HeaderText = "Total";
-                dgvRegistros.Columns[4].Width = 200;
+                dgvRegistros.Columns[4].Width = 140;
                 dgvRegistros.Columns[5].HeaderText = "Fecha Pago";
-                dgvRegistros.Columns[5].Width = 200;
+                dgvRegistros.Columns[5].Width = 130;
                 dgvRegistros.Columns[6].Visible = false;
                 dgvRegistros.Columns[7].HeaderText = "Estado";
-                dgvRegistros.Columns[7].Width = 200;
+                dgvRegistros.Columns[7].Width = 140;
+
+                if (dgvRegistros.Columns["ConnectionId"] != null)
+                    dgvRegistros.Columns["ConnectionId"].Visible = false;
+
+                if (dgvRegistros.Columns["Plaza"] != null)
+                {
+                    dgvRegistros.Columns["Plaza"].HeaderText = "Plaza / Sucursal";
+                    dgvRegistros.Columns["Plaza"].Width = 160;
+                }
             }
         }
 
@@ -173,7 +197,9 @@ namespace ControlPagoLotes
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
-            Lista = contexto.GetAllPagosBusqueda(Global.ObjUsuario.Id);
+            var nombreUsuario = Global.ObjUsuario != null ? Global.ObjUsuario.Usuario : null;
+            var usuarioId = Global.ObjUsuario != null ? Global.ObjUsuario.Id : 0;
+            Lista = contexto.GetAllPagosBusqueda(usuarioId, nombreUsuario);
             ListaAux = Lista;
         }
 

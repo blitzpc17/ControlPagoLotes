@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.SQLite;
 using System.Data.SqlClient;
 
@@ -58,6 +58,12 @@ LIMIT 1;";
             try
             {
                 var cs = GetDefaultConnectionString(sqlitePath);
+
+                // Reducimos el tiempo de espera a 3 segundos (en lugar de los 15-30s por defecto)
+                // Esto evita que la aplicación parezca congelada si Hamachi o el Servidor están apagados.
+                var builder = new SqlConnectionStringBuilder(cs);
+                builder.ConnectTimeout = 3;
+                cs = builder.ConnectionString;
 
                 using (var cn = new SqlConnection(cs))
                 {

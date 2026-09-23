@@ -1,4 +1,4 @@
-﻿using LOGICA;
+using LOGICA;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -36,10 +36,11 @@ namespace ControlPagoLotes
 
         private void Listar()
         {
-            lista = contexto.GetAllZonas();
+            var usuarioId = Global.ObjUsuario?.Id;
+            var nombreUsuario = Global.ObjUsuario?.Usuario;
+            lista = contexto.GetAllZonas(usuarioId, nombreUsuario, unificarTodas: true);
             listaAux = lista;
             SetearDataDgv();
-         
         }
         private void SetearDataDgv()
         {
@@ -54,9 +55,22 @@ namespace ControlPagoLotes
             {
                 dgvRegistros.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
-                dgvRegistros.Columns[0].Visible = false;
-                dgvRegistros.Columns[1].HeaderText = "Zona";               
-                dgvRegistros.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                if (dgvRegistros.Columns.Contains("Id")) dgvRegistros.Columns["Id"].Visible = false;
+                if (dgvRegistros.Columns.Contains("ConnectionId")) dgvRegistros.Columns["ConnectionId"].Visible = false;
+                if (dgvRegistros.Columns.Contains("NombreConPlaza")) dgvRegistros.Columns["NombreConPlaza"].Visible = false;
+
+                if (dgvRegistros.Columns.Contains("Nombre"))
+                {
+                    dgvRegistros.Columns["Nombre"].HeaderText = "Zona";
+                    dgvRegistros.Columns["Nombre"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                }
+
+                if (dgvRegistros.Columns.Contains("Plaza"))
+                {
+                    dgvRegistros.Columns["Plaza"].HeaderText = "Plaza / Sucursal";
+                    dgvRegistros.Columns["Plaza"].Width = 140;
+                    dgvRegistros.Columns["Plaza"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                }
             }
         }
 
@@ -115,14 +129,27 @@ namespace ControlPagoLotes
 
         private void modificarToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (dgvRegistros.DataSource == null) return;
-            SetDataRegistro((int)dgvRegistros.CurrentRow.Cells[0].Value);
+            if (dgvRegistros.DataSource == null || dgvRegistros.CurrentRow == null) return;
+            var item = dgvRegistros.CurrentRow.DataBoundItem as Zona;
+            if (item != null)
+            {
+                SetDataRegistro(item.Id, item.ConnectionId);
+            }
+            else
+            {
+                int id = Convert.ToInt32(dgvRegistros.CurrentRow.Cells["Id"].Value);
+                long connId = dgvRegistros.Columns.Contains("ConnectionId") ? Convert.ToInt64(dgvRegistros.CurrentRow.Cells["ConnectionId"].Value) : 0;
+                SetDataRegistro(id, connId > 0 ? (long?)connId : null);
+            }
         }
 
-        private void SetDataRegistro(int id)
+        private void SetDataRegistro(int id, long? connectionId = null)
         {
-            obj = contexto.GetZonaById(id);
-            txtNombreZona.Text = obj.Nombre.ToString();
+            obj = contexto.GetZonaById(id, connectionId);
+            if (obj != null)
+            {
+                txtNombreZona.Text = obj.Nombre?.ToString();
+            }
         }
 
 

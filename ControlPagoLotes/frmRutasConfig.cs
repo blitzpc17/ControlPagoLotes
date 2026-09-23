@@ -1,4 +1,4 @@
-﻿using Entidades;
+using Entidades;
 using LOGICA;
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace ControlPagoLotes
         private List<UsuarioL> _usuarios = new List<UsuarioL>();
         private List<Zona> _zonas = new List<Zona>();
 
-        private int? _selectedUsuarioId = null;
+        private UsuarioL _selectedUsuario = null;
 
         public frmRutasConfig()
         {
@@ -34,12 +34,12 @@ namespace ControlPagoLotes
             LoadZonas();
 
             lblUsuarioSel.Text = "Usuario: (ninguno)";
-            lblInfo.Text = "Selecciona un usuario y marca las zonas permitidas.";
+            lblInfo.Text = "Selecciona un usuario y marca las zonas permitidas de cualquier plaza.";
         }
 
         private void LoadUsuarios()
         {
-            var usuarios = usuariosRepo.GetAllUsuario();
+            var usuarios = usuariosRepo.GetAllUsuario(unificarTodas: true);
             _usuarios = usuarios ?? new List<UsuarioL>();
 
             lvUsuarios.BeginUpdate();
@@ -48,7 +48,7 @@ namespace ControlPagoLotes
             foreach (var u in _usuarios)
             {
                 var item = new ListViewItem(u.Usuario ?? $"Usuario {u.Id}");
-                item.Tag = u.Id;
+                item.Tag = u;
                 lvUsuarios.Items.Add(item);
             }
 
@@ -57,14 +57,20 @@ namespace ControlPagoLotes
 
         private void LoadZonas()
         {
-            _zonas = zonaLogica.GetAllZonas() ?? new List<Zona>();
+            _zonas = zonaLogica.GetAllZonas(unificarTodas: true) ?? new List<Zona>();
 
             clbZonas.BeginUpdate();
             clbZonas.Items.Clear();
 
             foreach (var z in _zonas)
             {
-                clbZonas.Items.Add(new ZonaItem { Id = z.Id, Nombre = z.Nombre }, false);
+                clbZonas.Items.Add(new ZonaItem 
+                { 
+                    Id = z.Id, 
+                    ConnectionId = z.ConnectionId, 
+                    Plaza = z.Plaza, 
+                    Nombre = z.NombreConPlaza ?? z.Nombre 
+                }, false);
             }
 
             clbZonas.EndUpdate();
@@ -74,28 +80,32 @@ namespace ControlPagoLotes
         {
             if (lvUsuarios.SelectedItems.Count == 0)
             {
-                _selectedUsuarioId = null;
+                _selectedUsuario = null;
                 lblUsuarioSel.Text = "Usuario: (ninguno)";
                 ClearChecks();
                 return;
             }
 
-            var id = (int)lvUsuarios.SelectedItems[0].Tag;
-            _selectedUsuarioId = id;
+            var u = lvUsuarios.SelectedItems[0].Tag as UsuarioL;
+            _selectedUsuario = u;
 
-            lblUsuarioSel.Text = $"Usuario: {lvUsuarios.SelectedItems[0].Text} (ID {id})";
-            LoadUserZonas(id);
+            lblUsuarioSel.Text = $"Usuario: {u.Usuario}";
+            LoadUserZonas(u);
         }
 
-        private void LoadUserZonas(int usuarioId)
+        private void LoadUserZonas(UsuarioL user)
         {
-            var zonasAsignadas = rutasLogica.GetZonasForUser(usuarioId) ?? new List<int>();
+            ClearChecks();
+            if (user == null || string.IsNullOrWhiteSpace(user.Usuario)) return;
+
+            var assignedSet = rutasLogica.GetZonasAsignadasPorUsuario(user.Usuario);
 
             clbZonas.BeginUpdate();
             for (int i = 0; i < clbZonas.Items.Count; i++)
             {
                 var zi = (ZonaItem)clbZonas.Items[i];
-                clbZonas.SetItemChecked(i, zonasAsignadas.Contains(zi.Id));
+                string key = $"{zi.ConnectionId}_{zi.Id}";
+                clbZonas.SetItemChecked(i, assignedSet.Contains(key));
             }
             clbZonas.EndUpdate();
         }
@@ -108,18 +118,9 @@ namespace ControlPagoLotes
             clbZonas.EndUpdate();
         }
 
-        private List<int> GetCheckedZonas()
-        {
-            var list = new List<int>();
-            foreach (var item in clbZonas.CheckedItems)
-                list.Add(((ZonaItem)item).Id);
-
-            return list.Distinct().OrderBy(x => x).ToList();
-        }
-
         private void btnMarcarTodas_Click(object sender, EventArgs e)
         {
-            if (_selectedUsuarioId == null)
+            if (_selectedUsuario == null)
             {
                 MessageBox.Show("Selecciona un usuario primero.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
@@ -133,7 +134,7 @@ namespace ControlPagoLotes
 
         private void btnLimpiar_Click(object sender, EventArgs e)
         {
-            if (_selectedUsuarioId == null)
+            if (_selectedUsuario == null)
             {
                 MessageBox.Show("Selecciona un usuario primero.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
@@ -143,22 +144,28 @@ namespace ControlPagoLotes
 
         private void btnGuardar_Click(object sender, EventArgs e)
         {
-            if (_selectedUsuarioId == null)
+            if (_selectedUsuario == null)
             {
                 MessageBox.Show("Selecciona un usuario.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            var zonas = GetCheckedZonas();
+            // Agrupar zonas marcadas por ConnectionId
+            var checkedItems = clbZonas.CheckedItems.Cast<ZonaItem>().ToList();
+            var checkedByConn = checkedItems
+                .GroupBy(x => x.ConnectionId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.Id).Distinct().OrderBy(x => x).ToList());
 
-            // Guardar JSON en VARIABLESGLOBALES(label='FltroZonas')
-            rutasLogica.SetZonasForUser(_selectedUsuarioId.Value, zonas);
+            var savedPlazas = rutasLogica.SaveZonasAsignadasPorUsuario(
+                _selectedUsuario.Usuario,
+                _selectedUsuario.Password,
+                checkedByConn
+            );
 
-            MessageBox.Show("Rutas guardadas correctamente.", "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"Rutas guardadas correctamente en plazas: {string.Join(", ", savedPlazas)}.", "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             // Si se modificó el mismo usuario logueado => re-login
-            var currentUserId = TryGetCurrentUserId();
-            if (currentUserId > 0 && currentUserId == _selectedUsuarioId.Value)
+            if (Global.ObjUsuario != null && string.Equals(Global.ObjUsuario.Usuario, _selectedUsuario.Usuario, StringComparison.OrdinalIgnoreCase))
             {
                 AppState.MustRestartToLogin = true;
                 this.Close();
@@ -171,43 +178,11 @@ namespace ControlPagoLotes
             this.Close();
         }
 
-        /// <summary>
-        /// Obtiene el Id del usuario logueado (sin asumir nombre de propiedad).
-        /// Busca propiedades comunes: Id, ID, IdUsuario, UsuarioId, id_usuario, etc.
-        /// </summary>
-        private int TryGetCurrentUserId()
-        {
-            try
-            {
-                var obj = Global.ObjUsuario;
-                if (obj == null) return 0;
-
-                var t = obj.GetType();
-                string[] props = { "Id", "ID", "IdUsuario", "UsuarioId", "Id_Usuario", "id_usuario", "ID_USUARIO" };
-
-                foreach (var p in props)
-                {
-                    var pi = t.GetProperty(p, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-                    if (pi == null) continue;
-
-                    var val = pi.GetValue(obj, null);
-                    if (val == null) continue;
-
-                    if (val is int i) return i;
-                    if (int.TryParse(val.ToString(), out var parsed)) return parsed;
-                }
-
-                return 0;
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
         private class ZonaItem
         {
             public int Id { get; set; }
+            public long ConnectionId { get; set; }
+            public string Plaza { get; set; }
             public string Nombre { get; set; }
             public override string ToString() => Nombre;
         }

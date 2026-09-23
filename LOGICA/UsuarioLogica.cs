@@ -1,4 +1,4 @@
-﻿using DAO.ADOS;
+using DAO.ADOS;
 using Entidades;
 using System;
 using System.Collections.Generic;
@@ -42,9 +42,39 @@ namespace LOGICA
         }
 
         // Leer Usuario
-        public List<UsuarioL> GetAllUsuario()
+        public List<UsuarioL> GetAllUsuario(bool unificarTodas = false)
         {
-            return contexto.GetAllUsuarios();
+            if (!unificarTodas) return contexto.GetAllUsuarios();
+
+            var connections = DAO.GenericRepository.GetAvailableConnections();
+            if (connections == null || connections.Count <= 1) return contexto.GetAllUsuarios();
+
+            var list = new List<UsuarioL>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var conn in connections)
+            {
+                try
+                {
+                    using (var repo = new UsuariosRepository(conn.ConnString, conn.Label, conn.Id))
+                    {
+                        var users = repo.GetAllUsuarios();
+                        if (users != null)
+                        {
+                            foreach (var u in users)
+                            {
+                                if (!string.IsNullOrWhiteSpace(u.Usuario) && seen.Add(u.Usuario))
+                                {
+                                    list.Add(u);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch { /* ignore */ }
+            }
+
+            return list.OrderBy(u => u.Usuario).ToList();
         }
     }
 }

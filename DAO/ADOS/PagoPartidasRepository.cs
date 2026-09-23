@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Entidades;
 using System;
 using System.Collections.Generic;
@@ -12,9 +12,22 @@ namespace DAO.ADOS
     {
         GenericRepository connection;
 
+        public long ConnectionId => connection.CurrentConnectionId;
+        public string Plaza => connection.CurrentPlaza;
+
         public PagoPartidasRepository()
         {
             connection = new GenericRepository();
+        }
+
+        public PagoPartidasRepository(long connectionId)
+        {
+            connection = new GenericRepository(connectionId);
+        }
+
+        public PagoPartidasRepository(string explicitConnectionString, string plaza = null, long connectionId = 0)
+        {
+            connection = new GenericRepository(explicitConnectionString, plaza, connectionId);
         }
 
         // Crear PagoPartida
@@ -68,7 +81,7 @@ namespace DAO.ADOS
             return connection.Execute(complemento);
         }
 
-        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj, int usuarioId)
+        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj, int usuarioId, bool isAdmin = false)
         {
             string condiciones = "";
 
@@ -111,9 +124,6 @@ namespace DAO.ADOS
             }
 
             var query = $@"
-                            DECLARE @HasFilter BIT =
-                                CASE WHEN EXISTS (SELECT 1 FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId)) THEN 1 ELSE 0 END;
-
                             SELECT 
                                 pa.NombreCliente,
                                 z.Nombre as Zona,
@@ -139,7 +149,7 @@ namespace DAO.ADOS
                             LEFT JOIN USUARIOS ue ON pp.UsuarioBajaId = ue.Id
                             WHERE {condiciones}
                               AND (
-                                    @HasFilter = 0 OR EXISTS (
+                                    @IsAdmin = 1 OR EXISTS (
                                         SELECT 1
                                         FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId) f
                                         WHERE f.ZonaId = pa.ZonaId
@@ -151,6 +161,7 @@ namespace DAO.ADOS
             var p = new
             {
                 UsuarioId = usuarioId,
+                IsAdmin = isAdmin ? 1 : 0,
                 fecha = obj.Tipo.ToUpper() == "DIA" ? (DateTime?)Convert.ToDateTime(obj.Fecha).Date : null,
                 anio = obj.Anio,
                 semana = obj.NumeroSemana,

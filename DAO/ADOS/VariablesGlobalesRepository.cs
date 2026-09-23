@@ -1,4 +1,4 @@
-﻿using DAO;
+using DAO;
 using Dapper;
 using System;
 
@@ -9,9 +9,22 @@ namespace DAO.ADOS {
     {
         private readonly GenericRepository connection;
 
+        public long ConnectionId => connection.CurrentConnectionId;
+        public string Plaza => connection.CurrentPlaza;
+
         public VariablesGlobalesRepository()
         {
             connection = new GenericRepository();
+        }
+
+        public VariablesGlobalesRepository(long connectionId)
+        {
+            connection = new GenericRepository(connectionId);
+        }
+
+        public VariablesGlobalesRepository(string explicitConnectionString, string plaza = null, long connectionId = 0)
+        {
+            connection = new GenericRepository(explicitConnectionString, plaza, connectionId);
         }
 
         public string GetValorByLabel(string label)

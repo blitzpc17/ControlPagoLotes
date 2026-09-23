@@ -1,4 +1,4 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Vml;
 using Entidades;
 using LOGICA;
@@ -40,33 +40,45 @@ namespace ControlPagoLotes
 
         private void LlenarComboRutas()
         {
-            LstZonas = contextoZonas.GetAllZonas(Global.ObjUsuario.Id);
+            var usuarioId = Global.ObjUsuario?.Id;
+            var nombreUsuario = Global.ObjUsuario?.Usuario;
+            LstZonas = contextoZonas.GetAllZonas(usuarioId, nombreUsuario, unificarTodas: true);
             cbxZonas.DataSource = LstZonas;
-            cbxZonas.DisplayMember = "Nombre";
+            cbxZonas.DisplayMember = "NombreConPlaza";
             cbxZonas.ValueMember = "Id";
             cbxZonas.SelectedIndex = -1;
         }
 
         private void GenerarReporte(bool todos = false)
         {
-            var lstRutasSeleccionadas = todos ? LstZonas.ToList() : LstZonas.Where(x => x.Id == (int)cbxZonas.SelectedValue).ToList();
+            var lstRutasSeleccionadas = todos 
+                ? LstZonas.ToList() 
+                : (cbxZonas.SelectedItem is Zona selectedZona ? new List<Zona> { selectedZona } : new List<Zona>());
             msjErr = new List<string>();
 
             using (var workbook = new XLWorkbook())
             {
+                int sheetIndex = 1;
                 foreach (var zona in lstRutasSeleccionadas)
                 {
-                    // Crear una hoja de Excel
-                    var worksheet = workbook.Worksheets.Add(zona.Nombre);
-                    //consultar encabezados por zona
-                    using (var contextoPagos = new PagoLogica())
+                    // Crear una hoja de Excel asegurando nombre válido y único
+                    var sheetName = string.IsNullOrWhiteSpace(zona.Plaza) ? zona.Nombre : $"{zona.Nombre} ({zona.Plaza})";
+                    sheetName = sheetName.Replace(":", "").Replace("\\", "").Replace("/", "").Replace("?", "").Replace("*", "").Replace("[", "(").Replace("]", ")");
+                    if (sheetName.Length > 28) sheetName = sheetName.Substring(0, 28);
+                    if (workbook.Worksheets.Any(w => w.Name.Equals(sheetName, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        sheetName = $"{sheetName}_{sheetIndex++}";
+                    }
+                    var worksheet = workbook.Worksheets.Add(sheetName);
+                    //consultar encabezados por zona usando la conexión correspondiente a la plaza
+                    using (var contextoPagos = zona.ConnectionId > 0 ? new PagoLogica(zona.ConnectionId) : new PagoLogica())
                     {
                         LstPagos = contextoPagos.ListarPagosxZona(zona.Id);
 
                         if (LstPagos != null && LstPagos.Count > 0)
                         {
                             //consulta partidas por idpagosrelacionados y que noe sten eliminadas
-                            using (var contextoPartidas = new PagoPartidaLogica())
+                            using (var contextoPartidas = zona.ConnectionId > 0 ? new PagoPartidaLogica(zona.ConnectionId) : new PagoPartidaLogica())
                             {
                                 string idsRelacionados = string.Join(",", LstPagos.Select(p => p.Id.ToString()));
                                 LstPartidasPagos = contextoPartidas.ListarPartidasPagos(idsRelacionados);

@@ -1,4 +1,4 @@
-﻿using Entidades;
+using Entidades;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +11,22 @@ namespace DAO.ADOS
     {
         GenericRepository connection;
 
+        public long ConnectionId => connection.CurrentConnectionId;
+        public string Plaza => connection.CurrentPlaza;
+
         public PagosRepository()
         {
             connection = new GenericRepository();
+        }
+
+        public PagosRepository(long connectionId)
+        {
+            connection = new GenericRepository(connectionId);
+        }
+
+        public PagosRepository(string explicitConnectionString, string plaza = null, long connectionId = 0)
+        {
+            connection = new GenericRepository(explicitConnectionString, plaza, connectionId);
         }
 
         // Crear Pagos
@@ -32,7 +45,13 @@ namespace DAO.ADOS
         public Pago GetPagosById(int id)
         {
             var query = "SELECT * FROM PAGOS WHERE Id = @Id";
-            return connection.QuerySingle<Pago>(query, new { Id = id });
+            var pago = connection.QuerySingle<Pago>(query, new { Id = id });
+            if (pago != null)
+            {
+                pago.ConnectionId = connection.CurrentConnectionId;
+                pago.Plaza = connection.CurrentPlaza;
+            }
+            return pago;
         }
 
         // Actualizar Pagos
@@ -56,15 +75,18 @@ namespace DAO.ADOS
         public List<Pago> GetAllPagos()
         {
             var query = "SELECT * FROM Pagos";
-            return connection.Query<Pago>(query).ToList();
+            var list = connection.Query<Pago>(query).ToList();
+            foreach (var item in list)
+            {
+                item.ConnectionId = connection.CurrentConnectionId;
+                item.Plaza = connection.CurrentPlaza;
+            }
+            return list;
         }
 
-        public List<clsPagosBusqueda> GetAllPagosBusqueda(int usuarioId)
+        public List<clsPagosBusqueda> GetAllPagosBusqueda(int usuarioId, bool isAdmin = false)
         {
             var query = @"
-                            DECLARE @HasFilter BIT =
-                                CASE WHEN EXISTS (SELECT 1 FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId)) THEN 1 ELSE 0 END;
-
                             SELECT 
                                 CAST(p.Id AS NVARCHAR(MAX)) AS Id,
                                 CAST(p.NombreCliente AS NVARCHAR(MAX)) AS Cliente,
@@ -83,14 +105,21 @@ namespace DAO.ADOS
                             FROM PAGOS p
                             JOIN ZONAS zn ON p.ZonaId = zn.Id
                             WHERE
-                                (@HasFilter = 0 OR EXISTS (
+                                @IsAdmin = 1
+                                OR EXISTS (
                                     SELECT 1
                                     FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId) f
                                     WHERE f.ZonaId = p.ZonaId
-                                ));
+                                );
                             ";
 
-            return connection.Query<clsPagosBusqueda>(query, new { UsuarioId = usuarioId }).ToList();
+            var list = connection.Query<clsPagosBusqueda>(query, new { UsuarioId = usuarioId, IsAdmin = isAdmin ? 1 : 0 }).ToList();
+            foreach (var item in list)
+            {
+                item.ConnectionId = connection.CurrentConnectionId;
+                item.Plaza = connection.CurrentPlaza;
+            }
+            return list;
         }
 
         public void Dispose()

@@ -1,4 +1,4 @@
-﻿using DAO.ADOS;
+using DAO.ADOS;
 using Entidades;
 using System;
 using System.Collections.Generic;
@@ -12,15 +12,32 @@ namespace LOGICA
     {
         PagoPartidasRepository contexto;
         ZonasRepository contextoZonas;
+        private readonly long? _connectionId;
+
+        public long? ConnectionId => _connectionId ?? (contexto != null ? contexto.ConnectionId : (long?)null);
+        public string Plaza => contexto != null ? contexto.Plaza : null;
 
         public List<Zona> LstZona;
         public PeriodoConsulta objConsulta;
 
         public PagoPartidaLogica()
         {
-
             contexto = new PagoPartidasRepository();
             contextoZonas = new ZonasRepository();
+        }
+
+        public PagoPartidaLogica(long connectionId)
+        {
+            _connectionId = connectionId;
+            contexto = new PagoPartidasRepository(connectionId);
+            contextoZonas = new ZonasRepository(connectionId);
+        }
+
+        public PagoPartidaLogica(string explicitConnectionString, string plaza = null, long connectionId = 0)
+        {
+            _connectionId = connectionId;
+            contexto = new PagoPartidasRepository(explicitConnectionString, plaza, connectionId);
+            contextoZonas = new ZonasRepository(explicitConnectionString, plaza, connectionId);
         }
 
         public void InicializarObjConsulta()

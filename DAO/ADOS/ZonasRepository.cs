@@ -1,4 +1,4 @@
-﻿using DAO;
+using DAO;
 using Entidades;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +9,22 @@ public class ZonasRepository
 {
     GenericRepository connection;
 
+    public long ConnectionId => connection.CurrentConnectionId;
+    public string Plaza => connection.CurrentPlaza;
+
     public ZonasRepository()
     {
         connection = new GenericRepository();
+    }
+
+    public ZonasRepository(long connectionId)
+    {
+        connection = new GenericRepository(connectionId);
+    }
+
+    public ZonasRepository(string explicitConnectionString, string plaza = null, long connectionId = 0)
+    {
+        connection = new GenericRepository(explicitConnectionString, plaza, connectionId);
     }
 
     // Crear Zona
@@ -28,7 +41,13 @@ public class ZonasRepository
     public Zona GetZonaById(int id)
     {
         var query = "SELECT * FROM ZONAS WHERE Id = @Id";
-        return connection.QuerySingle<Zona>(query, new { Id = id });
+        var zona = connection.QuerySingle<Zona>(query, new { Id = id });
+        if (zona != null)
+        {
+            zona.ConnectionId = connection.CurrentConnectionId;
+            zona.Plaza = connection.CurrentPlaza;
+        }
+        return zona;
     }
 
     // Actualizar Zona
@@ -46,34 +65,28 @@ public class ZonasRepository
     }
 
     // Leer Zona
-    public List<Zona> GetAllZonas(int? usuarioId = null)
+    public List<Zona> GetAllZonas(int? usuarioId = null, bool isAdmin = false)
     {
         var query = @"
--- Si no mandan usuarioId (NULL o 0) => todas
-IF (@UsuarioId IS NULL OR @UsuarioId = 0)
-BEGIN
-    SELECT *
-    FROM ZONAS
-    ORDER BY Nombre;
-    RETURN;
-END
-
--- Si mandan usuarioId, revisar si tiene filtro
-DECLARE @HasFilter BIT =
-    CASE WHEN EXISTS (SELECT 1 FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId)) THEN 1 ELSE 0 END;
-
 SELECT z.*
 FROM ZONAS z
 WHERE
-    (@HasFilter = 0 OR EXISTS (
+    @IsAdmin = 1
+    OR EXISTS (
         SELECT 1
         FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId) f
         WHERE f.ZonaId = z.Id
-    ))
+    )
 ORDER BY z.Nombre;
 ";
 
-        return connection.Query<Zona>(query, new { UsuarioId = usuarioId }).ToList();
+        var list = connection.Query<Zona>(query, new { UsuarioId = usuarioId ?? 0, IsAdmin = isAdmin ? 1 : 0 }).ToList();
+        foreach (var item in list)
+        {
+            item.ConnectionId = connection.CurrentConnectionId;
+            item.Plaza = connection.CurrentPlaza;
+        }
+        return list;
     }
 
 

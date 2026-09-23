@@ -1,4 +1,4 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Entidades;
@@ -71,10 +71,13 @@ namespace ControlPagoLotes
         private string observaciones;
 
 
-        public formBoleta(int? idRegistro)
+        private long? _connectionId;
+
+        public formBoleta(int? idRegistro, long? connectionId = null)
         {
             InitializeComponent();
             this.idRegistro = idRegistro;
+            this._connectionId = (connectionId.HasValue && connectionId.Value > 0) ? connectionId : null;
         }
 
         private void formBoleta_Load(object sender, EventArgs e)
@@ -92,9 +95,18 @@ namespace ControlPagoLotes
 
         private void InicializarModulo()
         {
-            contextoZonas = new ZonaLogica();
-            contextoPago = new PagoLogica();
-            contextoPagoPartida = new PagoPartidaLogica();
+            if (_connectionId.HasValue && _connectionId.Value > 0)
+            {
+                contextoZonas = new ZonaLogica(_connectionId.Value);
+                contextoPago = new PagoLogica(_connectionId.Value);
+                contextoPagoPartida = new PagoPartidaLogica(_connectionId.Value);
+            }
+            else
+            {
+                contextoZonas = new ZonaLogica();
+                contextoPago = new PagoLogica();
+                contextoPagoPartida = new PagoPartidaLogica();
+            }
 
             InicializarVariables();
 
@@ -102,10 +114,16 @@ namespace ControlPagoLotes
 
             InicializarDgv();
 
-            // btnAddPago.Enabled = true;
-            listaZonas = contextoZonas.GetAllZonas(Global.ObjUsuario.Id);
+            var nombreUsuario = Global.ObjUsuario != null ? Global.ObjUsuario.Usuario : null;
+            var usuarioId = Global.ObjUsuario != null ? Global.ObjUsuario.Id : 0;
+
+            bool nuevo = idRegistro == null;
+            listaZonas = nuevo
+                ? contextoZonas.GetAllZonas(usuarioId, nombreUsuario, unificarTodas: true)
+                : contextoZonas.GetAllZonas(usuarioId, nombreUsuario, unificarTodas: false);
+
             cbxZona.DataSource = listaZonas;
-            cbxZona.DisplayMember = "Nombre";
+            cbxZona.DisplayMember = "NombreConPlaza";
             cbxZona.ValueMember = "Id";
             cbxZona.SelectedIndex = -1;
 
@@ -117,8 +135,6 @@ namespace ControlPagoLotes
             cbxEstados.DataSource = listaEstados;
             cbxEstados.DisplayMember = "Nombre";
             cbxEstados.ValueMember = "Id";
-
-            bool nuevo = idRegistro == null;
 
             if (!nuevo)
             {
@@ -304,6 +320,20 @@ namespace ControlPagoLotes
 
             if (Obj == null)
             {
+                var selectedZona = cbxZona.SelectedItem as Zona;
+                long targetConnId = selectedZona != null && selectedZona.ConnectionId > 0
+                    ? selectedZona.ConnectionId
+                    : (_connectionId ?? 0);
+
+                if (targetConnId > 0 && targetConnId != (_connectionId ?? 0))
+                {
+                    _connectionId = targetConnId;
+                    contextoPago?.Dispose();
+                    contextoPagoPartida?.Dispose();
+                    contextoPago = new PagoLogica(targetConnId);
+                    contextoPagoPartida = new PagoPartidaLogica(targetConnId);
+                }
+
                 Obj = new Pago
                 {
                     NombreCliente = txtNombreCliente.Text,
@@ -316,7 +346,8 @@ namespace ControlPagoLotes
                     Estado = cbxEstados.SelectedValue.ToString(),
                     FechaCreacion = fechaServidor,
                     Telefonos = txtTelefono.Text,
-                    Observacion = observaciones
+                    Observacion = observaciones,
+                    ConnectionId = targetConnId
                 };
 
                 Obj.Id = contextoPago.AddPago(Obj);

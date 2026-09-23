@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,22 +14,149 @@ namespace DAO
         private readonly string _sqlitePath;
         private bool _disposed = false;
         private IDbConnection _connection; // conexión SQL Server viva (lazy)
+        private readonly string _explicitConnectionString;
+
+        public long CurrentConnectionId { get; set; }
+        public string CurrentPlaza { get; set; }
+
+        public static string GetLocalSqlitePath()
+        {
+            var dir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "jaadeproductions");
+            Directory.CreateDirectory(dir);
+            return Path.Combine(dir, "db_conexiones.sqlite");
+        }
+
+        public static List<(long Id, string Label, string ConnString, bool IsDefault)> GetAvailableConnections()
+        {
+            var path = GetLocalSqlitePath();
+            if (!File.Exists(path)) return new List<(long, string, string, bool)>();
+
+            var list = new List<(long, string, string, bool)>();
+            try
+            {
+                using (var cn = new SQLiteConnection($"Data Source={path};Version=3;"))
+                {
+                    cn.Open();
+                    using (var cmd = cn.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT id, label, conn_string, is_default FROM connections ORDER BY is_default DESC, label;";
+                        using (var rd = cmd.ExecuteReader())
+                        {
+                            while (rd.Read())
+                            {
+                                list.Add((rd.GetInt64(0), rd.GetString(1), rd.GetString(2), rd.GetInt32(3) == 1));
+                            }
+                        }
+                    }
+                }
+            }
+            catch { /* ignore */ }
+            return list;
+        }
+
+        public static (long Id, string Label, string ConnString, bool IsDefault)? GetConnectionById(long connectionId)
+        {
+            var path = GetLocalSqlitePath();
+            if (!File.Exists(path)) return null;
+
+            try
+            {
+                using (var cn = new SQLiteConnection($"Data Source={path};Version=3;"))
+                {
+                    cn.Open();
+                    using (var cmd = cn.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT id, label, conn_string, is_default FROM connections WHERE id = @id LIMIT 1;";
+                        cmd.Parameters.AddWithValue("@id", connectionId);
+                        using (var rd = cmd.ExecuteReader())
+                        {
+                            if (rd.Read())
+                            {
+                                return (rd.GetInt64(0), rd.GetString(1), rd.GetString(2), rd.GetInt32(3) == 1);
+                            }
+                        }
+                    }
+                }
+            }
+            catch { /* ignore */ }
+            return null;
+        }
+
+        public static (long Id, string Label, string ConnString, bool IsDefault)? GetDefaultConnectionInfo()
+        {
+            var path = GetLocalSqlitePath();
+            if (!File.Exists(path)) return null;
+
+            try
+            {
+                using (var cn = new SQLiteConnection($"Data Source={path};Version=3;"))
+                {
+                    cn.Open();
+                    using (var cmd = cn.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT id, label, conn_string, is_default FROM connections WHERE is_default = 1 LIMIT 1;";
+                        using (var rd = cmd.ExecuteReader())
+                        {
+                            if (rd.Read())
+                            {
+                                return (rd.GetInt64(0), rd.GetString(1), rd.GetString(2), true);
+                            }
+                        }
+                    }
+                }
+            }
+            catch { /* ignore */ }
+            return null;
+        }
 
         // -----------------------------
         // CTOR: usa SQLite local para obtener la conexión principal
         // -----------------------------
         public GenericRepository()
         {
-            // Puedes ajustar "TuApp" al nombre real de tu app
-            var dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "jaadeproductions");
-            Directory.CreateDirectory(dir);
-
-            _sqlitePath = Path.Combine(dir, "db_conexiones.sqlite");
-
-            // Asegura que exista la BD local y la tabla
+            _sqlitePath = GetLocalSqlitePath();
             EnsureLocalDb();
+
+            var def = GetDefaultConnectionInfo();
+            if (def.HasValue)
+            {
+                CurrentConnectionId = def.Value.Id;
+                CurrentPlaza = def.Value.Label;
+            }
+        }
+
+        // CTOR por connectionId configurada en SQLite
+        public GenericRepository(long connectionId)
+        {
+            _sqlitePath = GetLocalSqlitePath();
+            EnsureLocalDb();
+
+            var info = GetConnectionById(connectionId);
+            if (info.HasValue)
+            {
+                _explicitConnectionString = info.Value.ConnString;
+                CurrentConnectionId = info.Value.Id;
+                CurrentPlaza = info.Value.Label;
+            }
+            else
+            {
+                var def = GetDefaultConnectionInfo();
+                if (def.HasValue)
+                {
+                    CurrentConnectionId = def.Value.Id;
+                    CurrentPlaza = def.Value.Label;
+                }
+            }
+        }
+
+        // CTOR alterno con cadena de conexión SQL Server directa
+        public GenericRepository(string explicitConnectionString, string plaza = null, long connectionId = 0)
+        {
+            _explicitConnectionString = explicitConnectionString;
+            CurrentPlaza = plaza;
+            CurrentConnectionId = connectionId;
         }
 
         // CTOR alterno si quieres pasarle manualmente dónde está el sqlite
@@ -71,7 +198,7 @@ LIMIT 1;";
         }
 
         // -----------------------------
-        // Lazy connection a SQL Server (usa SIEMPRE la conexión principal)
+        // Lazy connection a SQL Server
         // -----------------------------
         private IDbConnection Connection
         {
@@ -79,7 +206,9 @@ LIMIT 1;";
             {
                 if (_connection == null)
                 {
-                    var cs = GetDefaultConnectionString();
+                    var cs = !string.IsNullOrWhiteSpace(_explicitConnectionString)
+                        ? _explicitConnectionString
+                        : GetDefaultConnectionString();
                     _connection = new SqlConnection(cs);
                 }
 

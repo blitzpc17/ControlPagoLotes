@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,5 +10,8 @@ namespace Entidades
     {
         public int Id { get; set; }
         public string Nombre { get; set; }
+        public long ConnectionId { get; set; }
+        public string Plaza { get; set; }
+        public string NombreConPlaza => string.IsNullOrWhiteSpace(Plaza) ? Nombre : $"{Nombre} [{Plaza}]";
     }
 }

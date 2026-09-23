@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,5 +20,7 @@ namespace Entidades
         public DateTime FechaCreacion { get; set; }
         public string Telefonos { get;set; }
         public string Observacion { get; set; }
+        public long ConnectionId { get; set; }
+        public string Plaza { get; set; }
     }
 }

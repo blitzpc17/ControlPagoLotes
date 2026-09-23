@@ -1,4 +1,4 @@
-﻿using Entidades;
+using Entidades;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,13 +7,36 @@ using System.Threading.Tasks;
 
 namespace DAO.ADOS
 {
-    public class UsuariosRepository
+    public class UsuariosRepository : IDisposable
     {
         GenericRepository connection;
+
+        public long ConnectionId => connection.CurrentConnectionId;
+        public string Plaza => connection.CurrentPlaza;
+
+        public void Dispose()
+        {
+        }
 
         public UsuariosRepository()
         {
             connection = new GenericRepository();
+        }
+
+        public UsuariosRepository(long connectionId)
+        {
+            connection = new GenericRepository(connectionId);
+        }
+
+        public UsuariosRepository(string explicitConnectionString, string plaza = null, long connectionId = 0)
+        {
+            connection = new GenericRepository(explicitConnectionString, plaza, connectionId);
+        }
+
+        public UsuarioL GetUsuarioByNombre(string nombreUsuario)
+        {
+            var query = "SELECT TOP 1 * FROM Usuarios WHERE UPPER(Usuario) = UPPER(@usuario)";
+            return connection.QuerySingle<UsuarioL>(query, new { usuario = nombreUsuario });
         }
 
         // Crear UsuarioL
@@ -23,7 +46,7 @@ namespace DAO.ADOS
                       VALUES (@Usuario, @Password);
                       SELECT CAST(SCOPE_IDENTITY() as int);";
 
-            return connection.Execute(query, UsuarioL);
+            return connection.ExecuteScalar(query, UsuarioL);
         }
 
         // Leer UsuarioL
