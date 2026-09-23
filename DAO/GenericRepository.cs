@@ -95,6 +95,27 @@ namespace DAO
             return offlineLabels;
         }
 
+        public static async Task<bool> PingConnectionAsync(long connectionId)
+        {
+            var info = GetConnectionById(connectionId);
+            if (info == null) return false;
+
+            var builder = new SqlConnectionStringBuilder(info.Value.ConnString);
+            builder.ConnectTimeout = 3;
+            try
+            {
+                using (var cn = new SqlConnection(builder.ConnectionString))
+                {
+                    await cn.OpenAsync();
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static (long Id, string Label, string ConnString, bool IsDefault)? GetConnectionById(long connectionId)
         {
             var path = GetLocalSqlitePath();

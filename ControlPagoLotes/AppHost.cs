@@ -1,4 +1,6 @@
-﻿using System;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ControlPagoLotes
@@ -6,6 +8,7 @@ namespace ControlPagoLotes
     public class AppHost : Form
     {
         private readonly string _sqlitePath;
+        private bool _isCheckingConnections = false;
 
         public AppHost(string sqlitePath)
         {
@@ -15,6 +18,65 @@ namespace ControlPagoLotes
             ShowInTaskbar = false;
             WindowState = FormWindowState.Minimized;
             Opacity = 0;
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            IniciarMonitoreoAsincrono();
+        }
+
+        private async void IniciarMonitoreoAsincrono()
+        {
+            while (true)
+            {
+                // Espera 60 segundos (1 minuto)
+                await Task.Delay(60000);
+                await VerificarConexionesCaidas();
+            }
+        }
+
+        private async Task VerificarConexionesCaidas()
+        {
+            if (_isCheckingConnections) return;
+            
+            var inactives = LOGICA.LoginLogica.ObtenerConexionesInactivas();
+            if (inactives.Count == 0) return;
+
+            _isCheckingConnections = true;
+            try
+            {
+                foreach (var id in inactives)
+                {
+                    bool isOnline = await LOGICA.LoginLogica.PingConexionAsync(id);
+                    if (isOnline)
+                    {
+                        string nombre = LOGICA.LoginLogica.ObtenerNombreConexion(id);
+                        if (!string.IsNullOrEmpty(nombre))
+                        {
+                            string mensaje = $"La sucursal '{nombre}' vuelve a estar disponible.\n\n" +
+                                             "¿Deseas activarla para incluirla en tus consultas a partir de ahora?\n\n" +
+                                             "(Si seleccionas que No, podrás activarla más tarde reiniciando el programa).";
+
+                            var result = MessageBox.Show(
+                                mensaje,
+                                "Sucursal reconectada",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Information
+                            );
+
+                            if (result == DialogResult.Yes)
+                            {
+                                LOGICA.LoginLogica.RemoverConexionInactiva(id);
+                            }
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                _isCheckingConnections = false;
+            }
         }
 
         protected override void OnShown(EventArgs e)

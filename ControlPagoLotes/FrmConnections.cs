@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SQLite;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ControlPagoLotes
@@ -26,8 +27,36 @@ namespace ControlPagoLotes
 
         private void FrmConnections_Load(object sender, EventArgs e)
         {
+            dgv.CellFormatting += Dgv_CellFormatting;
             LoadGrid();
             ClearForm();
+        }
+
+        private void Dgv_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex >= 0 && dgv.Columns[e.ColumnIndex].Name == "status" && e.Value != null)
+            {
+                string status = e.Value.ToString();
+                if (status.Contains("En Línea"))
+                {
+                    e.CellStyle.ForeColor = System.Drawing.Color.White;
+                    e.CellStyle.BackColor = System.Drawing.Color.MediumSeaGreen;
+                    e.CellStyle.SelectionBackColor = System.Drawing.Color.SeaGreen;
+                }
+                else if (status.Contains("Desconectada"))
+                {
+                    e.CellStyle.ForeColor = System.Drawing.Color.White;
+                    e.CellStyle.BackColor = System.Drawing.Color.Crimson;
+                    e.CellStyle.SelectionBackColor = System.Drawing.Color.DarkRed;
+                }
+                else if (status.Contains("Comprobando"))
+                {
+                    e.CellStyle.ForeColor = System.Drawing.Color.Black;
+                    e.CellStyle.BackColor = System.Drawing.Color.LightGoldenrodYellow;
+                    e.CellStyle.SelectionForeColor = System.Drawing.Color.Black;
+                    e.CellStyle.SelectionBackColor = System.Drawing.Color.Khaki;
+                }
+            }
         }
 
         // =============================
@@ -50,6 +79,12 @@ namespace ControlPagoLotes
                 var dt = new DataTable();
                 da.Fill(dt);
 
+                dt.Columns.Add("status", typeof(string));
+                foreach (DataRow row in dt.Rows)
+                {
+                    row["status"] = "Comprobando...";
+                }
+
                 dgv.DataSource = dt;
 
                 if (dgv.Columns["conn_string"] != null)
@@ -66,6 +101,35 @@ namespace ControlPagoLotes
 
                 if (dgv.Columns["updated_at"] != null)
                     dgv.Columns["updated_at"].HeaderText = "Actualizado";
+
+                if (dgv.Columns["status"] != null)
+                    dgv.Columns["status"].HeaderText = "Estado";
+
+                ActualizarEstatusConexionesAsync(dt);
+            }
+        }
+
+        private async void ActualizarEstatusConexionesAsync(DataTable dt)
+        {
+            foreach (DataRow row in dt.Rows)
+            {
+                var connString = row["conn_string"].ToString();
+                bool isOnline = await Task.Run(() =>
+                {
+                    try
+                    {
+                        var builder = new SqlConnectionStringBuilder(connString);
+                        builder.ConnectTimeout = 3;
+                        using (var sqlCn = new SqlConnection(builder.ConnectionString))
+                        {
+                            sqlCn.Open();
+                            return true;
+                        }
+                    }
+                    catch { return false; }
+                });
+
+                row["status"] = isOnline ? "En Línea ✅" : "Desconectada ❌";
             }
         }
 

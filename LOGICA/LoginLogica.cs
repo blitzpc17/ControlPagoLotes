@@ -22,6 +22,33 @@ namespace LOGICA
             return await DAO.GenericRepository.CheckAndDisableOfflineConnectionsAsync();
         }
 
+        public static List<long> ObtenerConexionesInactivas()
+        {
+            lock (DAO.GenericRepository.InactiveConnectionIds)
+            {
+                return DAO.GenericRepository.InactiveConnectionIds.ToList();
+            }
+        }
+
+        public static async Task<bool> PingConexionAsync(long id)
+        {
+            return await DAO.GenericRepository.PingConnectionAsync(id);
+        }
+
+        public static string ObtenerNombreConexion(long id)
+        {
+            var info = DAO.GenericRepository.GetConnectionById(id);
+            return info?.Label;
+        }
+
+        public static void RemoverConexionInactiva(long id)
+        {
+            lock (DAO.GenericRepository.InactiveConnectionIds)
+            {
+                DAO.GenericRepository.InactiveConnectionIds.Remove(id);
+            }
+        }
+
         public UsuarioL ValidarAcceso(string usuario, string pass)
         {
             // Probar primero en la conexión principal
