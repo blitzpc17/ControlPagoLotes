@@ -17,6 +17,11 @@ namespace LOGICA
         
         }
 
+        public async Task<List<string>> ValidarConexionesAsync()
+        {
+            return await DAO.GenericRepository.CheckAndDisableOfflineConnectionsAsync();
+        }
+
         public UsuarioL ValidarAcceso(string usuario, string pass)
         {
             // Probar primero en la conexión principal

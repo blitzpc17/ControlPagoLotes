@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DAO
 {
@@ -28,7 +29,9 @@ namespace DAO
             return Path.Combine(dir, "db_conexiones.sqlite");
         }
 
-        public static List<(long Id, string Label, string ConnString, bool IsDefault)> GetAvailableConnections()
+        public static List<long> InactiveConnectionIds = new List<long>();
+
+        public static List<(long Id, string Label, string ConnString, bool IsDefault)> GetAvailableConnections(bool includeInactive = false)
         {
             var path = GetLocalSqlitePath();
             if (!File.Exists(path)) return new List<(long, string, string, bool)>();
@@ -46,7 +49,11 @@ namespace DAO
                         {
                             while (rd.Read())
                             {
-                                list.Add((rd.GetInt64(0), rd.GetString(1), rd.GetString(2), rd.GetInt32(3) == 1));
+                                var id = rd.GetInt64(0);
+                                if (includeInactive || !InactiveConnectionIds.Contains(id))
+                                {
+                                    list.Add((id, rd.GetString(1), rd.GetString(2), rd.GetInt32(3) == 1));
+                                }
                             }
                         }
                     }
@@ -54,6 +61,38 @@ namespace DAO
             }
             catch { /* ignore */ }
             return list;
+        }
+
+        public static async Task<List<string>> CheckAndDisableOfflineConnectionsAsync()
+        {
+            var offlineLabels = new List<string>();
+            var all = GetAvailableConnections(includeInactive: true); 
+
+            var tasks = all.Select(async conn => 
+            {
+                 var builder = new SqlConnectionStringBuilder(conn.ConnString);
+                 builder.ConnectTimeout = 3; 
+                 try 
+                 {
+                     using(var sql = new SqlConnection(builder.ConnectionString)) 
+                     {
+                         await sql.OpenAsync();
+                     }
+                 }
+                 catch 
+                 {
+                     lock(InactiveConnectionIds) {
+                         if (!InactiveConnectionIds.Contains(conn.Id)) 
+                             InactiveConnectionIds.Add(conn.Id);
+                     }
+                     lock(offlineLabels) {
+                         offlineLabels.Add(conn.Label);
+                     }
+                 }
+            });
+            
+            await Task.WhenAll(tasks);
+            return offlineLabels;
         }
 
         public static (long Id, string Label, string ConnString, bool IsDefault)? GetConnectionById(long connectionId)

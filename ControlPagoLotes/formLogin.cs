@@ -1,5 +1,6 @@
-﻿using LOGICA;
+using LOGICA;
 using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ControlPagoLotes
@@ -24,15 +25,31 @@ namespace ControlPagoLotes
             InicializarModulo();
         }
 
-        private void btnAcceder_Click(object sender, EventArgs e)
+        private async void btnAcceder_Click(object sender, EventArgs e)
         {
-            IniciarSecion();
+            await IniciarSecionAsync();
         }
 
-        private void IniciarSecion()
+        private async Task IniciarSecionAsync()
         {
             try
             {
+                btnAcceder.Enabled = false;
+                string originalText = btnAcceder.Text;
+                btnAcceder.Text = "Validando...";
+
+                var offlineConnections = await contexto.ValidarConexionesAsync();
+                if (offlineConnections.Count > 0)
+                {
+                    string msj = "Las siguientes sucursales no están disponibles en este momento:\n\n- " 
+                                 + string.Join("\n- ", offlineConnections) 
+                                 + "\n\nEl sistema omitirá estas conexiones durante esta sesión.";
+                    MessageBox.Show(msj, "Aviso de Conexiones", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
+                btnAcceder.Text = originalText;
+                btnAcceder.Enabled = true;
+
                 Global.ObjUsuario = contexto.ValidarAcceso(txtUsuario.Text, txtPassword.Text);
 
                 if (Global.ObjUsuario == null)
