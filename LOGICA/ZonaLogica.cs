@@ -106,7 +106,10 @@ namespace LOGICA
                             }
                         }
                     }
-                    catch { }
+                    catch (Exception ex) 
+                    {
+                        Console.WriteLine("Error resolving local user ID: " + ex.Message);
+                    }
                 }
                 return contexto.GetAllZonas(localUserId, isAdmin || verTodas);
             }

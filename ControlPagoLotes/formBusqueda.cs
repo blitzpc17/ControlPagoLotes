@@ -216,6 +216,10 @@ namespace ControlPagoLotes
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            if (!string.IsNullOrWhiteSpace(txtBusqueda.Text))
+            {
+                Filtrar(txtBusqueda.Text, columna);
+            }
             SetDataDatagridView();
             tsCargandoInformacion.Text = "";
         }
