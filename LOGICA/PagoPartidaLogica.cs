@@ -84,10 +84,11 @@ namespace LOGICA
         {
             return contexto.InsertarPartidasPago(query);
         }
-        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj, int usuarioId, string nombreUsuario = null)
+        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj, int usuarioId, string nombreUsuario = null, List<long> targetConnections = null)
         {
             if (_connectionId.HasValue)
             {
+                if (targetConnections != null && targetConnections.Count > 0 && !targetConnections.Contains(_connectionId.Value)) return new List<clsDATACORTE>();
                 return contexto.ListarPagoPorFecha(obj, usuarioId);
             }
 
@@ -97,6 +98,11 @@ namespace LOGICA
             if (connections == null || connections.Count == 0)
             {
                 return contexto.ListarPagoPorFecha(obj, usuarioId);
+            }
+
+            if (targetConnections != null && targetConnections.Count > 0)
+            {
+                connections = connections.Where(c => targetConnections.Contains(c.Id)).ToList();
             }
 
             foreach (var conn in connections)
@@ -159,6 +165,20 @@ namespace LOGICA
                 var zonaLogic = new ZonaLogica();
                 LstZona = zonaLogic.GetAllZonas(unificarTodas: true);
             }
+        }
+
+        public static Dictionary<long, string> GetConexionesDisponibles()
+        {
+            var dict = new Dictionary<long, string>();
+            var connections = DAO.GenericRepository.GetAvailableConnections();
+            if (connections != null)
+            {
+                foreach (var conn in connections)
+                {
+                    dict.Add(conn.Id, conn.Label);
+                }
+            }
+            return dict;
         }
     }
 }

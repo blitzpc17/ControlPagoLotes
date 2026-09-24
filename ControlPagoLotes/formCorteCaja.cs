@@ -26,6 +26,9 @@ namespace ControlPagoLotes
         private decimal montoMigrado = 0;
         private Enumeraciones.Periodo periodoSeleccionado;
         private Enumeraciones.Meses mesSeleccionado;
+        private List<long> _targetConnections = null;
+        private ComboBox cbxConexiones;
+        private CheckBox chkTodasConexiones;
         public formCorteCaja()
         {
             InitializeComponent();
@@ -69,7 +72,65 @@ namespace ControlPagoLotes
             numericAnioMes.Value = DateTime.Now.Year;
             numAnioSemana.Value = DateTime.Now.Year;
 
+            AgregarFiltroConexiones();
+        }
 
+        private void AgregarFiltroConexiones()
+        {
+            var labelConexion = new Label
+            {
+                AutoSize = true,
+                Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold),
+                Location = new Point(28, 9),
+                Text = "Conexión:"
+            };
+
+            cbxConexiones = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Microsoft Sans Serif", 12F),
+                Location = new Point(140, 6),
+                Size = new Size(212, 28),
+                Enabled = false
+            };
+
+            chkTodasConexiones = new CheckBox
+            {
+                AutoSize = true,
+                Checked = true,
+                Font = new Font("Microsoft Sans Serif", 12F),
+                Location = new Point(365, 8),
+                Text = "Todas"
+            };
+
+            chkTodasConexiones.CheckedChanged += (s, e) => {
+                cbxConexiones.Enabled = !chkTodasConexiones.Checked;
+            };
+
+            // Shift other controls down by 35 pixels
+            var snapshot = new List<Control>();
+            foreach (Control c in panel1.Controls) snapshot.Add(c);
+            
+            foreach (Control c in snapshot)
+            {
+                c.Top += 35;
+            }
+
+            panel1.Controls.Add(labelConexion);
+            panel1.Controls.Add(cbxConexiones);
+            panel1.Controls.Add(chkTodasConexiones);
+            
+            panel1.Height += 35;
+            dgvRegistros.Top += 35;
+            dgvRegistros.Height -= 35;
+
+            var conexionesDict = LOGICA.PagoPartidaLogica.GetConexionesDisponibles();
+            if (conexionesDict != null && conexionesDict.Count > 0)
+            {
+                cbxConexiones.DataSource = new BindingSource(conexionesDict, null);
+                cbxConexiones.DisplayMember = "Value";
+                cbxConexiones.ValueMember = "Key";
+            }
         }
 
         private void CargarLotificaciones()
@@ -89,7 +150,7 @@ namespace ControlPagoLotes
 
         private void ListarPagosPorFecha()
         {
-            ListaPagosDiarios = contexto.ListarPagoPorFecha(contexto.objConsulta, Global.ObjUsuario.Id, Global.ObjUsuario.Usuario);
+            ListaPagosDiarios = contexto.ListarPagoPorFecha(contexto.objConsulta, Global.ObjUsuario.Id, Global.ObjUsuario.Usuario, _targetConnections);
           
             //agregar monto migrados
            montoNuevos = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? (ListaPagosDiarios
@@ -438,6 +499,17 @@ namespace ControlPagoLotes
                         break;
                 }
 
+                if (chkTodasConexiones.Checked)
+                {
+                    _targetConnections = null;
+                }
+                else
+                {
+                    if (cbxConexiones.SelectedValue != null)
+                    {
+                        _targetConnections = new List<long> { (long)cbxConexiones.SelectedValue };
+                    }
+                }
 
                 tsCargandoInformacion.Text = "Cargando información...";
                 backgroundWorker1.RunWorkerAsync();

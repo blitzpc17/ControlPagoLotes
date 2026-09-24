@@ -102,25 +102,27 @@ namespace ControlPagoLotes
         {
             ListaAux = Lista;
 
-            if (string.IsNullOrWhiteSpace(palabra))
-                return;
+            bool isFilter = !string.IsNullOrWhiteSpace(palabra);
 
             switch (columna)
             {
-                case 1: ListaAux = ListaAux.Where(x => x.Cliente != null && x.Cliente.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Cliente).ToList(); break;
-                case 2: ListaAux = ListaAux.Where(x => x.Zona != null && x.Zona.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Zona).ThenBy(x => x.Cliente).ToList(); break;
-                case 3: ListaAux = ListaAux.Where(x => x.Lotes != null && x.Lotes.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Lotes).ThenBy(x => x.Cliente).ToList(); break;
-                case 4: ListaAux = ListaAux.Where(x => x.Total != null && x.Total.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Total).ThenBy(x => x.Cliente).ToList(); break;
-                case 5: ListaAux = ListaAux.Where(x => x.Fecha != null && x.Fecha.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Fecha).ThenBy(x => x.Cliente).ToList(); break;
-                case 7: ListaAux = ListaAux.Where(x => x.NombreEstado != null && x.NombreEstado.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.NombreEstado).ThenBy(x => x.Cliente).ToList(); break;
-                case 9: ListaAux = ListaAux.Where(x => x.Plaza != null && x.Plaza.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.Plaza).ThenBy(x => x.Cliente).ToList(); break;
+                case 1: ListaAux = ListaAux.Where(x => !isFilter || (x.Cliente != null && x.Cliente.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0)).OrderBy(x => x.Cliente).ToList(); break;
+                case 2: ListaAux = ListaAux.Where(x => !isFilter || (x.Zona != null && x.Zona.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0)).OrderBy(x => x.Zona).ThenBy(x => x.Cliente).ToList(); break;
+                case 3: ListaAux = ListaAux.Where(x => !isFilter || (x.Lotes != null && x.Lotes.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0)).OrderBy(x => x.Lotes).ThenBy(x => x.Cliente).ToList(); break;
+                case 4: ListaAux = ListaAux.Where(x => !isFilter || (x.Total != null && x.Total.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0)).OrderBy(x => x.Total).ThenBy(x => x.Cliente).ToList(); break;
+                case 5: ListaAux = ListaAux.Where(x => !isFilter || (x.Fecha != null && x.Fecha.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0)).OrderBy(x => x.Fecha).ThenBy(x => x.Cliente).ToList(); break;
+                case 7: ListaAux = ListaAux.Where(x => !isFilter || (x.NombreEstado != null && x.NombreEstado.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0)).OrderBy(x => x.NombreEstado).ThenBy(x => x.Cliente).ToList(); break;
+                case 9: ListaAux = ListaAux.Where(x => !isFilter || (x.Plaza != null && x.Plaza.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0)).OrderBy(x => x.Plaza).ThenBy(x => x.Cliente).ToList(); break;
                 default:
-                    ListaAux = ListaAux.Where(x => 
-                        (x.Cliente != null && x.Cliente.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                        (x.Zona != null && x.Zona.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                        (x.Plaza != null && x.Plaza.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                        (x.Lotes != null && x.Lotes.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0)
-                    ).ToList();
+                    if (isFilter)
+                    {
+                        ListaAux = ListaAux.Where(x => 
+                            (x.Cliente != null && x.Cliente.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                            (x.Zona != null && x.Zona.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                            (x.Plaza != null && x.Plaza.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                            (x.Lotes != null && x.Lotes.IndexOf(palabra, StringComparison.OrdinalIgnoreCase) >= 0)
+                        ).ToList();
+                    }
                     break;
             }
         }
@@ -196,7 +198,7 @@ namespace ControlPagoLotes
             if (columna == nuevaColumna) return;
             columna = nuevaColumna;
             txtBusqueda.Clear();
-            ListaAux = Lista;
+            Filtrar("", columna);
             SetDataDatagridView();
         }
 
