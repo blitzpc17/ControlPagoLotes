@@ -95,7 +95,7 @@ namespace LOGICA
                         if (connIdToUse > 0)
                         {
                             var repoInfo = DAO.GenericRepository.GetConnectionById(connIdToUse);
-                            if (repoInfo.HasValue && !repoInfo.Value.IsDefault)
+                            if (repoInfo.HasValue)
                             {
                                 using (var userRepo = new DAO.ADOS.UsuariosRepository(repoInfo.Value.ConnString, repoInfo.Value.Label, repoInfo.Value.Id))
                                 {
