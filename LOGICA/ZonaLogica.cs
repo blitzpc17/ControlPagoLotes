@@ -85,7 +85,30 @@ namespace LOGICA
 
             if (_connectionId.HasValue || !unificarTodas)
             {
-                return contexto.GetAllZonas(usuarioId, isAdmin || verTodas);
+                int? localUserId = usuarioId;
+                if (!isAdmin && !verTodas && !string.IsNullOrWhiteSpace(nombreUsuario))
+                {
+                    // Resolve the local user ID for this specific connection
+                    try
+                    {
+                        var connIdToUse = _connectionId ?? DAO.GenericRepository.GetDefaultConnectionInfo()?.Id ?? 0;
+                        if (connIdToUse > 0)
+                        {
+                            var repoInfo = DAO.GenericRepository.GetConnectionById(connIdToUse);
+                            if (repoInfo.HasValue && !repoInfo.Value.IsDefault)
+                            {
+                                using (var userRepo = new DAO.ADOS.UsuariosRepository(repoInfo.Value.ConnString, repoInfo.Value.Label, repoInfo.Value.Id))
+                                {
+                                    var user = userRepo.GetUsuarioByNombre(nombreUsuario);
+                                    if (user != null) localUserId = user.Id;
+                                    else localUserId = 0; // User doesn't exist here
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                return contexto.GetAllZonas(localUserId, isAdmin || verTodas);
             }
 
             var connections = DAO.GenericRepository.GetAvailableConnections();
