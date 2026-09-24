@@ -13,5 +13,6 @@ namespace Entidades
         public long ConnectionId { get; set; }
         public string Plaza { get; set; }
         public string NombreConPlaza => string.IsNullOrWhiteSpace(Plaza) ? Nombre : $"{Nombre} [{Plaza}]";
+        public string UniqueKey => $"{ConnectionId}_{Id}";
     }
 }

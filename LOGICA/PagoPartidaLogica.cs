@@ -84,14 +84,63 @@ namespace LOGICA
         {
             return contexto.InsertarPartidasPago(query);
         }
-        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj, int usuarioId)
+        public List<clsDATACORTE> ListarPagoPorFecha(PeriodoConsulta obj, int usuarioId, string nombreUsuario = null)
         {
-            return contexto.ListarPagoPorFecha(obj, usuarioId);
+            if (_connectionId.HasValue)
+            {
+                return contexto.ListarPagoPorFecha(obj, usuarioId);
+            }
+
+            var allData = new List<clsDATACORTE>();
+            var connections = DAO.GenericRepository.GetAvailableConnections();
+
+            if (connections == null || connections.Count == 0)
+            {
+                return contexto.ListarPagoPorFecha(obj, usuarioId);
+            }
+
+            foreach (var conn in connections)
+            {
+                try
+                {
+                    int localUserId = 0;
+                    if (!string.IsNullOrWhiteSpace(nombreUsuario))
+                    {
+                        using (var userRepo = new UsuariosRepository(conn.ConnString, conn.Label, conn.Id))
+                        {
+                            var user = userRepo.GetUsuarioByNombre(nombreUsuario);
+                            if (user != null) localUserId = user.Id;
+                        }
+                    }
+                    else if (conn.IsDefault)
+                    {
+                        localUserId = usuarioId;
+                    }
+
+                    if (localUserId > 0 || string.Equals(nombreUsuario, "ADMIN", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var repo = new PagoPartidasRepository(conn.ConnString, conn.Label, conn.Id);
+                        var results = repo.ListarPagoPorFecha(obj, localUserId);
+                        allData.AddRange(results);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error querying PagoPartidas en plaza {conn.Label}: {ex.Message}");
+                }
+            }
+
+            return allData.OrderByDescending(x => x.FechaPago).ToList();
         }
 
         public void Dispose()
         {
-            contexto.Dispose();
+            contexto?.Dispose();
+        }
+
+        public async Task<List<string>> CheckAndDisableOfflineConnectionsAsync()
+        {
+            return await DAO.GenericRepository.CheckAndDisableOfflineConnectionsAsync();
         }
 
         public List<PagoPartida> ListarPartidasPagos(string idsRelacionados)
@@ -101,7 +150,15 @@ namespace LOGICA
 
         public void ListarLotificaciones()
         {
-            LstZona = contextoZonas.GetAllZonas();
+            if (_connectionId.HasValue)
+            {
+                LstZona = contextoZonas.GetAllZonas();
+            }
+            else
+            {
+                var zonaLogic = new ZonaLogica();
+                LstZona = zonaLogic.GetAllZonas(unificarTodas: true);
+            }
         }
     }
 }

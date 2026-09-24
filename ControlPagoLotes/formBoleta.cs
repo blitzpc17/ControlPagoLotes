@@ -124,7 +124,7 @@ namespace ControlPagoLotes
 
             cbxZona.DataSource = listaZonas;
             cbxZona.DisplayMember = "NombreConPlaza";
-            cbxZona.ValueMember = "Id";
+            cbxZona.ValueMember = "UniqueKey";
             cbxZona.SelectedIndex = -1;
 
             var listaEstados = Enum.GetValues(typeof(Enumeraciones.Estados))
@@ -142,7 +142,7 @@ namespace ControlPagoLotes
 
                 txtNombreCliente.Text = Obj.NombreCliente;
                 txtDiaPago.Text = Obj.DiaPago;
-                cbxZona.SelectedValue = Obj.ZonaId;
+                cbxZona.SelectedValue = $"{Obj.ConnectionId}_{Obj.ZonaId}";
                 cbxEstados.SelectedValue = Convert.ToInt32(Obj.Estado);
                 txtLotes.Text = Obj.Lotes;
                 txtMeses.Text = Obj.Meses;
@@ -339,7 +339,7 @@ namespace ControlPagoLotes
                     NombreCliente = txtNombreCliente.Text,
                     Total = decimal.Parse(txtTotal.Text),
                     Meses = txtMeses.Text,
-                    ZonaId = (int)cbxZona.SelectedValue,
+                    ZonaId = ((Zona)cbxZona.SelectedItem).Id,
                     DiaPago = txtDiaPago.Text,
                     Lotes = txtLotes.Text,
                     FechaRegistro = dtpFechaContrato.Value,
@@ -360,7 +360,7 @@ namespace ControlPagoLotes
                 Obj.NombreCliente = txtNombreCliente.Text;
                 Obj.Total = decimal.Parse(txtTotal.Text);
                 Obj.Meses = txtMeses.Text;
-                Obj.ZonaId = (int)cbxZona.SelectedValue;
+                Obj.ZonaId = ((Zona)cbxZona.SelectedItem).Id;
                 Obj.DiaPago = txtDiaPago.Text;
                 Obj.Lotes = txtLotes.Text;
                 Obj.FechaRegistro = dtpFechaContrato.Value;

@@ -1,4 +1,4 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using Entidades;
 using LOGICA;
 using System;
@@ -31,12 +31,30 @@ namespace ControlPagoLotes
             InitializeComponent();
         }
 
-        private void InicializarFormulario()
+        private async void InicializarFormulario()
         {
             contexto = new PagoPartidaLogica();
            
             InicializarControles();
            
+            // Verify offline connections
+            var offlineConnections = await contexto.CheckAndDisableOfflineConnectionsAsync();
+            if (offlineConnections.Count > 0)
+            {
+                Label lblOfflineWarning = new Label
+                {
+                    Text = "ADVERTENCIA: Las siguientes plazas están desconectadas y no se incluyen en el corte: " + string.Join(", ", offlineConnections),
+                    ForeColor = Color.Red,
+                    Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold),
+                    Dock = DockStyle.Bottom,
+                    Height = 25,
+                    TextAlign = ContentAlignment.MiddleCenter
+                };
+                this.panel1.Controls.Add(lblOfflineWarning);
+                this.panel1.Height += 25;
+                this.dgvRegistros.Top += 25;
+                this.dgvRegistros.Height -= 25;
+            }
         }
 
         private void InicializarControles()
@@ -71,7 +89,7 @@ namespace ControlPagoLotes
 
         private void ListarPagosPorFecha()
         {
-            ListaPagosDiarios = contexto.ListarPagoPorFecha(contexto.objConsulta, Global.ObjUsuario.Id);
+            ListaPagosDiarios = contexto.ListarPagoPorFecha(contexto.objConsulta, Global.ObjUsuario.Id, Global.ObjUsuario.Usuario);
           
             //agregar monto migrados
            montoNuevos = (ListaPagosDiarios != null && ListaPagosDiarios.Count > 0) ? (ListaPagosDiarios

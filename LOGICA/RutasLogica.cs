@@ -154,14 +154,13 @@ namespace LOGICA
                         }
                         else
                         {
-                            if (zonasPorConexion != null && zonasPorConexion.ContainsKey(conn.Id) && zonasPorConexion[conn.Id].Count > 0)
+                            // Create the user in the other connection even if no zones are assigned
+                            // This ensures they exist and their permissions (even if empty) can be correctly processed
+                            localUserId = uRepo.AddUsuarioL(new UsuarioL
                             {
-                                localUserId = uRepo.AddUsuarioL(new UsuarioL
-                                {
-                                    Usuario = nombreUsuario,
-                                    Password = password ?? ""
-                                });
-                            }
+                                Usuario = nombreUsuario,
+                                Password = password ?? ""
+                            });
                         }
                     }
 
