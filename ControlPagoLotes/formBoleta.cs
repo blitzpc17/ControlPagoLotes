@@ -501,6 +501,46 @@ namespace ControlPagoLotes
 
         }
 
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // Convertir la tecla Enter en un movimiento horizontal (como Tab) dentro del DataGridView
+            if ((keyData == Keys.Enter || keyData == (Keys.Enter | Keys.Shift)) && dgvRegistros.ContainsFocus)
+            {
+                bool forward = keyData == Keys.Enter;
+
+                if (dgvRegistros.IsCurrentCellInEditMode)
+                {
+                    dgvRegistros.EndEdit();
+                }
+
+                if (dgvRegistros.CurrentCell != null)
+                {
+                    int col = dgvRegistros.CurrentCell.ColumnIndex;
+                    int row = dgvRegistros.CurrentCell.RowIndex;
+
+                    int step = forward ? 1 : -1;
+                    int nextCol = col + step;
+
+                    // Buscar la siguiente columna visible y editable
+                    while (nextCol >= 0 && nextCol < dgvRegistros.ColumnCount)
+                    {
+                        if (dgvRegistros.Columns[nextCol].Visible && !dgvRegistros.Columns[nextCol].ReadOnly)
+                        {
+                            dgvRegistros.CurrentCell = dgvRegistros.Rows[row].Cells[nextCol];
+                            dgvRegistros.BeginEdit(true);
+                            return true;
+                        }
+                        nextCol += step;
+                    }
+
+                    // Si ya no hay más columnas, evitamos que salte a otra fila (comportamiento original)
+                    return true; 
+                }
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         private void btnAddPago_Click(object sender, EventArgs e)
         {
             if (!Validaciones())
@@ -687,18 +727,17 @@ namespace ControlPagoLotes
                 ListaCeldas = new List<clsCELDASPAGOS>();
             }
 
-            if (indexActual < 0)
-            {
-                ListaCeldas.Add(new clsCELDASPAGOS());
-            }
-            else
-            {
-                indexActual = dgvRegistros.CurrentRow.Index;
-                //ListaCeldas.Insert(indexActual, new clsCELDASPAGOS());
-                ListaCeldas.Add(new clsCELDASPAGOS());
-            }          
+            var nuevaCelda = new clsCELDASPAGOS();
+            ListaCeldas.Add(nuevaCelda);
+            
+            // Añadir fila directamente sin recargar todo el DGV
+            int rowIndex = dgvRegistros.Rows.Add(nuevaCelda.Id, nuevaCelda.Monto, nuevaCelda.Fecha, nuevaCelda.Modificar, nuevaCelda.Eliminar, nuevaCelda.FormaPago);
+            
+            // Foco en la nueva fila, primera columna editable (Monto, que es index 1)
+            dgvRegistros.CurrentCell = dgvRegistros.Rows[rowIndex].Cells[1];
+            dgvRegistros.BeginEdit(true);
 
-            MostrarCeldasEnDgv();
+            ActualizarTotales();
 
         }
 
