@@ -774,8 +774,26 @@ namespace ControlPagoLotes
                 ListaCeldas[row].Modificar = true;
             }
 
-            MostrarCeldasEnDgv();
+            ActualizarTotales();
 
+        }
+
+        private void ActualizarTotales()
+        {
+            acumulado = 0;
+            if (ListaCeldas != null)
+            {
+                foreach (var item in ListaCeldas)
+                {
+                    if ((item.Eliminar == null || item.Eliminar == false) && decimal.TryParse(item.Monto, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal monto))
+                    {
+                        acumulado += monto;
+                    }
+                }
+            }
+            tsTotalRegistros.Text = dgvRegistros.RowCount.ToString("N0");
+            tsAcumulado.Text = acumulado.ToString("N2");
+            tsRestante.Text = Obj == null ? "0.00" : (Obj.Total - acumulado).ToString("N2");
         }
 
         private List<string> ValidarAtrasoPago()
