@@ -1,4 +1,4 @@
-﻿namespace ControlPagoLotes
+namespace ControlPagoLotes
 {
     partial class formBoleta
     {
@@ -525,6 +525,7 @@
             // 
             // btnAddPago
             // 
+            this.btnAddPago.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnAddPago.BackColor = System.Drawing.Color.LimeGreen;
             this.btnAddPago.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnAddPago.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));

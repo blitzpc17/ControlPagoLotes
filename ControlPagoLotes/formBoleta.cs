@@ -286,13 +286,12 @@ namespace ControlPagoLotes
                         .ToList(),
                 // DataPropertyName = "FormaPago",
                 DisplayMember = "Nombre",
-                ValueMember = "Id",
-                Width = 200
+                ValueMember = "Id"
             };
 
             dgvRegistros.Columns.Add(comboColumn);
-
-
+            
+            dgvRegistros.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
 
         private void InicializarVariables()

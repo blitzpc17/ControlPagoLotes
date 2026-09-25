@@ -102,12 +102,13 @@ namespace ControlPagoLotes
             label7.Visible = false; // Hide original label "Lotificación:"
 
             // --- CONEXIONES GRID ---
-            var labelConexion = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(12, 5), Text = "Conexiones:" };
-            dgvConexiones = new DataGridView { Location = new Point(12, 25), Size = new Size(330, 90), AllowUserToAddRows = false, AllowUserToDeleteRows = false, RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false, BackgroundColor = Color.White };
+            int conX = 12;
+            var labelConexion = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(conX, 5), Text = "Conexiones:" };
+            dgvConexiones = new DataGridView { Location = new Point(conX, 25), Size = new Size(270, 85), AllowUserToAddRows = false, AllowUserToDeleteRows = false, RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false, BackgroundColor = Color.White };
             
             var colId = new DataGridViewTextBoxColumn { Name = "Id", Visible = false };
-            var colPlaza = new DataGridViewTextBoxColumn { Name = "Plaza", HeaderText = "Plaza", ReadOnly = true, Width = 130 };
-            var colRegla = new DataGridViewComboBoxColumn { Name = "Regla", HeaderText = "Filtro", Width = 180 };
+            var colPlaza = new DataGridViewTextBoxColumn { Name = "Plaza", HeaderText = "Plaza", ReadOnly = true, Width = 110 };
+            var colRegla = new DataGridViewComboBoxColumn { Name = "Regla", HeaderText = "Filtro", Width = 130 };
             colRegla.Items.AddRange("OMITIR", "TODAS", "ASIGNADAS", "MANUAL");
             
             dgvConexiones.Columns.AddRange(colId, colPlaza, colRegla);
@@ -125,11 +126,12 @@ namespace ControlPagoLotes
             }
             
             // --- LOTIFICACIONES ---
-            var labelLoti = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(350, 5), Text = "Zonas (Manual):" };
-            var txtFiltroZonas = new TextBox { Location = new Point(350, 25), Size = new Size(212, 22) };
+            int lotiX = 290;
+            var labelLoti = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(lotiX, 5), Text = "Zonas (Manual):" };
+            var txtFiltroZonas = new TextBox { Location = new Point(lotiX, 25), Size = new Size(190, 22) };
             txtFiltroZonas.TextChanged += (s, e) => ActualizarLotificacionesUI(false, txtFiltroZonas.Text);
 
-            clbLotificaciones = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(350, 50), Size = new Size(212, 65), CheckOnClick = true };
+            clbLotificaciones = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(lotiX, 50), Size = new Size(190, 60), CheckOnClick = true };
             clbLotificaciones.ItemCheck += (s, e) => {
                 var z = (Zona)clbLotificaciones.Items[e.Index];
                 if (e.NewValue == CheckState.Checked) _zonasSeleccionadas.Add(z.Id);
@@ -140,12 +142,13 @@ namespace ControlPagoLotes
             dgvConexiones.CurrentCellDirtyStateChanged += (s, e) => { if (dgvConexiones.IsCurrentCellDirty) dgvConexiones.CommitEdit(DataGridViewDataErrorContexts.Commit); };
 
             // --- USUARIOS ---
-            lblUsuarios = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(570, 5), Text = "Usuarios:" };
-            var txtFiltroUsuarios = new TextBox { Location = new Point(570, 25), Size = new Size(200, 22) };
+            int userX = 490;
+            lblUsuarios = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(userX, 5), Text = "Usuarios:" };
+            var txtFiltroUsuarios = new TextBox { Location = new Point(userX, 25), Size = new Size(180, 22) };
             txtFiltroUsuarios.TextChanged += (s, e) => ActualizarUsuariosUI(txtFiltroUsuarios.Text);
 
-            clbUsuarios = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(570, 50), Size = new Size(200, 65), Enabled = false, CheckOnClick = true };
-            chkTodosUsuarios = new CheckBox { AutoSize = true, Checked = true, Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(780, 25), Text = "Todos" };
+            clbUsuarios = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(userX, 50), Size = new Size(180, 60), Enabled = false, CheckOnClick = true };
+            chkTodosUsuarios = new CheckBox { AutoSize = true, Checked = true, Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(userX + 185, 25), Text = "Todos" };
             chkTodosUsuarios.CheckedChanged += (s, e) => { clbUsuarios.Enabled = !chkTodosUsuarios.Checked; };
             clbUsuarios.ItemCheck += (s, e) => {
                 var u = (UsuarioL)clbUsuarios.Items[e.Index];
@@ -153,10 +156,24 @@ namespace ControlPagoLotes
                 else _usuariosSeleccionados.Remove(u.Usuario);
             };
 
-            // --- DESPLAZAMIENTO DE CONTROLES ---
-            var snapshot = new List<Control>();
-            foreach (Control c in panel1.Controls) snapshot.Add(c);
-            foreach (Control c in snapshot) c.Top += 130;
+            // --- REUBICACION DE CONTROLES ORIGINALES ---
+            int perX = 750;
+            label1.Location = new Point(perX, 5); // Label Periodo:
+            label1.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold);
+            cbxPeriodo.Location = new Point(perX, 25);
+            cbxPeriodo.Size = new Size(150, 26);
+            panelMes.Location = new Point(perX, 55);
+            panelSemana.Location = new Point(perX, 55);
+            panelDia.Location = new Point(perX, 55);
+
+            // Botones
+            int btnX = 1080;
+            btnConsultar.Location = new Point(btnX, 5);
+            btnConsultar.Size = new Size(140, 32);
+            bntExportar.Location = new Point(btnX, 42);
+            bntExportar.Size = new Size(140, 32);
+            btnCancelar.Location = new Point(btnX, 79);
+            btnCancelar.Size = new Size(140, 32);
 
             panel1.Controls.Add(labelConexion);
             panel1.Controls.Add(dgvConexiones);
@@ -171,9 +188,7 @@ namespace ControlPagoLotes
             ActualizarLotificacionesUI(true, "");
             ActualizarUsuariosUI("");
 
-            panel1.Height += 130;
-            dgvRegistros.Top += 130;
-            dgvRegistros.Height -= 130;
+            panel1.Height = 115; // Mantenemos la altura original
         }
 
         private void ActualizarLotificacionesUI(bool refetch, string filtroText = "")
