@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,5 +15,9 @@ namespace Entidades
         public int? Mes { get; set; }
         public bool todas { get;set; }
         public int? LotificacionId { get; set; }
+        public List<int> LotificacionesIds { get; set; }
+        public bool todosUsuarios { get; set; } = true;
+        public List<string> UsuariosNombres { get; set; }
+        public long? ConexionPrincipalId { get; set; }
     }
 }

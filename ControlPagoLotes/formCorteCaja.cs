@@ -29,6 +29,10 @@ namespace ControlPagoLotes
         private List<long> _targetConnections = null;
         private ComboBox cbxConexiones;
         private CheckBox chkTodasConexiones;
+        private CheckedListBox clbLotificaciones;
+        private Label lblUsuarios;
+        private CheckedListBox clbUsuarios;
+        private CheckBox chkTodosUsuarios;
         public formCorteCaja()
         {
             InitializeComponent();
@@ -67,63 +71,23 @@ namespace ControlPagoLotes
             cbxPeriodo.SelectedIndex = -1;
             ComboBoxHelper.LlenarComboBox<Enumeraciones.Meses>(cbxMeses, true);
             cbxMeses.SelectedIndex = -1;
-            CargarLotificaciones();
 
             numericAnioMes.Value = DateTime.Now.Year;
             numAnioSemana.Value = DateTime.Now.Year;
 
-            AgregarFiltroConexiones();
+            AgregarFiltrosAvanzados();
         }
 
-        private void AgregarFiltroConexiones()
+        private void AgregarFiltrosAvanzados()
         {
-            var labelConexion = new Label
-            {
-                AutoSize = true,
-                Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold),
-                Location = new Point(28, 9),
-                Text = "Conexión:"
-            };
+            // Ocultar cbxLotificaciones original
+            cbxLotificaciones.Visible = false;
 
-            cbxConexiones = new ComboBox
-            {
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Font = new Font("Microsoft Sans Serif", 12F),
-                Location = new Point(140, 6),
-                Size = new Size(212, 28),
-                Enabled = false
-            };
-
-            chkTodasConexiones = new CheckBox
-            {
-                AutoSize = true,
-                Checked = true,
-                Font = new Font("Microsoft Sans Serif", 12F),
-                Location = new Point(365, 8),
-                Text = "Todas"
-            };
-
-            chkTodasConexiones.CheckedChanged += (s, e) => {
-                cbxConexiones.Enabled = !chkTodasConexiones.Checked;
-            };
-
-            // Shift other controls down by 35 pixels
-            var snapshot = new List<Control>();
-            foreach (Control c in panel1.Controls) snapshot.Add(c);
-            
-            foreach (Control c in snapshot)
-            {
-                c.Top += 35;
-            }
-
-            panel1.Controls.Add(labelConexion);
-            panel1.Controls.Add(cbxConexiones);
-            panel1.Controls.Add(chkTodasConexiones);
-            
-            panel1.Height += 35;
-            dgvRegistros.Top += 35;
-            dgvRegistros.Height -= 35;
-
+            // --- CONEXIONES ---
+            var labelConexion = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold), Location = new Point(28, 9), Text = "Conexión:" };
+            cbxConexiones = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Microsoft Sans Serif", 12F), Location = new Point(140, 6), Size = new Size(212, 28), Enabled = false };
+            chkTodasConexiones = new CheckBox { AutoSize = true, Checked = true, Font = new Font("Microsoft Sans Serif", 12F), Location = new Point(365, 8), Text = "Todas" };
+            chkTodasConexiones.CheckedChanged += (s, e) => { cbxConexiones.Enabled = !chkTodasConexiones.Checked; };
             var conexionesDict = LOGICA.PagoPartidaLogica.GetConexionesDisponibles();
             if (conexionesDict != null && conexionesDict.Count > 0)
             {
@@ -131,15 +95,45 @@ namespace ControlPagoLotes
                 cbxConexiones.DisplayMember = "Value";
                 cbxConexiones.ValueMember = "Key";
             }
-        }
 
-        private void CargarLotificaciones()
-        {
+            // --- LOTIFICACIONES (Reemplazando ComboBox) ---
+            clbLotificaciones = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(cbxLotificaciones.Location.X, cbxLotificaciones.Location.Y + 35), Size = new Size(212, 70), Enabled = !chkTodas.Checked, CheckOnClick = true };
+            chkTodas.CheckedChanged += (s, e) => { clbLotificaciones.Enabled = !chkTodas.Checked; };
+            
             contexto.ListarLotificaciones();
-            cbxLotificaciones.DataSource = contexto.LstZona;
-            cbxLotificaciones.DisplayMember = "Nombre";
-            cbxLotificaciones.ValueMember = "Id";   
-            cbxLotificaciones.SelectedIndex = -1;
+            ((ListBox)clbLotificaciones).DataSource = contexto.LstZona;
+            ((ListBox)clbLotificaciones).DisplayMember = "Nombre";
+            ((ListBox)clbLotificaciones).ValueMember = "Id";
+
+            // --- USUARIOS ---
+            lblUsuarios = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold), Location = new Point(480, 9), Text = "Usuarios:" };
+            clbUsuarios = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(570, 9), Size = new Size(200, 70), Enabled = false, CheckOnClick = true };
+            chkTodosUsuarios = new CheckBox { AutoSize = true, Checked = true, Font = new Font("Microsoft Sans Serif", 12F), Location = new Point(780, 8), Text = "Todos" };
+            chkTodosUsuarios.CheckedChanged += (s, e) => { clbUsuarios.Enabled = !chkTodosUsuarios.Checked; };
+            
+            var userLogic = new UsuarioLogica();
+            var allUsers = userLogic.GetAllUsuario(true);
+            ((ListBox)clbUsuarios).DataSource = allUsers;
+            ((ListBox)clbUsuarios).DisplayMember = "Usuario";
+            ((ListBox)clbUsuarios).ValueMember = "Id";
+
+            // --- DESPLAZAMIENTO DE CONTROLES ---
+            // Movemos todos los controles originales hacia abajo para hacer espacio
+            var snapshot = new List<Control>();
+            foreach (Control c in panel1.Controls) snapshot.Add(c);
+            foreach (Control c in snapshot) c.Top += 80;
+
+            panel1.Controls.Add(labelConexion);
+            panel1.Controls.Add(cbxConexiones);
+            panel1.Controls.Add(chkTodasConexiones);
+            panel1.Controls.Add(clbLotificaciones);
+            panel1.Controls.Add(lblUsuarios);
+            panel1.Controls.Add(clbUsuarios);
+            panel1.Controls.Add(chkTodosUsuarios);
+
+            panel1.Height += 80;
+            dgvRegistros.Top += 80;
+            dgvRegistros.Height -= 80;
         }
 
         private void dtpFechaContrato_ValueChanged(object sender, EventArgs e)
@@ -457,16 +451,39 @@ namespace ControlPagoLotes
         private void btnConsultar_Click(object sender, EventArgs e)
         {
             contexto.InicializarObjConsulta();
+            
+            // --- LOTIFICACIONES ---
             contexto.objConsulta.todas = chkTodas.Checked;
             if (!chkTodas.Checked)
             {
-                if(cbxLotificaciones.SelectedIndex == -1)                 {
-                    MessageBox.Show("Debe seleccionar una lotificación para realizar la consulta.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                if (clbLotificaciones.CheckedItems.Count == 0)
+                {
+                    MessageBox.Show("Debe seleccionar al menos una lotificación para realizar la consulta.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                contexto.objConsulta.LotificacionId = (int?)cbxLotificaciones.SelectedValue;
+                contexto.objConsulta.LotificacionesIds = new List<int>();
+                foreach (var item in clbLotificaciones.CheckedItems)
+                {
+                    contexto.objConsulta.LotificacionesIds.Add(((Zona)item).Id);
+                }
+            }
 
+            // --- USUARIOS ---
+            contexto.objConsulta.todosUsuarios = chkTodosUsuarios.Checked;
+            if (!chkTodosUsuarios.Checked)
+            {
+                if (clbUsuarios.CheckedItems.Count == 0)
+                {
+                    MessageBox.Show("Debe seleccionar al menos un usuario para realizar la consulta.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                contexto.objConsulta.UsuariosNombres = new List<string>();
+                foreach (var item in clbUsuarios.CheckedItems)
+                {
+                    contexto.objConsulta.UsuariosNombres.Add(((UsuarioL)item).Usuario);
+                }
             }
 
             if (cbxPeriodo.SelectedIndex == -1) { 
@@ -501,15 +518,17 @@ namespace ControlPagoLotes
 
                 if (chkTodasConexiones.Checked)
                 {
-                    _targetConnections = null;
+                    contexto.objConsulta.ConexionPrincipalId = null;
                 }
                 else
                 {
                     if (cbxConexiones.SelectedValue != null)
                     {
-                        _targetConnections = new List<long> { (long)cbxConexiones.SelectedValue };
+                        contexto.objConsulta.ConexionPrincipalId = (long)cbxConexiones.SelectedValue;
                     }
                 }
+                // Siempre consultamos todas las conexiones para poder traer las "extras"
+                _targetConnections = null;
 
                 tsCargandoInformacion.Text = "Cargando información...";
                 backgroundWorker1.RunWorkerAsync();

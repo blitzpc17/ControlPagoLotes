@@ -120,7 +120,30 @@ namespace DAO.ADOS
             // Lotificaciones
             if (!obj.todas)
             {
-                condiciones += " AND z.Id = @lotificacionId ";
+                bool isConexionPrincipal = obj.ConexionPrincipalId.HasValue && obj.ConexionPrincipalId.Value == this.ConnectionId;
+
+                if (!isConexionPrincipal)
+                {
+                    if (obj.LotificacionesIds != null && obj.LotificacionesIds.Count > 0)
+                    {
+                        condiciones += " AND z.Id IN @lotificacionesIds ";
+                    }
+                    else if (obj.LotificacionId.HasValue)
+                    {
+                        condiciones += " AND z.Id = @lotificacionId ";
+                    }
+                    else
+                    {
+                        // Si no hay lotificaciones seleccionadas y no es la principal, no traer nada
+                        condiciones += " AND 1 = 0 ";
+                    }
+                }
+            }
+
+            // Usuarios
+            if (!obj.todosUsuarios && obj.UsuariosNombres != null && obj.UsuariosNombres.Count > 0)
+            {
+                condiciones += " AND u.Usuario IN @usuariosNombres ";
             }
 
             var query = $@"
@@ -166,7 +189,9 @@ namespace DAO.ADOS
                 anio = obj.Anio,
                 semana = obj.NumeroSemana,
                 mes = obj.Mes,
-                lotificacionId = obj.LotificacionId
+                lotificacionId = obj.LotificacionId,
+                lotificacionesIds = obj.LotificacionesIds?.ToArray(),
+                usuariosNombres = obj.UsuariosNombres?.ToArray()
             };
 
             return connection.Query<clsDATACORTE>(query, p).ToList();
