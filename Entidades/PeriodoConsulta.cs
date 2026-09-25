@@ -19,5 +19,7 @@ namespace Entidades
         public bool todosUsuarios { get; set; } = true;
         public List<string> UsuariosNombres { get; set; }
         public long? ConexionPrincipalId { get; set; }
+        public bool IgnorarPermisosZonas { get; set; } = false;
+        public Dictionary<long, string> ReglasPorConexion { get; set; }
     }
 }

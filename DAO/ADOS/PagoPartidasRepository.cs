@@ -117,26 +117,37 @@ namespace DAO.ADOS
                     break;
             }
 
-            // Lotificaciones
-            if (!obj.todas)
-            {
-                bool isConexionPrincipal = obj.ConexionPrincipalId.HasValue && obj.ConexionPrincipalId.Value == this.ConnectionId;
+            // Lotificaciones por Regla
+            string regla = "TODAS"; // Por defecto, si no hay reglas, actuamos legacy
+            bool ignorarPermisos = obj.IgnorarPermisosZonas;
 
-                if (!isConexionPrincipal)
+            if (obj.ReglasPorConexion != null && obj.ReglasPorConexion.ContainsKey(this.ConnectionId))
+            {
+                regla = obj.ReglasPorConexion[this.ConnectionId];
+            }
+
+            if (regla == "OMITIR")
+            {
+                condiciones += " AND 1 = 0 ";
+            }
+            else if (regla == "TODAS")
+            {
+                ignorarPermisos = true;
+            }
+            else if (regla == "ASIGNADAS")
+            {
+                ignorarPermisos = false;
+            }
+            else if (regla == "MANUAL")
+            {
+                ignorarPermisos = true;
+                if (obj.LotificacionesIds != null && obj.LotificacionesIds.Count > 0)
                 {
-                    if (obj.LotificacionesIds != null && obj.LotificacionesIds.Count > 0)
-                    {
-                        condiciones += " AND z.Id IN @lotificacionesIds ";
-                    }
-                    else if (obj.LotificacionId.HasValue)
-                    {
-                        condiciones += " AND z.Id = @lotificacionId ";
-                    }
-                    else
-                    {
-                        // Si no hay lotificaciones seleccionadas y no es la principal, no traer nada
-                        condiciones += " AND 1 = 0 ";
-                    }
+                    condiciones += " AND z.Id IN @lotificacionesIds ";
+                }
+                else
+                {
+                    condiciones += " AND 1 = 0 "; // Selección manual sin zonas
                 }
             }
 
@@ -172,7 +183,7 @@ namespace DAO.ADOS
                             LEFT JOIN USUARIOS ue ON pp.UsuarioBajaId = ue.Id
                             WHERE {condiciones}
                               AND (
-                                    @IsAdmin = 1 OR EXISTS (
+                                    @IsAdmin = 1 OR @IgnorarPermisos = 1 OR EXISTS (
                                         SELECT 1
                                         FROM dbo.fn_ZonasPermitidasPorUsuario(@UsuarioId) f
                                         WHERE f.ZonaId = pa.ZonaId
@@ -191,7 +202,8 @@ namespace DAO.ADOS
                 mes = obj.Mes,
                 lotificacionId = obj.LotificacionId,
                 lotificacionesIds = obj.LotificacionesIds?.ToArray(),
-                usuariosNombres = obj.UsuariosNombres?.ToArray()
+                usuariosNombres = obj.UsuariosNombres?.ToArray(),
+                IgnorarPermisos = ignorarPermisos ? 1 : 0
             };
 
             return connection.Query<clsDATACORTE>(query, p).ToList();

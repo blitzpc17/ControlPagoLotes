@@ -27,12 +27,14 @@ namespace ControlPagoLotes
         private Enumeraciones.Periodo periodoSeleccionado;
         private Enumeraciones.Meses mesSeleccionado;
         private List<long> _targetConnections = null;
-        private ComboBox cbxConexiones;
-        private CheckBox chkTodasConexiones;
+        private DataGridView dgvConexiones;
         private CheckedListBox clbLotificaciones;
         private Label lblUsuarios;
         private CheckedListBox clbUsuarios;
         private CheckBox chkTodosUsuarios;
+        private List<Zona> _zonasDisponibles;
+        private HashSet<int> _zonasSeleccionadas = new HashSet<int>();
+        private HashSet<string> _usuariosSeleccionados = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         public formCorteCaja()
         {
             InitializeComponent();
@@ -78,62 +80,160 @@ namespace ControlPagoLotes
             AgregarFiltrosAvanzados();
         }
 
+        public Dictionary<long, string> GetReglasActuales()
+        {
+            var reglas = new Dictionary<long, string>();
+            if (dgvConexiones != null)
+            {
+                foreach (DataGridViewRow row in dgvConexiones.Rows)
+                {
+                    long id = (long)row.Cells["Id"].Value;
+                    string regla = row.Cells["Regla"].Value.ToString();
+                    reglas.Add(id, regla);
+                }
+            }
+            return reglas;
+        }
+
         private void AgregarFiltrosAvanzados()
         {
-            // Ocultar cbxLotificaciones original
             cbxLotificaciones.Visible = false;
+            chkTodas.Visible = false; // Hide original checkbox
+            label7.Visible = false; // Hide original label "Lotificación:"
 
-            // --- CONEXIONES ---
-            var labelConexion = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold), Location = new Point(28, 9), Text = "Conexión:" };
-            cbxConexiones = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Microsoft Sans Serif", 12F), Location = new Point(140, 6), Size = new Size(212, 28), Enabled = false };
-            chkTodasConexiones = new CheckBox { AutoSize = true, Checked = true, Font = new Font("Microsoft Sans Serif", 12F), Location = new Point(365, 8), Text = "Todas" };
-            chkTodasConexiones.CheckedChanged += (s, e) => { cbxConexiones.Enabled = !chkTodasConexiones.Checked; };
-            var conexionesDict = LOGICA.PagoPartidaLogica.GetConexionesDisponibles();
-            if (conexionesDict != null && conexionesDict.Count > 0)
-            {
-                cbxConexiones.DataSource = new BindingSource(conexionesDict, null);
-                cbxConexiones.DisplayMember = "Value";
-                cbxConexiones.ValueMember = "Key";
-            }
-
-            // --- LOTIFICACIONES (Reemplazando ComboBox) ---
-            clbLotificaciones = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(cbxLotificaciones.Location.X, cbxLotificaciones.Location.Y + 35), Size = new Size(212, 70), Enabled = !chkTodas.Checked, CheckOnClick = true };
-            chkTodas.CheckedChanged += (s, e) => { clbLotificaciones.Enabled = !chkTodas.Checked; };
+            // --- CONEXIONES GRID ---
+            var labelConexion = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(12, 5), Text = "Conexiones:" };
+            dgvConexiones = new DataGridView { Location = new Point(12, 25), Size = new Size(330, 90), AllowUserToAddRows = false, AllowUserToDeleteRows = false, RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false, BackgroundColor = Color.White };
             
-            contexto.ListarLotificaciones();
-            ((ListBox)clbLotificaciones).DataSource = contexto.LstZona;
-            ((ListBox)clbLotificaciones).DisplayMember = "Nombre";
-            ((ListBox)clbLotificaciones).ValueMember = "Id";
+            var colId = new DataGridViewTextBoxColumn { Name = "Id", Visible = false };
+            var colPlaza = new DataGridViewTextBoxColumn { Name = "Plaza", HeaderText = "Plaza", ReadOnly = true, Width = 130 };
+            var colRegla = new DataGridViewComboBoxColumn { Name = "Regla", HeaderText = "Filtro", Width = 180 };
+            colRegla.Items.AddRange("OMITIR", "TODAS", "ASIGNADAS", "MANUAL");
+            
+            dgvConexiones.Columns.AddRange(colId, colPlaza, colRegla);
+
+            var conexionesDict = LOGICA.PagoPartidaLogica.GetConexionesDisponibles();
+            if (conexionesDict != null)
+            {
+                foreach (var kvp in conexionesDict)
+                {
+                    int rowIndex = dgvConexiones.Rows.Add();
+                    dgvConexiones.Rows[rowIndex].Cells["Id"].Value = kvp.Key;
+                    dgvConexiones.Rows[rowIndex].Cells["Plaza"].Value = kvp.Value;
+                    dgvConexiones.Rows[rowIndex].Cells["Regla"].Value = "TODAS"; // Por defecto
+                }
+            }
+            
+            // --- LOTIFICACIONES ---
+            var labelLoti = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(350, 5), Text = "Zonas (Manual):" };
+            var txtFiltroZonas = new TextBox { Location = new Point(350, 25), Size = new Size(212, 22) };
+            txtFiltroZonas.TextChanged += (s, e) => ActualizarLotificacionesUI(false, txtFiltroZonas.Text);
+
+            clbLotificaciones = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(350, 50), Size = new Size(212, 65), CheckOnClick = true };
+            clbLotificaciones.ItemCheck += (s, e) => {
+                var z = (Zona)clbLotificaciones.Items[e.Index];
+                if (e.NewValue == CheckState.Checked) _zonasSeleccionadas.Add(z.Id);
+                else _zonasSeleccionadas.Remove(z.Id);
+            };
+            
+            dgvConexiones.CellValueChanged += (s, e) => { if (e.ColumnIndex == colRegla.Index) ActualizarLotificacionesUI(true, txtFiltroZonas.Text); };
+            dgvConexiones.CurrentCellDirtyStateChanged += (s, e) => { if (dgvConexiones.IsCurrentCellDirty) dgvConexiones.CommitEdit(DataGridViewDataErrorContexts.Commit); };
 
             // --- USUARIOS ---
-            lblUsuarios = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold), Location = new Point(480, 9), Text = "Usuarios:" };
-            clbUsuarios = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(570, 9), Size = new Size(200, 70), Enabled = false, CheckOnClick = true };
-            chkTodosUsuarios = new CheckBox { AutoSize = true, Checked = true, Font = new Font("Microsoft Sans Serif", 12F), Location = new Point(780, 8), Text = "Todos" };
+            lblUsuarios = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(570, 5), Text = "Usuarios:" };
+            var txtFiltroUsuarios = new TextBox { Location = new Point(570, 25), Size = new Size(200, 22) };
+            txtFiltroUsuarios.TextChanged += (s, e) => ActualizarUsuariosUI(txtFiltroUsuarios.Text);
+
+            clbUsuarios = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(570, 50), Size = new Size(200, 65), Enabled = false, CheckOnClick = true };
+            chkTodosUsuarios = new CheckBox { AutoSize = true, Checked = true, Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(780, 25), Text = "Todos" };
             chkTodosUsuarios.CheckedChanged += (s, e) => { clbUsuarios.Enabled = !chkTodosUsuarios.Checked; };
+            clbUsuarios.ItemCheck += (s, e) => {
+                var u = (UsuarioL)clbUsuarios.Items[e.Index];
+                if (e.NewValue == CheckState.Checked) _usuariosSeleccionados.Add(u.Usuario);
+                else _usuariosSeleccionados.Remove(u.Usuario);
+            };
+
+            // --- DESPLAZAMIENTO DE CONTROLES ---
+            var snapshot = new List<Control>();
+            foreach (Control c in panel1.Controls) snapshot.Add(c);
+            foreach (Control c in snapshot) c.Top += 130;
+
+            panel1.Controls.Add(labelConexion);
+            panel1.Controls.Add(dgvConexiones);
+            panel1.Controls.Add(labelLoti);
+            panel1.Controls.Add(txtFiltroZonas);
+            panel1.Controls.Add(clbLotificaciones);
+            panel1.Controls.Add(lblUsuarios);
+            panel1.Controls.Add(txtFiltroUsuarios);
+            panel1.Controls.Add(clbUsuarios);
+            panel1.Controls.Add(chkTodosUsuarios);
+
+            ActualizarLotificacionesUI(true, "");
+            ActualizarUsuariosUI("");
+
+            panel1.Height += 130;
+            dgvRegistros.Top += 130;
+            dgvRegistros.Height -= 130;
+        }
+
+        private void ActualizarLotificacionesUI(bool refetch, string filtroText = "")
+        {
+            if (refetch || _zonasDisponibles == null)
+            {
+                var zonaLogic = new ZonaLogica();
+                _zonasDisponibles = zonaLogic.GetAllZonas(null, null, true); // Traemos TODO para que elijan MANUALMENTE.
+            }
+
+            var reglas = GetReglasActuales();
+            List<Zona> zonasFiltradas = new List<Zona>();
+
+            foreach (var z in _zonasDisponibles)
+            {
+                if (reglas.ContainsKey(z.ConnectionId) && reglas[z.ConnectionId] == "MANUAL")
+                {
+                    zonasFiltradas.Add(z);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(filtroText))
+            {
+                zonasFiltradas = zonasFiltradas.Where(z => z.NombreConPlaza.IndexOf(filtroText, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+            }
+
+            ((ListBox)clbLotificaciones).DataSource = null;
+            ((ListBox)clbLotificaciones).DataSource = zonasFiltradas;
+            ((ListBox)clbLotificaciones).DisplayMember = "NombreConPlaza";
+            ((ListBox)clbLotificaciones).ValueMember = "Id";
+
+            for (int i = 0; i < clbLotificaciones.Items.Count; i++)
+            {
+                var z = (Zona)clbLotificaciones.Items[i];
+                if (_zonasSeleccionadas.Contains(z.Id)) clbLotificaciones.SetItemChecked(i, true);
+            }
             
+            clbLotificaciones.Enabled = (zonasFiltradas.Count > 0);
+        }
+
+        private void ActualizarUsuariosUI(string filtroText)
+        {
             var userLogic = new UsuarioLogica();
             var allUsers = userLogic.GetAllUsuario(true);
+
+            if (!string.IsNullOrWhiteSpace(filtroText))
+            {
+                allUsers = allUsers.Where(u => u.Usuario.IndexOf(filtroText, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+            }
+
+            ((ListBox)clbUsuarios).DataSource = null;
             ((ListBox)clbUsuarios).DataSource = allUsers;
             ((ListBox)clbUsuarios).DisplayMember = "Usuario";
             ((ListBox)clbUsuarios).ValueMember = "Id";
 
-            // --- DESPLAZAMIENTO DE CONTROLES ---
-            // Movemos todos los controles originales hacia abajo para hacer espacio
-            var snapshot = new List<Control>();
-            foreach (Control c in panel1.Controls) snapshot.Add(c);
-            foreach (Control c in snapshot) c.Top += 80;
-
-            panel1.Controls.Add(labelConexion);
-            panel1.Controls.Add(cbxConexiones);
-            panel1.Controls.Add(chkTodasConexiones);
-            panel1.Controls.Add(clbLotificaciones);
-            panel1.Controls.Add(lblUsuarios);
-            panel1.Controls.Add(clbUsuarios);
-            panel1.Controls.Add(chkTodosUsuarios);
-
-            panel1.Height += 80;
-            dgvRegistros.Top += 80;
-            dgvRegistros.Height -= 80;
+            for (int i = 0; i < clbUsuarios.Items.Count; i++)
+            {
+                var u = (UsuarioL)clbUsuarios.Items[i];
+                if (_usuariosSeleccionados.Contains(u.Usuario)) clbUsuarios.SetItemChecked(i, true);
+            }
         }
 
         private void dtpFechaContrato_ValueChanged(object sender, EventArgs e)
@@ -452,38 +552,23 @@ namespace ControlPagoLotes
         {
             contexto.InicializarObjConsulta();
             
-            // --- LOTIFICACIONES ---
-            contexto.objConsulta.todas = chkTodas.Checked;
-            if (!chkTodas.Checked)
-            {
-                if (clbLotificaciones.CheckedItems.Count == 0)
-                {
-                    MessageBox.Show("Debe seleccionar al menos una lotificación para realizar la consulta.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
+            contexto.objConsulta.ReglasPorConexion = GetReglasActuales();
 
-                contexto.objConsulta.LotificacionesIds = new List<int>();
-                foreach (var item in clbLotificaciones.CheckedItems)
-                {
-                    contexto.objConsulta.LotificacionesIds.Add(((Zona)item).Id);
-                }
-            }
+            // --- LOTIFICACIONES ---
+            contexto.objConsulta.todas = false; 
+            contexto.objConsulta.LotificacionesIds = _zonasSeleccionadas.ToList();
 
             // --- USUARIOS ---
             contexto.objConsulta.todosUsuarios = chkTodosUsuarios.Checked;
             if (!chkTodosUsuarios.Checked)
             {
-                if (clbUsuarios.CheckedItems.Count == 0)
+                if (_usuariosSeleccionados.Count == 0)
                 {
                     MessageBox.Show("Debe seleccionar al menos un usuario para realizar la consulta.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                contexto.objConsulta.UsuariosNombres = new List<string>();
-                foreach (var item in clbUsuarios.CheckedItems)
-                {
-                    contexto.objConsulta.UsuariosNombres.Add(((UsuarioL)item).Usuario);
-                }
+                contexto.objConsulta.UsuariosNombres = _usuariosSeleccionados.ToList();
             }
 
             if (cbxPeriodo.SelectedIndex == -1) { 
@@ -516,17 +601,7 @@ namespace ControlPagoLotes
                         break;
                 }
 
-                if (chkTodasConexiones.Checked)
-                {
-                    contexto.objConsulta.ConexionPrincipalId = null;
-                }
-                else
-                {
-                    if (cbxConexiones.SelectedValue != null)
-                    {
-                        contexto.objConsulta.ConexionPrincipalId = (long)cbxConexiones.SelectedValue;
-                    }
-                }
+                contexto.objConsulta.ConexionPrincipalId = null;
                 // Siempre consultamos todas las conexiones para poder traer las "extras"
                 _targetConnections = null;
 
