@@ -385,6 +385,14 @@ namespace ControlPagoLotes
                 ListaCeldasModificar = ListaCeldas.Where(x => x.Id != null && (x.Modificar == true || x.Eliminar == true)).ToList();
                 StringBuilder scriptInsert;
 
+                int localUserId = Global.ObjUsuario.Id;
+                if (_connectionId.HasValue && _connectionId.Value > 0)
+                {
+                    var userLogic = new LOGICA.UsuarioLogica(_connectionId.Value);
+                    var u = userLogic.GetUsuarioByNombre(Global.ObjUsuario.Usuario);
+                    if (u != null) localUserId = u.Id;
+                }
+
                 if (ListaCeldasNuevas.Count > 0)
                 {
                     scriptInsert = new StringBuilder("INSERT INTO PAGOSPARTIDAS (PagoId, Monto, Fecha, UsuarioId, FechaCreacion, FormaPago, MontoOriginal, FechaModificacion, UsuarioModificoId) VALUES ");
@@ -399,7 +407,7 @@ namespace ControlPagoLotes
                                 PagoId = Obj.Id,
                                 Monto = monto,
                                 Fecha = fecha,
-                                UsuarioId = Global.ObjUsuario.Id,
+                                UsuarioId = localUserId,
                                 FechaCreacion = fechaServidor,
                                 FormaPago = item.FormaPago,
                                 MontoOriginal = 0,
@@ -461,9 +469,9 @@ namespace ControlPagoLotes
                                     FormaPago = '{item.FormaPago}', 
                                     MontoOriginal = {ListaPartidas.FirstOrDefault(x => x.Id == item.Id).Monto}, 
                                     FechaModificacion = '{fechaServidor:yyyy-MM-dd HH:mm:ss}', 
-                                    UsuarioModificoId = '{Global.ObjUsuario.Id}',
+                                    UsuarioModificoId = '{localUserId}',
                                     FechaBaja = {((item.Eliminar == true) ? "'" + fechaServidor.ToString("yyyy-MM-dd HH:mm:ss") + "'" : "NULL")},
-                                    UsuarioBajaId = {((item.Eliminar == true) ? Global.ObjUsuario.Id.ToString("N0") : "NULL")}
+                                    UsuarioBajaId = {((item.Eliminar == true) ? localUserId.ToString("N0") : "NULL")}
                                 WHERE Id = {item.Id};
                             ");
                         }

@@ -13,8 +13,17 @@ namespace LOGICA
         UsuariosRepository contexto;
         public UsuarioLogica()
         {
-
             contexto = new UsuariosRepository();
+        }
+
+        public UsuarioLogica(long connectionId)
+        {
+            contexto = new UsuariosRepository(connectionId);
+        }
+
+        public UsuarioL GetUsuarioByNombre(string nombreUsuario)
+        {
+            return contexto.GetUsuarioByNombre(nombreUsuario);
         }
 
         // Crear Usuario
