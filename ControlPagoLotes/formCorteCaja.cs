@@ -98,19 +98,25 @@ namespace ControlPagoLotes
         private void AgregarFiltrosAvanzados()
         {
             cbxLotificaciones.Visible = false;
-            chkTodas.Visible = false; // Hide original checkbox
-            label7.Visible = false; // Hide original label "Lotificación:"
+            chkTodas.Visible = false; 
+            label7.Visible = false;
 
-            // --- CONEXIONES GRID ---
-            int conX = 12;
-            var labelConexion = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(conX, 5), Text = "Conexiones:" };
-            dgvConexiones = new DataGridView { Location = new Point(conX, 25), Size = new Size(270, 85), AllowUserToAddRows = false, AllowUserToDeleteRows = false, RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false, BackgroundColor = Color.White };
+            TableLayoutPanel tlp = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 5, RowCount = 1 };
+            tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22F));
+            tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22F));
+            tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tlp.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+            // --- CONEXIONES ---
+            Panel pnlCon = new Panel { Dock = DockStyle.Fill };
+            var labelConexion = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(5, 5), Text = "Conexiones:" };
+            dgvConexiones = new DataGridView { Location = new Point(5, 25), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right, Width = pnlCon.Width - 15, Height = 85, AllowUserToAddRows = false, AllowUserToDeleteRows = false, RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false, BackgroundColor = Color.White };
             
             var colId = new DataGridViewTextBoxColumn { Name = "Id", Visible = false };
             var colPlaza = new DataGridViewTextBoxColumn { Name = "Plaza", HeaderText = "Plaza", ReadOnly = true, Width = 110 };
             var colRegla = new DataGridViewComboBoxColumn { Name = "Regla", HeaderText = "Filtro", Width = 130 };
             colRegla.Items.AddRange("OMITIR", "TODAS", "ASIGNADAS", "MANUAL");
-            
             dgvConexiones.Columns.AddRange(colId, colPlaza, colRegla);
 
             var conexionesDict = LOGICA.PagoPartidaLogica.GetConexionesDisponibles();
@@ -121,17 +127,20 @@ namespace ControlPagoLotes
                     int rowIndex = dgvConexiones.Rows.Add();
                     dgvConexiones.Rows[rowIndex].Cells["Id"].Value = kvp.Key;
                     dgvConexiones.Rows[rowIndex].Cells["Plaza"].Value = kvp.Value;
-                    dgvConexiones.Rows[rowIndex].Cells["Regla"].Value = "TODAS"; // Por defecto
+                    dgvConexiones.Rows[rowIndex].Cells["Regla"].Value = "TODAS";
                 }
             }
-            
+            pnlCon.Controls.Add(labelConexion);
+            pnlCon.Controls.Add(dgvConexiones);
+            tlp.Controls.Add(pnlCon, 0, 0);
+
             // --- LOTIFICACIONES ---
-            int lotiX = 290;
-            var labelLoti = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(lotiX, 5), Text = "Zonas (Manual):" };
-            var txtFiltroZonas = new TextBox { Location = new Point(lotiX, 25), Size = new Size(190, 22) };
+            Panel pnlLoti = new Panel { Dock = DockStyle.Fill };
+            var labelLoti = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(5, 5), Text = "Zonas (Manual):" };
+            var txtFiltroZonas = new TextBox { Location = new Point(5, 25), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right, Width = pnlLoti.Width - 15 };
             txtFiltroZonas.TextChanged += (s, e) => ActualizarLotificacionesUI(false, txtFiltroZonas.Text);
 
-            clbLotificaciones = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(lotiX, 50), Size = new Size(190, 60), CheckOnClick = true };
+            clbLotificaciones = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(5, 50), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right, Width = pnlLoti.Width - 15, Height = 60, CheckOnClick = true };
             clbLotificaciones.ItemCheck += (s, e) => {
                 var z = (Zona)clbLotificaciones.Items[e.Index];
                 if (e.NewValue == CheckState.Checked) _zonasSeleccionadas.Add(z.Id);
@@ -140,55 +149,75 @@ namespace ControlPagoLotes
             
             dgvConexiones.CellValueChanged += (s, e) => { if (e.ColumnIndex == colRegla.Index) ActualizarLotificacionesUI(true, txtFiltroZonas.Text); };
             dgvConexiones.CurrentCellDirtyStateChanged += (s, e) => { if (dgvConexiones.IsCurrentCellDirty) dgvConexiones.CommitEdit(DataGridViewDataErrorContexts.Commit); };
+            pnlLoti.Controls.Add(labelLoti);
+            pnlLoti.Controls.Add(txtFiltroZonas);
+            pnlLoti.Controls.Add(clbLotificaciones);
+            tlp.Controls.Add(pnlLoti, 1, 0);
 
             // --- USUARIOS ---
-            int userX = 490;
-            lblUsuarios = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(userX, 5), Text = "Usuarios:" };
-            var txtFiltroUsuarios = new TextBox { Location = new Point(userX, 25), Size = new Size(180, 22) };
+            Panel pnlUsers = new Panel { Dock = DockStyle.Fill };
+            lblUsuarios = new Label { AutoSize = true, Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold), Location = new Point(5, 5), Text = "Usuarios:" };
+            chkTodosUsuarios = new CheckBox { AutoSize = true, Checked = true, Font = new Font("Microsoft Sans Serif", 10F), Anchor = AnchorStyles.Top | AnchorStyles.Left, Location = new Point(90, 5), Text = "Todos" };
+            
+            var txtFiltroUsuarios = new TextBox { Location = new Point(5, 25), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right, Width = pnlUsers.Width - 15 };
             txtFiltroUsuarios.TextChanged += (s, e) => ActualizarUsuariosUI(txtFiltroUsuarios.Text);
 
-            clbUsuarios = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(userX, 50), Size = new Size(180, 60), Enabled = false, CheckOnClick = true };
-            chkTodosUsuarios = new CheckBox { AutoSize = true, Checked = true, Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(userX + 185, 25), Text = "Todos" };
+            clbUsuarios = new CheckedListBox { Font = new Font("Microsoft Sans Serif", 10F), Location = new Point(5, 50), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right, Width = pnlUsers.Width - 15, Height = 60, Enabled = false, CheckOnClick = true };
             chkTodosUsuarios.CheckedChanged += (s, e) => { clbUsuarios.Enabled = !chkTodosUsuarios.Checked; };
             clbUsuarios.ItemCheck += (s, e) => {
                 var u = (UsuarioL)clbUsuarios.Items[e.Index];
                 if (e.NewValue == CheckState.Checked) _usuariosSeleccionados.Add(u.Usuario);
                 else _usuariosSeleccionados.Remove(u.Usuario);
             };
+            pnlUsers.Controls.Add(lblUsuarios);
+            pnlUsers.Controls.Add(chkTodosUsuarios);
+            pnlUsers.Controls.Add(txtFiltroUsuarios);
+            pnlUsers.Controls.Add(clbUsuarios);
+            tlp.Controls.Add(pnlUsers, 2, 0);
 
-            // --- REUBICACION DE CONTROLES ORIGINALES ---
-            int perX = 750;
-            label1.Location = new Point(perX, 5); // Label Periodo:
+            // --- PERIODO ---
+            Panel pnlPeriodo = new Panel { Dock = DockStyle.Fill };
+            label1.Location = new Point(5, 5); 
             label1.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold);
-            cbxPeriodo.Location = new Point(perX, 25);
-            cbxPeriodo.Size = new Size(150, 26);
-            panelMes.Location = new Point(perX, 55);
-            panelSemana.Location = new Point(perX, 55);
-            panelDia.Location = new Point(perX, 55);
+            cbxPeriodo.Location = new Point(5, 25);
+            cbxPeriodo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cbxPeriodo.Width = pnlPeriodo.Width - 15;
+            
+            panelMes.Location = new Point(5, 55);
+            panelMes.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            panelSemana.Location = new Point(5, 55);
+            panelSemana.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            panelDia.Location = new Point(5, 55);
+            panelDia.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
-            // Botones
-            int btnX = 1080;
-            btnConsultar.Location = new Point(btnX, 5);
-            btnConsultar.Size = new Size(140, 32);
-            bntExportar.Location = new Point(btnX, 42);
-            bntExportar.Size = new Size(140, 32);
-            btnCancelar.Location = new Point(btnX, 79);
-            btnCancelar.Size = new Size(140, 32);
+            pnlPeriodo.Controls.Add(label1);
+            pnlPeriodo.Controls.Add(cbxPeriodo);
+            pnlPeriodo.Controls.Add(panelMes);
+            pnlPeriodo.Controls.Add(panelSemana);
+            pnlPeriodo.Controls.Add(panelDia);
+            tlp.Controls.Add(pnlPeriodo, 3, 0);
 
-            panel1.Controls.Add(labelConexion);
-            panel1.Controls.Add(dgvConexiones);
-            panel1.Controls.Add(labelLoti);
-            panel1.Controls.Add(txtFiltroZonas);
-            panel1.Controls.Add(clbLotificaciones);
-            panel1.Controls.Add(lblUsuarios);
-            panel1.Controls.Add(txtFiltroUsuarios);
-            panel1.Controls.Add(clbUsuarios);
-            panel1.Controls.Add(chkTodosUsuarios);
+            // --- BOTONES ---
+            Panel pnlBotones = new Panel { Dock = DockStyle.Fill, Width = 160 };
+            btnConsultar.Location = new Point(5, 5);
+            btnConsultar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            bntExportar.Location = new Point(5, 42);
+            bntExportar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnCancelar.Location = new Point(5, 79);
+            btnCancelar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            
+            pnlBotones.Controls.Add(btnConsultar);
+            pnlBotones.Controls.Add(bntExportar);
+            pnlBotones.Controls.Add(btnCancelar);
+            tlp.Controls.Add(pnlBotones, 4, 0);
+
+            panel1.Controls.Add(tlp);
 
             ActualizarLotificacionesUI(true, "");
             ActualizarUsuariosUI("");
 
-            panel1.Height = 115; // Mantenemos la altura original
+            panel1.Height = 120;
+            this.WindowState = FormWindowState.Maximized;
         }
 
         private void ActualizarLotificacionesUI(bool refetch, string filtroText = "")
